@@ -14,7 +14,20 @@ COMPILER HEX
 
 \ import needs to see Forth to find kernel primitives 
 TARGET ALSO FORTH   
-IMPORT: +
+IMPORT: + BYE 
+
+TARGET CODE COLD
+      8300 LWPI,
+      4000  SP0  LI,           \ data stack
+      RP  RP0  LI,             \ return stack
+      R10 T' EXIT CELL+ LI,    \ NEXT, the inner interpreter
+      IP  BOOT  LI,            \ load interpreter pointer with boot word
+      *R10 B,                  \ run Forth NEXT (inner interpreter)
+ENDCODE
+
 
 TARGET   \ now we can't look at Forth vocabuarly
-: TEST  2  4  +  ;
+: TEST  2  4  +  BYE  ;
+
+COMPILER HEX 
+T' TEST  
