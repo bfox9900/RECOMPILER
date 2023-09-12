@@ -1,23 +1,50 @@
-\ CAMEL99 Forth HI-LEVEL WORDs 
+\ CAMEL99 Forth HI-LEVEL WORDs RE-COMPILED 
+
+**NOT_FINISHED**
 
 COMPILER 
-HEX
-CR .( Constants and VARIABLEs...)
+NEW
+\ we MUST load Executors first
+\ EXIT DOCON DOVAR DOCOL ?BRANCH and BRANCH
+INCLUDE DSK7.EXECUTORS  
+
+\ Now we can make the reset of the compiler
+INCLUDE DSK7.BRANCHING   \ compilers for: IF THEN BEGIN AGAIN...
+INCLUDE DSK7.DATATYPES   \ CONSTANT VARIABLE : ;
+
+COMPILER HEX 
+
+TARGET ALSO FORTH 
+\ steal primitives code from the Kernel and copy into target
+IMPORT: @ ! C@ C!  2!  2@  COUNT  +!  C+! 
+IMPORT: RP@  RP! DUP>R  >R  R>  R@  SP@  SP!  2>R 2R>  
+IMPORT: NIP  ?DUP  SWAP  OVER  ROT -ROT  ><  2DROP 2DUP  2SWAP PICK  
+IMPORT: AND  OR  XOR 
+IMPORT: 1+  1-  2+  2-  2*  4*  8*  2/   
+IMPORT: 1+!  1-! 
+IMPORT: -  D+  RSHIFT LSHIFT INVERT ABS  NEGATE  ALIGNED 
+IMPORT: UM*  *  UM/MOD  M/MOD  
+IMPORT: =  OVER= 0<  U<  >  < 
+IMPORT: MIN  MAX SPLIT FUSE 
+IMPORT: MOVE FILL SKIP SCAN 
+IMPORT: ON OFF 
+
+COMPILER CR .( Constants and VARIABLEs...)
 
 TARGET
-  4000 CONSTANT SP0   
-  3FE0 CONSTANT RP0  
-  FF00 CONSTANT TIB  
+ 4000 CONSTANT SP0   
+ 3FE0 CONSTANT RP0  
+ FF00 CONSTANT TIB  
 
 \ Utility constants
-      0 CONSTANT FALSE
-     -1 CONSTANT TRUE
-      0 CONSTANT 0
-      1 CONSTANT 1
-     20 CONSTANT BL
+    0 CONSTANT FALSE
+   -1 CONSTANT TRUE
+    0 CONSTANT 0
+    1 CONSTANT 1
+   20 CONSTANT BL
 
-\ S Y S T E M   V A R I A B L E S
 COMPILER HEX 
+\ S Y S T E M   V A R I A B L E S
 
 TARGET
     VARIABLE STATE
@@ -38,7 +65,7 @@ TARGET
     VARIABLE 'KEY     \ for vectored char input
     VARIABLE 'EMIT    \ for vectored char output
     VARIABLE LP
-    VARIABLE VPG       \ declared in TI99 VDP driver code TI99IO.HSF
+    VARIABLE VPG      \ declared in TI99 VDP driver code TI99IO.HSF
 
 COMPILER DECIMAL
 
@@ -51,14 +78,14 @@ TARGET
   VARIABLE VMODE
   VARIABLE L0       COMPILER  4 CELLS TALLOT
 
- TARGET 
+TARGET 
   VARIABLE ^PAB
   VARIABLE LINES
   VARIABLE C/SCR
   VARIABLE 'IV    \ *G interpretor vector. Holds address of <INTERP>
   VARIABLE H
   VARIABLE VP
-  VARIABLE CURS     COMPILER 205F CURS T! 
+  VARIABLE CURS     COMPILER  205F CURS T! 
 
   TARGET
   VARIABLE VTOP
@@ -76,6 +103,8 @@ TARGET
 : PAD       ( -- addr) HERE TPAD @ + ;
 : COMPILE   ( -- )  R> DUP 2+ >R @  , ;
 : IMMEDIATE ( --)   01 LATEST @ 1-  C! ;
+
+
 : LITERAL   ( n -- n|~) STATE @ IF  COMPILE LIT ,  THEN ;  IMMEDIATE
 : ]         ( -- ) STATE ON  ;
 : [         ( -- ) STATE OFF ;  IMMEDIATE
@@ -295,23 +324,14 @@ TARGET
 : ?ERR     ( ? -- )             HERE COUNT ?ABORT ;
 
 \ S T R I N G   L I T E R A L
-COMPILER 
-: S" ( cccc" -- )  \ OLD VERSION
-      [CHAR] " PARSE
-      STATE @
-      IF  COMPILE (S")  S,
-      ELSE PAD DUP>R PLACE R> COUNT
-      THEN ; IMMEDIATE
+COMPILER ALSO META DEFINITIONS 
+: S" ( cccc" -- ) [CHAR] " PARSE TCOMPILE (S")  S,
 
 : ABORT"   ( i*x 0  -- i*x)    \ R: j*x -- j*x  x1=0
-      ?COMP
       [COMPILE] S"
       COMPILE ?ABORT ; IMMEDIATE
 
-
-\ ======================================================================
 \ T E X T   O U T P U T
-
 : ."  (  ccc" -- )
       POSTPONE S"                ( -- str len)
       STATE @
@@ -320,8 +340,7 @@ COMPILER
       THEN ; IMMEDIATE
 
 \ T I - 9 9   T E X T   M O D E   C O N T R O L
-TARGET-COMPILING
-
+TARGET
 : TEXT    ( -- )
       F0 DUP 83D4 C!
       ( -- F0) 01 VWTR
@@ -334,15 +353,6 @@ TARGET-COMPILING
       2 VMODE !   \ 2=ID for 40 column "TEXT" mode
       PAGE
 ;
-
-
-\ (:noname) from studying gforth. It's a nice factor.
- : (:NONAME) ( -- )  ['] DOCOL @ COMPILE,  HIDE  ]  ;
-
-\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-\  =====[ CANNOT DEFINE ANY CONSTANT, VARIABLE OR VARIABLE AFTER THIS ]=====
-\ //////////////////////////////////////////////////////////////////////
-
 
 \ ======================================================================
 \ D O E S   S U P P O R T
@@ -363,7 +373,7 @@ TARGET-COMPILING
 
 COMPILER HEX
 
-TARGET-COMPILING
+TARGET
 CODE COLD
       WRKSP0 LWPI,
       R0 HSprims LI,   \ source
@@ -383,7 +393,7 @@ COMPILER
 \ ======================================================================
 \ B O O T   U P   C O D E
 HEX
-TARGET-COMPILING
+TARGET
 
 \ *G  WARM initializes variables and vectors
 : WARM  ( -- )
@@ -399,4 +409,8 @@ TARGET-COMPILING
         DECIMAL
 ;
 
-: GO   <you application goes here> ;
+: GO   WARM  
+
+       <you application goes here> 
+
+;

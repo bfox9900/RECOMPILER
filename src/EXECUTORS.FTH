@@ -1,4 +1,4 @@
-\ executors.fth  make the primary words for the Forth VM  Sept 2023
+\ executors.fth  are the primary words for the Forth VM    Sept 2023
 \      >> This file must be loaded first on every build <<
 \
 

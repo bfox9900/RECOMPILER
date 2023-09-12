@@ -1,16 +1,7 @@
 \ primitives for the TARGET system 
 
-ONLY FORTH ALSO ASSEMBLER ALSO FORTH DEFINITIONS 
-\ clean copies of words that are weird in the kernel
-CODE DUP    TOS PUSH,      NEXT, ENDCODE  
-CODE DROP   TOS POP,       NEXT, ENDCODE  
-CODE !      *SP+ *TOS MOV, TOS POP,    NEXT, ENDCODE  
-CODE @     *TOS TOS MOV,   NEXT, ENDCODE  
-CODE C@     *TOS TOS MOVB, TOS 8 SRL,  NEXT, ENDCODE
-CODE +      *SP+ TOS ADD,  NEXT, ENDCODE   
-
+TARGET ALSO FORTH 
 \ steal some primitives code from the Kernel and copy into target
-TARGET 
 IMPORT: C!  2!  2@  COUNT  +! C+! 
 IMPORT: RP@  RP! DUP>R  >R  R>  R@  SP@  SP!  2>R 2R>  
 IMPORT: NIP  ?DUP  SWAP  OVER  ROT -ROT  ><  2DROP 2DUP  2SWAP PICK  
