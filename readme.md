@@ -8,7 +8,7 @@ program.
 
 One interesting feature is the addition of the word IMPORT:
 IMPORT: can pull machine code segments from the Forth kernel and transcibe
-them into the TARGET image while keeping a named referenced in the COMPILER wordspace. 
+them into the TARGET image while keeping a named reference in the COMPILER wordspace of the "host" Forth system. 
 
 ## How it Works
 The method used here is based on information found in the "Forth Progammers Handbook" , Conklin and Raher. 
