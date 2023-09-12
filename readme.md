@@ -1,0 +1,18 @@
+# Forth Re-compiler
+
+Tradionally when Forth is saved as a program the entire dictionary is saved in the image. The includes the interpreter, the compiler and sometimes even the Forth Assembler. 
+
+This is an experimental project to compile "threaded" code as a standalone
+binary program that consists only of the Forth words required to make the
+program. 
+
+One interesting feature is the addition of the word IMPORT:
+IMPORT: can pull machine code segments from the Forth kernel and transcibe
+them into the TARGET image while keeping a named referenced in the COMPILER wordspace. 
+
+## How it Works
+The method used here is based on information found in the "Forth Progammers Handbook" , Conklin and Raher. 
+
+The fundamental idea is to use the Forth wordlists (Vocabulary) system
+to control the Cross-compiler's search order so that difference words will
+be accessed when needed.  See the file RECOMPILER.FTH and the words TARGET COMPILER HOST to view the search order for each condition. 
