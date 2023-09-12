@@ -11,7 +11,7 @@ IMPORT: can pull machine code segments from the Forth kernel and transcibe
 them into the TARGET image while keeping a named reference in the COMPILER wordspace of the "host" Forth system. 
 
 ## How it Works
-The method used here is based on information found in the "Forth Progammers Handbook" , Conklin and Raher. 
+The method used here is based on information found in the "Forth Progammers Handbook" , Conklin and Rather. 
 
 The fundamental idea is to use the Forth wordlists (Vocabulary) system
 to control the Cross-compiler's search order so that difference words will
