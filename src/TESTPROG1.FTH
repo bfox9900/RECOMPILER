@@ -18,13 +18,12 @@ IMPORT: +
 COMPILER HEX
 
 TARGET 
-VARIABLE BOOT  \ hold the cfa of the first word that RUN
+VARIABLE BOOT  \ hold the cfa of the word that runs from COLD 
 
 \ bye does not end with NEXT so we can' import it 
 CODE BYE   0 LIMI,  0 @@ BLWP,  NEXT,  ENDCODE 
 
-\ COLD is a key primitive to setup the Forth VM 
-CODE COLD
+CODE COLD   \ COLD is a key primitive to setup the Forth VM 
       8300 LWPI,               \ set 9900 workspace
       SP 3FFE LI,              \ data stack
       RP 3FE0 LI,              \ return stack
@@ -39,7 +38,7 @@ TARGET
     BYE  
 ;
 
-COMPILER HEX  T' MAIN  BOOT HOST !  \ set the boot variable 
-COMPILER      T' COLD >BODY 2002 HOST !
+COMPILER HEX  T' MAIN  BOOT HOST !       \ set the boot variable 
+COMPILER      T' COLD >BODY 2002 HOST !  
 
 SAVE DSK7.TESTPROG1
