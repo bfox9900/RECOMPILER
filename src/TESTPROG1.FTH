@@ -2,32 +2,44 @@
 
 COMPILER 
 NEW
-\ we MUST load Executors first
-\ EXIT DOCON DOVAR DOCOL ?BRANCH and BRANCH
-INCLUDE DSK7.EXECUTORS  
+HEX 2000 ORG 
 
-\ Now we can make the reset of the compiler
-INCLUDE DSK7.BRANCHING   \ compilers for: IF THEN BEGIN AGAIN...
-INCLUDE DSK7.DATATYPES   \ CONSTANT VARIABLE : ;
+WARNINGS OFF 
+INCLUDE DSK7.EXECUTORS  \ load EXIT DOCOL DOVAR ETC.
+INCLUDE DSK7.BRANCHING   \ compilers: IF THEN BEGIN AGAIN...
+INCLUDE DSK7.ITCTYPES   \ CONSTANT VARIABLE : ; ETC,,
+WARNINGS ON 
 
-COMPILER HEX 
-
+TARGET 
 \ import needs to see Forth to find kernel primitives 
-TARGET ALSO FORTH   
-IMPORT: + BYE 
+ALSO FORTH   
+IMPORT: + 
 
-TARGET CODE COLD
-      8300 LWPI,
-      4000  SP0  LI,           \ data stack
-      RP  RP0  LI,             \ return stack
-      R10 T' EXIT CELL+ LI,    \ NEXT, the inner interpreter
+COMPILER HEX
+
+TARGET 
+VARIABLE BOOT  \ hold the cfa of the first word that RUN
+
+\ bye does not end with NEXT so we can' import it 
+CODE BYE   0 LIMI,  0 @@ BLWP,  NEXT,  ENDCODE 
+
+\ COLD is a key primitive to setup the Forth VM 
+CODE COLD
+      8300 LWPI,               \ set 9900 workspace
+      SP 3FFE LI,              \ data stack
+      RP 3FE0 LI,              \ return stack
       IP  BOOT  LI,            \ load interpreter pointer with boot word
-      *R10 B,                  \ run Forth NEXT (inner interpreter)
+
+      R10 EXIT CELL+ LI,       \ EXIT + 2 = NEXT -> R10
+      *R10 B,                  \ jump to NEXT (inner interpreter)
 ENDCODE
 
+TARGET
+: MAIN  
+    BYE  
+;
 
-TARGET   \ now we can't look at Forth vocabuarly
-: TEST  2  4  +  BYE  ;
+COMPILER HEX  T' MAIN  BOOT HOST !  \ set the boot variable 
+COMPILER      T' COLD >BODY 2002 HOST !
 
-COMPILER HEX 
-T' TEST  
+SAVE DSK7.TESTPROG1

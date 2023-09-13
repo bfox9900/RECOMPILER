@@ -8,11 +8,10 @@
 ONLY FORTH ALSO COMPILERS ALSO ASSEMBLER ALSO TARGETS DEFINITIONS
 \ Executors are not "code" words. They are code snippets
 L: EXIT                  \ return from a colon definition 
-    IP RPOP,  
+     IP RPOP,  
     *IP+ W  MOV,           \ T' EXIT CELL+ = NEXT, goes into R10
     *W+  R5 MOV,   
      R5 **  B,       
-    NEXT, 
 
 L: DOVAR 
     TOS PUSH,        \ make room in TOS 

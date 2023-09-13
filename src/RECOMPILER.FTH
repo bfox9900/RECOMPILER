@@ -50,7 +50,7 @@ INCLUDE DSK7.MASMLABELS   \ handy to have labels for jumping around
 : ENDCODE ( -- ) ?CSP RESOLVER ;
 
 
-\ pull in some developer words so they are visible in TARGET mode 
+\ pull in some Forth words to COMPILERS so they are visible in TARGET mode 
 : \    1 PARSE 2DROP ; IMMEDIATE
 : (    POSTPONE (  ;  IMMEDIATE  ( borrowed from Forth )
 : .(   POSTPONE .(     ; IMMEDIATE
@@ -66,6 +66,16 @@ INCLUDE DSK7.MASMLABELS   \ handy to have labels for jumping around
 : DEFINITIONS   DEFINITIONS ;
 
 : TWORDS   ALSO TARGETS  WORDS   PREVIOUS ; ( searches TARGETS wordlist)
+: CELL+  CELL+ ;
+: >BODY  >BODY ;
+\ THESE were important !!
+: [      [ ; 
+: ]    POSTPONE ]  ; IMMEDIATE 
+: EXIT   EXIT ;
+: STATE  STATE ;
+: ON  ON ;
+: OFF  OFF ;
+
 
 \ Host forth's colon/semi renamed so we can use it anywhere 
 : ;HOST     POSTPONE ;  ;  IMMEDIATE
@@ -113,12 +123,12 @@ ONLY FORTH ALSO COMPILERS DEFINITIONS
 : T'      ( <text> -- XT)  ALSO TARGETS  '  >TARG-XT    PREVIOUS ;
 
 : T[']     
-    '    >TARG-XT
+    T'   \ >TARG-XT
     POSTPONE LITERAL  
 ;  IMMEDIATE 
 
 : TCOMPILE   ( -- <name>) 
-     '    >TARG-XT 
+     T'   \ >TARG-XT 
      POSTPONE LITERAL  
      POSTPONE T, ;  IMMEDIATE  
 
@@ -194,21 +204,20 @@ ONLY FORTH ALSO COMPILERS ALSO FORTH DEFINITIONS
 
 
 COMPILER    \ add duplicate names to the compilers wordlist 
-: HOST      HOST ;
-: COMPILER  COMPILER ;
-: TARGET    TARGET ;
-
-\ Add IF, THEN, BEGIN, REPEAT etc. to the META vocabulary. 
-
-
+: HOST      HOST ;  
+: COMPILER  COMPILER ;  
+: TARGET    TARGET ;    
 
 \ /\/\/\/\/\/\/\/\/\/\/\/ COMPILER ENDS /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\//\
 ONLY FORTH DEFINITIONS 
 
+HEX 
 : GO   
-    WARM  INIT-WORDLISTS  
+    WARM  E4 7 VWTR 
+    INIT-WORDLISTS  
     CR ." Meta Compiler Sept 11 2023" 
-    CR  COMPILER ABORT ;
+    CR S" COMPILER NEW " EVALUATE 
+    ABORT ;
 
 LOCK 
 INCLUDE DSK1.SAVESYS
