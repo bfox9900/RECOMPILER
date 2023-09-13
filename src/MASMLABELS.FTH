@@ -34,8 +34,9 @@ FS0 CREATE FSP ,   \ fwd stack pointer, initialzed to FS0
     THEN              
     ( stkaddr) @  -2 FSP +! ;
 
-: $:  ( n -- )  HERE SWAP ]LBL !  ;  \ code label creator
-: $   ( n -- 0) HERE >FS  >FS  0  ;  \ jump label creator
+\ CHANGED HERE TO THERE FOR CROSS-COMPILER 
+: $:  ( n -- )  THERE SWAP ]LBL !  ;  \ code label creator
+: $   ( n -- 0) THERE >FS  >FS  0  ;  \ jump label creator
 
 : ?LABEL  ( addr -- addr) DUP 0= ABORT" Un-resolved jump" ;
 
