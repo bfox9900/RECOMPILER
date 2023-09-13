@@ -38,7 +38,7 @@ INCLUDE DSK7.MASMLABELS   \ handy to have labels for jumping around
  ONLY FORTH  ALSO ASSEMBLER ALSO COMPILERS DEFINITIONS 
 : +CODE  
     CREATE              \  name is in HOST Forth      
-      THERE ,           \ and remember where the word is TARGET 
+      THERE ,           \ and remember where the word is in TARGET 
 
       THERE CELL+ T,    \ TARGET compile the ITC entry address 
       !CSP 
