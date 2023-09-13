@@ -32,8 +32,8 @@ INCLUDE DSK7.MASMLABELS   \ handy to have labels for jumping around
 
 \ REDEFINE CODE for Cross-compiling
 \ use +CODE to jump across words within same label scope
-\ CROSS-COMPILER CODE +CODE add Assembler to the search order
-\ ENDCODE goes back to the previous search order 
+\ CROSS-COMPILER CODE +CODE need ASSEMBLER in the search order
+\ This is provided with the COMPILER and TARGET commands
 
  ONLY FORTH  ALSO ASSEMBLER ALSO COMPILERS DEFINITIONS 
 : +CODE  
