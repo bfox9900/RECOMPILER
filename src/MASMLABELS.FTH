@@ -34,7 +34,7 @@ FS0 CREATE FSP ,   \ fwd stack pointer, initialzed to FS0
     THEN              
     ( stkaddr) @  -2 FSP +! ;
 
-\ CHANGED HERE TO THERE FOR CROSS-COMPILER 
+\ ** CHANGED HERE TO THERE FOR CROSS-COMPILER 
 : $:  ( n -- )  THERE SWAP ]LBL !  ;  \ code label creator
 : $   ( n -- 0) THERE >FS  >FS  0  ;  \ jump label creator
 
