@@ -12,7 +12,6 @@ WARNINGS ON
 
 COMPILER HEX
 
-
 TARGET 
 VARIABLE BOOT  \ hold the cfa of the word that boots from COLD 
 
@@ -29,7 +28,7 @@ TARGET ALSO FORTH
 IMPORT: DUP DROP 1- 
 
 TARGET
-CODE BYE    0 LIMI, 0 @@ BLWP, NEXT, ENDCODE 
+CODE BYE    0 LIMI, 0 @@ BLWP, ENDCODE 
 
  : SUB3  BEEF ;
  : SUB2  SUB3 ;
@@ -47,7 +46,7 @@ CODE BYE    0 LIMI, 0 @@ BLWP, NEXT, ENDCODE
 ;
 
 COMPILER HEX  
-T' MAIN  BOOT T!    \ set the boot variable 
-T' COLD  2002 T!    \ jumps into cold on startup
+COLD 2002 T!       \ jumps into cold on startup
+T' MAIN  BOOT T!   \ set the boot variable 
 
 SAVE DSK7.NESTTEST
