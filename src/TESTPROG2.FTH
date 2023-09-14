@@ -12,6 +12,7 @@ WARNINGS ON
 
 
 COMPILER HEX
+
 TARGET ALSO FORTH 
 IMPORT: DUP DROP  1-  0= 
 
@@ -30,17 +31,12 @@ CODE COLD   \ COLD is a key primitive that builds the Forth VM
       R10 EXIT CELL+ LI,       \ EXIT + 2 = NEXT -> R10
       *R10 B,                  \ jump to NEXT (inner interpreter)
 ENDCODE
+
 TARGET
-: FOREVER   BEGIN AGAIN ;
 
 : MAIN  
-\  FFFF
-\  BEGIN 
-\    1- 
-\    DUP 
-\  0= UNTIL 
-\  DROP 
-  FOREVER  FOREVER FOREVER  
+  FFFF BEGIN  1-  DUP WHILE REPEAT DROP 
+  7FFF BEGIN  1- DUP 0= UNTIL DROP 
   BYE
 ;
 
