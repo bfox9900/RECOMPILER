@@ -24,9 +24,8 @@ CODE BYE    0 LIMI, 0 @@ BLWP, ENDCODE
     DROP 
     BYE 
 ;
+\ PROGRAM ENDS 
 
-COMPILER HEX  
-COLD 2002 T!       \ jumps into cold on startup
+COMPILER 
 T' MAIN  BOOT T!   \ set the boot variable 
-
 SAVE DSK7.NESTTEST

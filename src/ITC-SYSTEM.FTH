@@ -24,4 +24,7 @@ L: COLD               \ COLD runs at boot time to build the Forth VM
       R10 _NEXT LI,   \ inner interpreter stays in R10 
       *R10 B,         \ jump into the interpreter 
 
-COMPILER CR .( ITC Preamble loaded )
+COMPILER
+COLD 2002 T!          \ COLD will run at startup now  
+
+CR .( ITC Preamble loaded )
