@@ -118,7 +118,7 @@ HEX
 ;
 
 ONLY FORTH ALSO COMPILERS DEFINITIONS 
-: >TARG-XT ( xt -- xt')  >BODY @    ;
+: >TARG-XT ( xt -- xt')  >BODY @   ;
 
 : T'      ( <text> -- XT)  ALSO TARGETS  '  >TARG-XT    PREVIOUS ;
 
