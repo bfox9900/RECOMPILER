@@ -12,8 +12,6 @@ WARNINGS ON
 
 
 COMPILER HEX
-TARGET ALSO FORTH 
-IMPORT: DUP  1-  0= 
 
 TARGET 
 VARIABLE BOOT  \ hold the cfa of the word that boots from COLD 

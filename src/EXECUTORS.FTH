@@ -36,13 +36,18 @@ CODE LIT
 ENDCODE   
 
 CODE ?BRANCH  
-        TOS DEC, 
-        TOS POP,     \ consume the flag on the data stack 
-        1 $ JOC,     \ jump 2 CELLS ahead if carry flag set 
-        *IP IP ADD,  \ no CARRY, take the jump 
+    TOS DEC, 
+    TOS POP,         \ consume the number on the data stack 
+    NC IF,           \ if no carry flag set 
+        *IP IP ADD,  \ take the jump 
         NEXT, 
-+CODE BRANCH
-1 $:    *IP INCT, 
-        NEXT,      
+    ENDIF, 
+    IP INCT, 
+    NEXT,      
+ENDCODE 
+
+CODE BRANCH ( -- )   \ jump unconditionally 
+    *IP IP ADD,     
+    NEXT, 
 ENDCODE 
 

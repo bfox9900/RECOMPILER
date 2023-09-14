@@ -13,7 +13,7 @@ WARNINGS ON
 
 COMPILER HEX
 TARGET ALSO FORTH 
-IMPORT: DUP  1-  0= 
+IMPORT: DUP DROP  1-  0= 
 
 TARGET 
 VARIABLE BOOT  \ hold the cfa of the word that boots from COLD 
@@ -30,15 +30,18 @@ CODE COLD   \ COLD is a key primitive that builds the Forth VM
       R10 EXIT CELL+ LI,       \ EXIT + 2 = NEXT -> R10
       *R10 B,                  \ jump to NEXT (inner interpreter)
 ENDCODE
-
 TARGET
+: FOREVER   BEGIN AGAIN ;
+
 : MAIN  
-    FFFF
-    BEGIN 
-      1- 
-      DUP 
-    0= UNTIL 
-    BYE  
+\  FFFF
+\  BEGIN 
+\    1- 
+\    DUP 
+\  0= UNTIL 
+\  DROP 
+  FOREVER  FOREVER FOREVER  
+  BYE
 ;
 
 COMPILER HEX  T' MAIN  BOOT HOST !       \ set the boot variable 
