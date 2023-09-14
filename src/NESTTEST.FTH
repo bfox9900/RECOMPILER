@@ -1,5 +1,6 @@
 \ NESTTEST.FTH  test nested calls on METAFORTH compiler  Sept 2023 Fox 
 
+HEX 2000 ORG 
 INCLUDE DSK7.ITC-FORTH
 
 TARGET ALSO FORTH 
