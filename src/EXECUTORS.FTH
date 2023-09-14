@@ -19,7 +19,7 @@ L: DOCON
            *W TOS MOV,
                   NEXT,
 
-L: DOCOL         \ enter a colon definition 
+L: DOCOL    \ enter a colon definition 
                IP RPUSH,  
              W IP MOV, 
                   NEXT,
@@ -34,7 +34,7 @@ ENDCODE  ( _NEXT is put into R10 later)
 CODE LIT 
               TOS PUSH,  
          *IP+ TOS MOV,  
-    NEXT,
+                  NEXT,
 ENDCODE   
 
 CODE ?BRANCH  
