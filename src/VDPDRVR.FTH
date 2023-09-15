@@ -1,21 +1,16 @@
-COMPILER CR ." V D P  C H I P  I N T E R F A C E"
-\ word set in Forth to manage the tms9918 chip
+COMPILER 
+CR .( TMS9918 driver in Forth)
 
-NEEDS ?DO  FROM DSK7.DOLOOP 
-
-COMPILER HEX 
+HEX 
 
 TARGET
-
-HERE 
-HEX 
 8800 CONSTANT VDPRD               \ vdp ram read data
 8802 CONSTANT VDPSTS              \ vdp status
 8C00 CONSTANT VDPWD               \ vdp ram write data
 8C02 CONSTANT VDPWA               \ vdp ram read/write address
 
 \ VDP set-address sub-routines
-CODE 0LIMI   0300 , 0000 ,   NEXT,  ENDCODE 
+CODE 0LIMI   0 LIMI,   NEXT,  ENDCODE 
 
 : RMODE ( vdpaddr -- ) DUP 0LIMI VDPWA C! >< VDPWA C! ;
 : WMODE ( vdpaddr -- ) 4000 OR RMODE ;      
@@ -41,17 +36,12 @@ CODE 0LIMI   0300 , 0000 ,   NEXT,  ENDCODE
     ROT WMODE  SWAP 0 DO  DUP VC!+ LOOP DROP ;
 
 VARIABLE C/L   
-\ different approach. Just calcuate the VDP address
 : >VPOS ( col row -- vaddr) C/L @ * + ; 
 
-VARIABLE COL 
-VARIABLE ROW 
-VARIABLE C/SCR  
-
+VARIABLE COL   VARIABLE ROW 
 : AT-XY  ( col row -- ) ROW ! COL ! ;
 
+VARIABLE C/SCR  
 : TYPE  ( addr len -- ) \ no scroll, wraps to top of screen
-    COL @ ROW @ >VPOS 
+    COL @ ROW @ >VPOS OVER +  \ max VDP address this string could hit
     C/SCR @ OVER < IF DROP 0 THEN WMODE (TYPE) ;
-
-HERE SWAP - DECIMAL . 

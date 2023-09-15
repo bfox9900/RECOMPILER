@@ -1,4 +1,5 @@
-[CC] CR ." V D P  C H I P  I N T E R F A C E"
+COMPILER
+CR ." V D P  C H I P  I N T E R F A C E"
 \ minimal word set to manage the tms9918 chip
 
 \ Register Usage:
@@ -9,7 +10,7 @@
 
 \
 \ ================ LEAF SUB-ROUTINE  ** NOT NESTABLE ** ===================
-TARGET-COMPILING
+TARGET
 \ VDP set-address sub-routines
 L: WMODE  ( Vaddr -- Vaddr)
          TOS 4000 ORI,
