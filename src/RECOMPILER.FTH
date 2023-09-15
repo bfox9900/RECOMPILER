@@ -208,6 +208,11 @@ COMPILER    \ add duplicate names to the compilers wordlist
 : COMPILER  COMPILER ;  
 : TARGET    TARGET ;    
 
+\ immediate forms for when they are needed 
+: [HOST]      HOST ; IMMEDIATE 
+: [COMPILER]  COMPILER ;  IMMEDIATE 
+: [TARGET]    TARGET ;  IMMEDIATE   
+
 \ /\/\/\/\/\/\/\/\/\/\/\/ COMPILER ENDS /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\//\
 ONLY FORTH DEFINITIONS 
 
@@ -215,7 +220,7 @@ HEX
 : GO   
     WARM  E4 7 VWTR 
     INIT-WORDLISTS  
-    CR ." Meta Compiler Sept 11 2023" 
+    CR ." Meta Compiler v0.8 Sept 14 2023" 
     CR S" COMPILER NEW " EVALUATE 
     ABORT ;
 
