@@ -118,38 +118,47 @@ HEX
 ;
 
 ONLY FORTH ALSO COMPILERS DEFINITIONS 
+\ Note: The TARGET XT is held in the "body" (PFA) of the HOST word
+\ Below we take a HOST XT and fetch the TARGET XT
 : >TARG-XT ( xt -- xt')  >BODY @   ;
 
 : T'      ( <text> -- XT)  ALSO TARGETS  '  >TARG-XT    PREVIOUS ;
 
-: T[']     
-    T'   \ >TARG-XT
-    POSTPONE LITERAL  
-;  IMMEDIATE 
-
-: TCOMPILE   ( -- <name>) 
-     T'   \ >TARG-XT 
-     POSTPONE LITERAL  
-     POSTPONE T, ;  IMMEDIATE  
-
-
-\ This one is hard: Record a target address in HOST Forth,  
-\ but compile it in target memory 
-: [TCOMPILE]   T'  POSTPONE LITERAL   T,  ; IMMEDIATE 
-
+\ Now we can build the rest of the weapons
 : TCOMPILE, ( Host-XT -- )  >TARG-XT  T,  ;
 
+\ Brain stretcher: 
+\ Retain a TARGET XT in the compiler as a literal
+\ so you can give it to a TARGET definition
+: T[']    T'   POSTPONE LITERAL  ;  IMMEDIATE 
+
+\ Same as above but now take the TARGET XT from the compiler
+\ and "compile" it into the TARGET definition 
+: TCOMPILE   ( -- <name>) 
+    T'   POSTPONE LITERAL   POSTPONE T, ;  IMMEDIATE  
+
+\ T[']  and T' can now be put into the META vocabulary
+\ and given names that look "normal".
+\ This makes the cross-compiler source code backwards compatible
+\ with standard forth but hides what's going on. 
+ALSO META DEFINITIONS 
+: '       T'   ;
+: [']     POSTPONE T['] ; IMMEDIATE 
+
+PREVIOUS DEFINITIONS 
 
 \ ************** FORWARD REFERENCE ********************
 \ TLITERAL will be defined later when we know where LIT
 \ is compiled, but we need the name NOW for <TINTERP> 
+
 
 DEFER TLITERAL  IMMEDIATE 
 
 \ *****************************************************
 
 
-\ RECOMPILER loop uses TCOMPILE, and TLITERAL
+\ RECOMPILER loop uses TCOMPILE, and TLITERAL 
+\ That's the only difference. 
 ONLY FORTH ALSO COMPILERS ALSO FORTH DEFINITIONS 
 : <TINTERP>  ( i*x c-addr u -- j*x )
       'SOURCE 2!  >IN OFF
@@ -170,7 +179,7 @@ ONLY FORTH ALSO COMPILERS ALSO FORTH DEFINITIONS
       REPEAT
       DROP ;
 
-\ switches for normal Forth or cross-compiler Forth interpreter loops
+\ switches for "normal" Forth or cross-compiler Forth interpreters
 \ 'IV is CAMEL99 "interpreter vector" variable 
  : FORTH-REPL   ['] <INTERP>  'IV ! ;
  : XFORTH-REPL  ['] <TINTERP> 'IV ! ;
@@ -223,7 +232,7 @@ HEX
 : GO   
     WARM  E4 7 VWTR 
     INIT-WORDLISTS  
-    CR ." Meta Compiler v0.8 Sept 14 2023" 
+    CR ." Meta Compiler v0.81 Sept 15 2023" 
     CR S" COMPILER NEW " EVALUATE 
     ABORT ;
 
