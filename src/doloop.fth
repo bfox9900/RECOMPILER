@@ -1,4 +1,4 @@
-\ doloop.FTH 
+\ doloop.FTH  adds 104 bytes to the recompiled program 
 
 \ Could not IMPORT these words because they jump into each other a lot
 \ and some have multiple NEXT points. 
@@ -40,9 +40,21 @@ CODE <+LOOP>
         NEXT,
 ENDCODE
 
-IMPORT: I J 
+CODE I  ( -- n)
+        TOS PUSH,        
+        *RP    TOS MOV, 
+        2 (RP) TOS SUB,    
+        NEXT,             
+ENDCODE
 
-ALSO META DEFINITIONS 
+CODE J      ( -- n)
+        TOS PUSH,
+        4 (RP) TOS MOV,   \ outer loop index is on the rstack
+        6 (RP) TOS SUB,   \ index = loopindex - fudge
+        NEXT,
+ENDCODE
+
+COMPILER ALSO META DEFINITIONS 
 : DO        TCOMPILE <DO>  THERE ; IMMEDIATE
 : ?DO       TCOMPILE <?DO> THERE ; IMMEDIATE
 

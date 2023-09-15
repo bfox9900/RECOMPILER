@@ -5,13 +5,14 @@ HEX 2000 ORG   \ this must be set before compiling any code
 INCLUDE DSK7.ITC-FORTH \ preamble for indirect threaded Forth
 WARNINGS OFF 
 IMPORT: DUP DROP 1- 0= OVER ><
-
-IMPORT: C@ C!  @  !  * + 
-
+IMPORT: C@ C! COUNT  @  !  * + 
+IMPORT: I J  
 IMPORT: OR FUSE SPLIT >R R> 
 WARNINGS ON 
 
 INCLUDE DSK7.DOLOOP 
+
+
 INCLUDE DSK7.VDPDRVR 
 
 COMPILER DECIMAL 
