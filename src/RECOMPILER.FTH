@@ -141,6 +141,7 @@ ONLY FORTH ALSO COMPILERS DEFINITIONS
 \ and given names that look "normal".
 \ This makes the cross-compiler source code backwards compatible
 \ with standard forth but hides what's going on. 
+\ Keeping both names helps my pea-brain remember.
 ALSO META DEFINITIONS 
 : '       T'   ;
 : [']     POSTPONE T['] ; IMMEDIATE 

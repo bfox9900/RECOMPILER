@@ -19,7 +19,7 @@ CODE 0LIMI   0 LIMI,   NEXT,  ENDCODE
 : VC@   ( VDP-adr -- char ) RMODE VDPRD C@ ; 
 
 : VC!+  ( c --) VDPWD C! ;         \ write & inc. address 
-: (TYPE) ( addr len --) 0 DO  COUNT VC!+  LOOP DROP ;
+: VTYPE ( addr len --) 0 DO  COUNT VC!+  LOOP DROP ;
 
 : VC!   ( c vaddr --) WMODE VC!+ ; \ set address and write 
 
@@ -27,7 +27,7 @@ CODE 0LIMI   0 LIMI,   NEXT,  ENDCODE
 : V@    ( VDPadr -- n) VC@  VC@+  FUSE  ; 
 : V!    ( n vaddr --) >R  SPLIT R> VC! VC!+ ;
 
-: VWRITE ( RAM-addr VDP-addr cnt -- ) SWAP WMODE (TYPE) ; 
+: VWRITE ( RAM-addr VDP-addr cnt -- ) SWAP WMODE VTYPE ; 
 
 : VREAD  ( Vaddr Ram cnt --)
   ROT RMODE  0 DO  VC@+ OVER C!  LOOP DROP ;    
@@ -43,5 +43,6 @@ VARIABLE COL   VARIABLE ROW
 
 VARIABLE C/SCR  
 : TYPE  ( addr len -- ) \ no scroll, wraps to top of screen
-    COL @ ROW @ >VPOS OVER +  \ max VDP address this string could hit
+    COL @ ROW @ >VPOS   ( -- 'cursor)
+    OVER +             \ max VDP address this string could hit
     C/SCR @ OVER < IF DROP 0 THEN WMODE (TYPE) ;
