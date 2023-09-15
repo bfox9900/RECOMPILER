@@ -1,4 +1,4 @@
-\ prelims.fth
+\ import.fth
  
 \ recompile a threaded Forth primitives in low RAM
 \ Dictionary headers are kept in the regular Forth dictionary
@@ -57,6 +57,7 @@ VARIABLE ITC   ITC ON
 ;
  
 : IMPORT:
+    ONLY ASSEMBLER ALSO COMPILERS  ALSO TARGETS DEFINITIONS  ALSO FORTH 
     BEGIN PARSE-NAME DUP WHILE
       IMPORT,
     REPEAT

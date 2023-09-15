@@ -4,15 +4,17 @@ HEX 2000 ORG   \ this must be set before compiling any code
 
 INCLUDE DSK7.ITC-FORTH
 
-CODE BYE   0 LIMI,  0 @@ BLWP,  NEXT,  ENDCODE 
-
-
-TARGET ALSO FORTH 
 IMPORT: DUP DROP  1- 0=
 
 COMPILER HEX 
 
 TARGET
+CODE BYE   
+  0 LIMI, 
+  0 @@ BLWP,  
+  NEXT,  
+ENDCODE 
+
 : LOOP2    
   5000 
   BEGIN  
@@ -23,7 +25,8 @@ TARGET
 
 : MAIN  
     5000 
-    BEGIN  1-  DUP WHILE 
+    BEGIN  1-  
+    DUP WHILE 
     REPEAT 
     DROP 
     LOOP2 
