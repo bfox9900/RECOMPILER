@@ -1,45 +1,35 @@
-\ TEST PROGRAM 1
+\ TESTPROG2.FTH  IMPORT:, while loop, UNTIL loop and BYE   Sep 2023 Fox 
 
-COMPILER 
-NEW
-HEX 2000 ORG 
+HEX 2000 ORG   \ this must be set before compiling any code 
 
-WARNINGS OFF 
-INCLUDE DSK7.EXECUTORS  \ load EXIT DOCOL DOVAR ETC.
-INCLUDE DSK7.BRANCHING  \ compilers: IF THEN BEGIN AGAIN...
-INCLUDE DSK7.ITCTYPES   \ CONSTANT VARIABLE : ; ETC,,
-WARNINGS ON 
+INCLUDE DSK7.ITC-FORTH
 
-COMPILER HEX
-TARGET 
-VARIABLE BOOT  \ hold the cfa of the word that boots from COLD 
-CODE COLD   \ COLD is a key primitive that builds the Forth VM 
-      8300 LWPI,               \ set 9900 workspace
-      SP 83FE LI,              \ data stack
-      RP 83D0 LI,              \ return stack
-      IP  BOOT  LI,            \ load interpreter pointer with boot word
-
-      R10 T' EXIT CELL+ CELL+ LI,        \ EXIT + 4 = NEXT -> R10
-      *R10 B,                  \ jump to NEXT (inner interpreter)
-ENDCODE
-
-\ bye does not end with NEXT so we can' import it 
 CODE BYE   0 LIMI,  0 @@ BLWP,  NEXT,  ENDCODE 
 
 
 TARGET ALSO FORTH 
-IMPORT: DUP DROP  1-  0= 
+IMPORT: DUP DROP  1- 0=
+
+COMPILER HEX 
 
 TARGET
-: LOOP2    7FFF BEGIN  1- DUP 0= UNTIL DROP ;
+: LOOP2    
+  5000 
+  BEGIN  
+    1- DUP 
+  0= UNTIL 
+  DROP 
+;
 
 : MAIN  
-    FFFF BEGIN  1-  DUP WHILE REPEAT DROP 
+    5000 
+    BEGIN  1-  DUP WHILE 
+    REPEAT 
+    DROP 
     LOOP2 
     BYE
 ;
 
-COMPILER HEX  T' MAIN  BOOT HOST !       \ set the boot variable 
-COMPILER      T' COLD >BODY 2002 HOST !  
-
+COMPILER 
+T' MAIN  BOOT T!   \ set the boot variable 
 SAVE DSK7.TESTPROG2

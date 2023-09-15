@@ -15,8 +15,8 @@ COMPILER
 \ In compile mode these words compile 4 bytes in TARGET memory
 \ In Interpret mode they work like normal. 
 : VARIABLE         
-    TCREATE                \ name in Forth & record TARGET XT address 
-    TCOMPILE DOVAR  0 T,   \ compile DOVAR and init memory location   
+    TCREATE                     \ name in Forth & record TARGET XT address 
+    TCOMPILE DOVAR  0 T,        \ compile DOVAR and init memory location   
     DOES> ?RUNTARGET @ >BODY  ; \ returns DATA address 
 
 : CONSTANT ( n --) 
@@ -31,9 +31,9 @@ HOST: :NONAME  THERE  !CSP  (:NONAME)  ;HOST
 
 \ This requires comments :-)
 HOST: ;    
-    REVEAL              \ make this word visible to FIND 
-    TCOMPILE EXIT      \ compile EXIT in the TARGET word. 
+    REVEAL            \ make this word visible to FIND 
+    TCOMPILE EXIT     \ compile EXIT in the TARGET word. 
     ?CSP
-    STATE OFF       \ turn the Forth compiler off 
+    STATE OFF         \ turn the Forth compiler off 
 ;HOST  IMMEDIATE 
 
