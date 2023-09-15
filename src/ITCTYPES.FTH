@@ -8,7 +8,7 @@ COMPILER
 
 \ TCREATE makes a dictionary header in HOST Forth,
 \ and records the TARGET XT address ie: where the code was compiled
-: TCREATE       CREATE  THERE , ;
+: TCREATE  CREATE  THERE , ;
 
 \ NOW we can compile the addresses of the EXECUTORS and primitives 
 

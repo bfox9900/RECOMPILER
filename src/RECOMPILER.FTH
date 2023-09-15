@@ -213,6 +213,9 @@ COMPILER    \ add duplicate names to the compilers wordlist
 : [COMPILER]  COMPILER ;  IMMEDIATE 
 : [TARGET]    TARGET ;  IMMEDIATE   
 
+\ We use a text macro because the variable BOOT has not be created yet
+: AUTOSTART  T'   S" BOOT T!" EVALUATE ; 
+
 \ /\/\/\/\/\/\/\/\/\/\/\/ COMPILER ENDS /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\//\
 ONLY FORTH DEFINITIONS 
 
