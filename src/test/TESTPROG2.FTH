@@ -1,5 +1,5 @@
 \ TESTPROG2.FTH  Demo IMPORT: CODE  loops and AUTOSTART   Sep 2023 Fox 
-
+COMPILER 
 HEX 2000 ORG   \ this must be set before compiling any code 
 
 INCLUDE DSK7.ITC-FORTH \ preamble for indirect threaded Forth
@@ -13,3 +13,6 @@ TARGET
 COMPILER 
 AUTOSTART MAIN 
 SAVE DSK7.TEST2
+
+HOST 
+

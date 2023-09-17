@@ -56,7 +56,9 @@ TARGET
 
 : COL+!  ( n -- )
   COL @ +  DUP C/SCR @ >
-  IF DROP COL OFF  EXIT
+  IF DROP 
+    COL OFF  ROW OFF 
+    EXIT
 
   THEN COL ! ;
 
