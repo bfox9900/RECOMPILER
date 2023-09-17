@@ -69,8 +69,8 @@ INCLUDE DSK7.MASMLABELS   \ handy to have labels for jumping around
 : CELL+  CELL+ ;
 : >BODY  >BODY ;
 \ THESE were important !!
-: [      [ ; 
-: ]    POSTPONE ]  ; IMMEDIATE 
+: [     STATE OFF ; 
+: ]     STATE ON  ; IMMEDIATE 
 : EXIT   EXIT ;
 : STATE  STATE ;
 : ON  ON ;
