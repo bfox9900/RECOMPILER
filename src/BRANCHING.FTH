@@ -26,4 +26,8 @@ COMPILER ALSO META DEFINITIONS \ put these names in META
 \ "NOT-UNTIL"   faster than 0= UNTIL 
 : -UNTIL        POSTPONE WHILE POSTPONE REPEAT ; IMMEDIATE 
 
+: <BACK    ( addr --) HERE  -  , ;
+: FOR       ( n -- )  POSTPONE >R HERE ;  IMMEDIATE
+: NEXT      ( -- )    POSTPONE (NEXT) <BACK ; IMMEDIATE
+
 COMPILER 

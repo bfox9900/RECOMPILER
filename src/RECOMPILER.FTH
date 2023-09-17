@@ -68,14 +68,15 @@ INCLUDE DSK7.MASMLABELS   \ handy to have labels for jumping around
 : TWORDS   ALSO TARGETS  WORDS   PREVIOUS ; ( searches TARGETS wordlist)
 : CELL+  CELL+ ;
 : >BODY  >BODY ;
-\ THESE were important !!
-: [     STATE OFF ; 
-: ]     STATE ON  ; IMMEDIATE 
-: EXIT   EXIT ;
-: STATE  STATE ;
-: ON  ON ;
-: OFF  OFF ;
 
+\ THESE were important !!
+: STATE  STATE ;
+: [     STATE OFF ; 
+: ]     POSTPONE ] ; IMMEDIATE 
+
+\ : EXIT   EXIT ;
+: ON   ON ;
+: OFF  OFF ;
 
 \ Host forth's colon/semi renamed so we can use it anywhere 
 : ;HOST     POSTPONE ;  ;  IMMEDIATE
@@ -233,8 +234,9 @@ HEX
 : GO   
     WARM  E4 7 VWTR 
     INIT-WORDLISTS  
-    CR ." Meta Compiler v0.81 Sept 15 2023" 
+    CR ." Meta Compiler v0.82 Sept 17 2023" 
     CR S" COMPILER NEW " EVALUATE 
+    ORDER
     ABORT ;
 
 LOCK 

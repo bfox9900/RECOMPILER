@@ -10,19 +10,19 @@ ONLY FORTH ALSO COMPILERS ALSO ASSEMBLER
 ALSO TARGETS DEFINITIONS
 \ Forth data interpreters
 L: DOVAR
-              TOS PUSH,      \ make room in TOS 
-            W TOS MOV,       \ contents of PFA -> TOS
-                  NEXT,
+    TOS PUSH,      \ make room in TOS 
+    W TOS MOV,       \ contents of PFA -> TOS
+    NEXT,
 
 L: DOCON 
-              TOS PUSH,
-           *W TOS MOV,
-                  NEXT,
+    TOS PUSH,
+    *W TOS MOV,
+    NEXT,
 
 L: DOCOL    \ enter a colon definition 
-               IP RPUSH,  
-             W IP MOV, 
-                  NEXT,
+    IP RPUSH,  
+    W IP MOV, 
+    NEXT,
 \ ===========================================
 CODE EXIT                  \ return from a colon definition 
                IP RPOP,    \ get previous XT into IP register
@@ -32,24 +32,35 @@ L: _NEXT  *IP+ W  MOV,     \ This is the Forth address list interpreter
 ENDCODE  ( _NEXT is put into R10 later) 
 
 CODE LIT 
-              TOS PUSH,  
-         *IP+ TOS MOV,  
-                  NEXT,
+    TOS PUSH,  
+    *IP+ TOS MOV,  
+    NEXT,
 ENDCODE   
 
 CODE ?BRANCH  
-              TOS DEC, 
-              TOS POP,         \ drop number on data stack 
-               NC IF,          \ if no carry flag set 
-                  *IP IP ADD,  \ take the jump 
-                  NEXT, 
-               ENDIF, 
-               IP INCT,         \ move forward in the program 
-               NEXT,      
+    TOS DEC, 
+    TOS POP,         \ drop number on data stack 
+    NC IF,           \ if no carry flag set 
+        *IP IP ADD,  \ take the jump 
+        NEXT, 
+    ENDIF, 
+    IP INCT,         \ move forward in the program 
+    NEXT,      
 ENDCODE 
 
 CODE BRANCH ( -- ) \ jump unconditionally 
-         *IP IP ADD,     
-                NEXT, 
+    *IP IP ADD,     
+    NEXT, 
 ENDCODE 
+
+CODE (NEXT)
+    *RP DEC,          \ decrement loop ON RSTACK or R15
+    OC IF,            \ test carry flag
+        *IP IP ADD,   \ take the jump 
+        NEXT,
+    ENDIF, 
+    RP INCT,       \ remove counter from Rstack 
+    R9 INCT,       \ move past (LOOP)'s in-line parameter
+    NEXT, 
+ENDCODE
 
