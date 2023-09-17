@@ -34,7 +34,7 @@ HOST: :NONAME  THERE  !CSP  (:NONAME)  ;HOST
 HOST: ;    
     REVEAL            \ make this word visible to FIND 
     TCOMPILE EXIT     \ compile EXIT in the TARGET word
-    ?CSP
+ \   ?CSP
     STATE OFF        \ turn the Forth compiler off 
                      ( mystery:  [  does not work here ??? )
 ;HOST  IMMEDIATE 

@@ -3,13 +3,13 @@
 TARGET
 HEX
 CODE (NEXT)
-    *RP DEC,            \ decrement loop ON RSTACK or R15
-    OC IF,              \ if NO carry then exit loop
-        R9 ** R9 ADD,   \ jump back: ADD *IP,IP
+    *RP DEC,        \ dec counter value
+    OC IF,          
+        *IP IP ADD, \ jump back: ADD *IP,IP
         NEXT,
     ENDIF, 
-    R9 INCT,       \ move past (LOOP)'s in-line parameter
-    R15 RPOP,
+    RP INCT,        \ remove counter from Rstack 
+    R9 INCT,        \ move past (LOOP)'s in-line parameter
     NEXT, 
 ENDCODE
 

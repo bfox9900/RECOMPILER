@@ -1,4 +1,4 @@
-\ Standard Forth output words Minimal Assembler  Sept 16 2023
+\ Standard Forth output words in Forth Sept 16 2023
 COMPILER HEX 
 
 TARGET
@@ -8,27 +8,10 @@ TARGET
 8C02 CONSTANT VDPWA               \ vdp ram read/write address
 
 \ VDP set-address sub-routines
-\ CODE 0LIMI   0 LIMI,   NEXT,  ENDCODE
-\ : RMODE ( vdpaddr -- ) DUP 0LIMI VDPWA C! >< VDPWA C! ;
-\ : WMODE ( vdpaddr -- ) 4000 OR RMODE ;
-
- CODE WMODE 
-    TOS 4000 ORI,   
-+CODE RMODE ( we can fall thru because there is no dictionary)   
-    0 LIMI,
-    TOS SWPB,  TOS VDPWA @@ MOVB, 
-    TOS SWPB,  TOS VDPWA @@ MOVB,
-    TOS POP, 
-    NEXT, 
-ENDCODE 
-
-\ : EMIT+  ( c --) VDPWD C! ; \ write & inc. address
- CODE EMIT+ ( c --)
-    TOS SWPB, 
-    TOS VDPWD @@ MOVB, 
-    TOS POP, 
-    NEXT, 
- ENDCODE     
+ CODE 0LIMI   0 LIMI,   NEXT,  ENDCODE
+: RMODE ( vdpaddr -- ) DUP 0LIMI VDPWA C! >< VDPWA C! ;
+: WMODE ( vdpaddr -- ) 4000 OR RMODE ;
+: EMIT+  ( c --) VDPWD C! ; \ write & inc. address
 
 : VFILL   ( vaddr len c -- )
     ROT WMODE 
@@ -57,7 +40,7 @@ TARGET
 : COL+!  ( n -- )
   COL @ +  DUP C/SCR @ >
   IF DROP 
-    COL OFF  ROW OFF ( wrap, not scroll)
+    COL OFF  ROW OFF 
     EXIT
 
   THEN COL ! ;
@@ -71,10 +54,11 @@ TARGET
     CURSOR WMODE 
     >R
     BEGIN
-      COUNT EMIT+ 1 COL+!  
+      COUNT EMIT  
       R> 1- DUP>R
     -UNTIL
     R> 2DROP ;
 
 : AT-XY  ( col row -- ) ROW ! COL ! CURSOR WMODE ;
 : PAGE   0  C/SCR @ BL VFILL  0 0 AT-XY ;
+

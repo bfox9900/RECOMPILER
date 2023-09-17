@@ -61,38 +61,29 @@ TARGET
 : >VPOS  ( col row -- vaddr) C/L @ * + ;
 : CURSOR ( -- Vaddr) COL @ ROW @ >VPOS  0 C/SCR @ CLIP ;
 
-: COL+!  ( n -- )  COL @ +  0  C/SCR @ CLIP COL !
+: COL+!  ( n -- )
+  COL @ +  DUP C/SCR @ >
+  IF DROP 
+    COL OFF  ROW OFF ( wrap, not scroll)
+    EXIT
+
+  THEN COL ! ;
+
 : ROW+!  ( n -- ) ROW @ +  0 23 CLIP ROW ! ;
 : EMIT   ( c --)  CURSOR WMODE EMIT+  1 COL+! ; 
 : CR     ( -- )   1 ROW+!  COL OFF ;
 : SPACE  ( -- )   BL EMIT ;
 
-CODE (TYPE) ( addr len --)
-    R1 POP,        \ string address
-    R2 VDPWD LI, 
-    BEGIN,
-      *R1+ *R2 MOVB, 
-      COL @@ INC, 
+: (TYPE) ( addr len --)
+    >R
+    BEGIN
+      COUNT EMIT+  1 COL+! 
+      R> 1- DUP>R
+    -UNTIL
+    R> 2DROP ;
+;
 
-      COL @@ C/SCR @@ CMP,
-      HI IF, 
-          COL @@ CLR, 
-      ENDIF,   
-
-      TOS DEC, 
-    EQ UNTIL,
-    TOS POP, 
-    NEXT,
-ENDCODE  \ 14 bytes
-
-: TYPE ( addr len -- )
-    CURSOR WMODE (TYPE) ;
-\    >R
-\    BEGIN
-\      COUNT EMIT+  1 COL+! 
-\      R> 1- DUP>R
-\    -UNTIL
-\    R> 2DROP ;
+: TYPE ( addr len -- )  CURSOR WMODE (TYPE) ;
 
 : AT-XY  ( col row -- ) ROW ! COL ! CURSOR WMODE ;
 : PAGE   0 C/SCR @ 20 VFILL  0 0 AT-XY ;

@@ -53,6 +53,12 @@ CODE BRANCH ( -- ) \ jump unconditionally
     NEXT, 
 ENDCODE 
 
+\ CODE (FOR)    \ same as >R but could change to a register 
+\     TOS RPUSH, 
+\     TOS POP,
+\     NEXT, 
+\ ENDCODE      
+
 CODE (NEXT)
     *RP DEC,          \ decrement loop ON RSTACK or R15
     OC IF,            \ test carry flag
