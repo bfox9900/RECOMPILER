@@ -1,6 +1,6 @@
-\ FORNEXT.FTH  for RECOMPILER                   Sept 15 2023 Fox 
-\ waaay smaller code than DO LOOP 
-TARGET
+
+: <BACK    ( addr --) HERE  -  , ;
+
 CODE  <NEXT>
    *RP DEC,         \ decr top of R-stack
     NC IF,
@@ -11,8 +11,6 @@ CODE  <NEXT>
     IP INCT,        \ move IP past the jump offset cell
 ENDCODE
 
-COMPILER ALSO META DEFINITIONS 
-: FOR  ( n --)  TCOMPILE >R   THERE ; IMMEDIATE
-: NEXT ( -- )   TCOMPILE <NEXT> <BACK ; IMMEDIATE
+: FOR  ( n --)  POSTPONE >R  HERE ; IMMEDIATE
+: NEXT ( -- )   POSTPONE <NEXT> <BACK ; IMMEDIATE
 
-COMPILER 

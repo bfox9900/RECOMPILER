@@ -1,9 +1,11 @@
-\ TESTPROG2.FTH  Demo IMPORT: CODE  loops and AUTOSTART   Sep 2023 Fox 
+\ HELLO.FTH  for the recompiler.  Demo Sep 16 2023 Fox 
 
 HEX 2000 ORG   \ this must be set before compiling any code 
 
 INCLUDE DSK7.ITC-FORTH \ preamble for indirect threaded Forth
 INCLUDE DSK7.STD-OUT
+
+IMPORT: ?TERMINAL
 
 COMPILER DECIMAL 
 TARGET
@@ -12,7 +14,10 @@ TARGET
    
    PAGE  
    S" HELLO WORLD" TYPE 
-   10000 BEGIN 1- DUP -UNTIL
+
+   BEGIN 
+     ?TERMINAL 
+   UNTIL 
    BYE 
 ;
 
@@ -23,5 +28,5 @@ SAVE DSK7.HELLOWORLD
 
 HOST  \ return to HOST Forth 
 
-\ you could automatically exit to TI-99 Main page if you want
+\ you could automatically exit to TI-99 Main page
 ( BYE )  
