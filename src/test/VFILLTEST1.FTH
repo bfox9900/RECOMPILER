@@ -1,9 +1,9 @@
-\ TESTPROG2.FTH  Demo IMPORT: CODE  loops and AUTOSTART   Sep 2023 Fox 
+\ vfillTEST.FTH   using FOR NEXT loop FOR VFILL and TYPE 
 
 HEX 2000 ORG   \ this must be set before compiling any code 
 
 INCLUDE DSK7.ITC-FORTH \ preamble for indirect threaded Forth
-INCLUDE DSK7.STD-OUT
+INCLUDE DSK7.STD-OUT1  \ uses For/next 
 
 IMPORT: ?TERMINAL 
 
@@ -33,7 +33,7 @@ TARGET
 
 COMPILER 
 AUTOSTART MAIN 
-SAVE DSK7.VFILLTEST
+SAVE DSK7.VFILLTEST1
 
 HOST 
 

@@ -13,11 +13,11 @@ COMPILER HEX
  
 TARGET
 VARIABLE BOOT  \ hold the cfa of the word that boots from COLD
-[
+
 L: COLD               \ COLD runs at boot time to build the Forth VM
       8300 LWPI,      \ set 9900 workspace
-      SP 83FE LI,     \ data stack in scratchpad
-      RP 83D0 LI,     \ return stack in scratchpad
+      SP 3FFE LI,     \ data stack in scratchpad
+      RP 3FAE LI,     \ return stack in scratchpad
       IP BOOT LI,     \ load interpreter pointer with boot word
  
       R10 _NEXT LI,   \ inner interpreter stays in R10
@@ -43,7 +43,7 @@ TARGET
 
 \ META-compiling S" 
 COMPILER ALSO META DEFINITIONS 
-HOST: S"   [CHAR] " PARSE  COMPILE (S")  TS, ;HOST IMMEDIATE 
+HOST: S"   [CHAR] " PARSE  TCOMPILE (S")  TS, ;HOST IMMEDIATE 
 
 
 CR .( ITC FORTH Preamble loaded )

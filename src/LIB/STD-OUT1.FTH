@@ -1,4 +1,4 @@
-\ Standard Forth output words in Forth w/ FORNEXT Sept 16 2023
+\ Standard Forth output words in minimal Forth + FOR/NEXT  Sept 16 2023
 COMPILER HEX 
 
 TARGET
@@ -29,12 +29,15 @@ TARGET
 
 : CLIP   ( n lo hi -- n) ROT MIN MAX ;
 : >VPOS  ( col row -- vaddr) C/L @ * + ;
-: CURSOR ( -- Vaddr) COL @ ROW @ >VPOS  0 C/SCR @ CLIP ;
+: CURSOR ( -- Vaddr) COL @ ROW @ >VPOS  0  C/SCR @ 1- CLIP ;
 : AT-XY  ( col row -- ) ROW ! COL ! CURSOR WMODE ;
 
 : COL+!  ( n -- )
-  COL @ +  DUP C/SCR @ >
-  IF   DROP  0 0 AT-XY  EXIT
+  COL @ +  DUP C/SCR @ 1- >
+  IF DROP 
+     0 0 AT-XY 
+     EXIT
+
   THEN COL ! ;
 
 : ROW+!  ( n -- ) ROW @ +  0 23 CLIP ROW ! ;
@@ -45,7 +48,6 @@ TARGET
 : TYPE   ( addr len -- ) 
   CURSOR WMODE  
   FOR  COUNT EMIT+  1 COL+!  NEXT DROP ; 
-   
 
 : PAGE   0  C/SCR @ BL VFILL  0 0 AT-XY ;
 
