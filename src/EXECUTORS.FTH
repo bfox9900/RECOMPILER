@@ -49,7 +49,7 @@ CODE ?BRANCH
 ENDCODE 
 
 CODE BRANCH ( -- ) \ jump unconditionally 
-           *IP IP ADD,     
-                  NEXT, 
+         *IP IP ADD,     
+                NEXT, 
 ENDCODE 
 

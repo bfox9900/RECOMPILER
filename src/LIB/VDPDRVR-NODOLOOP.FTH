@@ -1,10 +1,7 @@
-\ VDPDRVR.FTH    tms9918 video chip API
-
-COMPILER HEX
-
 TARGET
+
 8800 CONSTANT VDPRD               \ vdp ram read data
-8802 CONSTANT VDPSTS              \ vdp status
+\ 8802 CONSTANT VDPSTS              \ vdp status
 8C00 CONSTANT VDPWD               \ vdp ram write data
 8C02 CONSTANT VDPWA               \ vdp ram read/write address
 
@@ -24,6 +21,30 @@ CODE 0LIMI   0 LIMI,   NEXT,  ENDCODE
 : V@    ( VDPadr -- n) VC@  VC@+  FUSE  ;
 : V!    ( n vaddr --) >R  SPLIT R> VC! VC!+ ;
 
-: VWRITE ( addr Vaddr cnt -- ) SWAP WMODE 0 DO  COUNT VC!+  LOOP DROP ;
-: VFILL  ( Vaddr cnt char --)  ROT WMODE  SWAP 0 DO  DUP VC!+  LOOP DROP ;
-: VREAD  ( Vaddr Ram cnt --)   ROT RMODE  BOUNDS DO  VC@+ I C! LOOP DROP ;
+: VWRITE ( RAM-addr VDP-addr cnt -- )
+        SWAP WMODE
+        >R
+        BEGIN
+          COUNT VC!+
+          R> 1- DUP>R
+        -UNTIL
+        R> 2DROP ;
+
+
+: VREAD  ( Vaddr Ram cnt --)
+         >R
+         SWAP RMODE
+         BEGIN
+           VC@+ OVER C!
+           R> 1- DUP>R
+         -UNTIL
+         R> 2DROP ;
+
+: VFILL  ( vaddr cnt char --)
+         SWAP >R
+         SWAP WMODE
+         BEGIN
+           DUP VC!+
+           R> 1- DUP>R
+         -UNTIL
+         R> 2DROP ;

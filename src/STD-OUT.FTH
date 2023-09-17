@@ -16,14 +16,14 @@ VARIABLE C/SCR     3C0 C/SCR !
 
 : COL+!  ( n -- )
   COL @ +  DUP C/SCR @ >
-  IF DROP COL OFF EXIT
+  IF   DROP COL OFF  EXIT
   THEN COL ! ;
 
 : ROW+!  ( n -- ) ROW @ +  0 23 CLIP ROW ! ;
 
 : EMIT   ( c --) CURSOR VC! 1 COL+! ;
 : CR     ( -- ) 1 ROW+!  COL OFF ;
- : SPACE   BL EMIT ;
+: SPACE   BL EMIT ;
 
 : TYPE   ( addr len -- ) 0 DO  COUNT EMIT LOOP DROP ;
 
