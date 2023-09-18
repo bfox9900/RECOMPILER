@@ -1,4 +1,4 @@
-\ STD-OUT1A.FTH output words in Forth + minimal code Sept 17 2023
+\ STD-OUT1C.FTH output words in Forth + minimal code Sept 17 2023
 
 COMPILER HEX 
 
@@ -59,16 +59,16 @@ ENDCODE  ( 14 BYTES)
 
 : CLIP   ( n lo hi -- n) ROT MIN MAX ;
 : >VPOS  ( col row -- vaddr) C/L @ * + ;
-: CURSOR ( -- Vaddr) COL @ ROW @ >VPOS  0  C/SCR @ 1- CLIP ;
+: CURSOR ( -- Vaddr) COL @ ROW @ >VPOS ;
 : AT-XY  ( col row -- ) ROW ! COL ! CURSOR WMODE ;
 
 : ?WRAP ( -- )
   COL @ C/SCR @ 1- >  IF  0 0 AT-XY  THEN  ;
 
 : ROW+!  ( n -- ) ROW @ +  0 23 CLIP ROW ! ;
-: CR     ( -- )   1 ROW+!  COL OFF ;
+: CR     ( -- )   1 ROW+!  COL OFF  CURSOR WMODE ;
 : EMIT   ( c --)  ?WRAP EMIT+ ; 
-: TYPE   ( addr len -- ) CURSOR WMODE  FOR  COUNT EMIT  NEXT DROP ; 
+: TYPE   ( addr len -- ) CURSOR WMODE  FOR  COUNT EMIT+ ?WRAP  NEXT DROP ; 
 
 : SPACE  ( -- )   BL EMIT ;
 : PAGE   0  C/SCR @ BL VFILL  0 0 AT-XY ;

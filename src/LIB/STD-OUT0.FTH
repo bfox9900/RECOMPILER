@@ -11,51 +11,50 @@ TARGET
  CODE 0LIMI   0 LIMI,   NEXT,  ENDCODE
 : RMODE ( vdpaddr -- ) DUP 0LIMI VDPWA C! >< VDPWA C! ;
 : WMODE ( vdpaddr -- ) 4000 OR RMODE ;
-: EMIT+  ( c --) VDPWD C! ; \ write & inc. address
 
 : VFILL   ( vaddr len c -- )
     ROT WMODE 
     SWAP 
     BEGIN
-      OVER EMIT+ 
+      OVER VDPWD C!
       1- DUP
     -UNTIL
     2DROP ;
 
-VARIABLE C/L      COMPILER 20 C/L T!
+\ SCREEN I/O -----------
+COMPILER DECIMAL 
+TARGET 
+VARIABLE C/L       COMPILER 32 C/L T!
 
 TARGET
 VARIABLE COL
 VARIABLE ROW
 VARIABLE CURSOR
-VARIABLE C/SCR     COMPILER 3C0 C/SCR T!
+VARIABLE C/SCR     COMPILER 766 C/SCR T!
 
 TARGET
 20 CONSTANT BL
 
 : CLIP   ( n lo hi -- n) ROT MIN MAX ;
 : >VPOS  ( col row -- vaddr) C/L @ * + ;
-: CURSOR ( -- Vaddr) COL @ ROW @ >VPOS  0  C/SCR @ 1- CLIP ;
+: CURSOR ( -- Vaddr) COL @ ROW @ >VPOS  ;
 : AT-XY  ( col row -- ) ROW ! COL ! CURSOR WMODE ;
 
-: COL+!  ( n -- )
-  COL @ +  DUP C/SCR @ 1- >
-  IF DROP 
-     0 0 AT-XY 
-     EXIT
+: ?WRAP ( -- )
+  COL @ C/SCR @ 1- >  IF  0 0 AT-XY  THEN  ;
 
-  THEN COL ! ;
+: ROW+!  ( n -- ) 
+  ROW @ + DUP 24 < IF  ROW ! EXIT  THEN ROW OFF ;
 
-: ROW+!  ( n -- ) ROW @ +  0 23 CLIP ROW ! ;
-: EMIT   ( c --)  CURSOR WMODE EMIT+ 1 COL+! ; 
-: CR     ( -- )   1 ROW+!  COL OFF ;
+: EMIT   ( c --) CURSOR WMODE VDPWD C! ?WRAP ; 
+: CR     ( -- )  1 ROW+! COL OFF CURSOR WMODE ;
 : SPACE  ( -- )   BL EMIT ;
 
 : TYPE   ( addr len -- )
     CURSOR WMODE 
     >R
     BEGIN
-      COUNT EMIT  
+      COUNT VDPWD C! ?WRAP   
       R> 1- DUP>R
     -UNTIL
     R> 2DROP ;

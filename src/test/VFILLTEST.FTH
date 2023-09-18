@@ -3,7 +3,7 @@
 HEX 2000 ORG   \ this must be set before compiling any code 
 
 INCLUDE DSK7.ITC-FORTH \ preamble for indirect threaded Forth
-INCLUDE DSK7.STD-OUT
+INCLUDE DSK7.STD-OUT0  \ no code, only forth
 
 IMPORT: ?TERMINAL 
 
@@ -25,7 +25,8 @@ TARGET
    VFILLTEST 
    PAGE
    BEGIN 
-     S"   VFILL in Forth  " TYPE  
+      S" VDP Driver in Forth," TYPE  
+      S" BEGIN loops only.   " TYPE 
     ?TERMINAL 
    UNTIL
    BYE 

@@ -1,6 +1,33 @@
-COMPILER
-CR ." V D P  C H I P  I N T E R F A C E"
-\ minimal word set to manage the tms9918 chip
+\ T I - 9 9   S C R E E N   C O N T R O L  P R I M I T I V E S
+\ For RECOMPILER 1.0  2023 
+
+\ These assembler routines manage the screen math at machine speed.
+\ They are smaller and faster in ASM while still easy to understand.
+\ Using these primitives and the VDP words CAMEL99 creates the rest of
+\ video screen control in Forth.
+\ We took a Forth approach to naming VDP memory routines.
+\ So TI name, VSBR, becomes VC@  and VSBW becomes VC!.
+\ VMBW and VMBR become VWRITE AND VREAD.
+\ We also added a new one V! and V@ that load and store 16 bit numbers to VDP.
+
+\ I embraced the Forth paradigm so these routines are created as
+\ Forth words with stack based parameter passing. This gives us the freedom
+\ to call these fast routines directly from Forth.
+\ With these fast primitives we can write most of the VDP driver
+\ in Forth and still get excellent performance.
+
+\ Aug 31 2018,
+\ CHANGED to read user variables correctly, via the workspace pointer WP.
+\ 9900 Indexed addressing mode makes this almost as fast as indirect addressing
+\ the variables.  It's all Multi-tasking friendly now
+\ April 2020  On advice of Tursi, Atariage, I disable interrupts when VDP
+\             address is set then restore them at the end of the routine.
+\ Feb 2021    - Changed all address setting to use index addressing for
+\               odd numbered bytes loading into VDP ports.
+\ Jan 2022    - use RMODE/WMODE sub-routines for all words. Saved 62 bytes
+\             - TOS is VDP address for all routines
+
+COMPILER CR ." V D P  C H I P  I N T E R F A C E"
 
 \ Register Usage:
 \ R0  down counter
@@ -40,24 +67,24 @@ CODE V@  ( VDPadr -- n)        \ video fetch 16bit int
 
 CODE VREAD   ( VDP-adr RAM-addr cnt  -- )
          TOS R0 MOV,           \ cnt->R0
-         R2 POP,               \ pop ram addr. to R2
+         R2 POP,               \ ram addr. to R2
          TOS POP,              \ VDP address to TOS
          R0 R0 MOV,            \ test cnt<>0
          NE IF,
             RMODE @@ BL,
             R3 VDPRD LI,      \ put VDP read port address in R3. 12% faster
             BEGIN,
-               *R3 *R2+ MOVB,  \ READ from VDP RAM into CPU RAM , autoINC
+               *R3 *R2+ MOVB,  
                 R0 DEC,
             EQ UNTIL,
             2 LIMI,
          ENDIF,
-         TOS POP,                \ refill TOS
+         TOS POP,  
          NEXT,
          ENDCODE
 
 \ ===================================================================
-[CC] CR ." V D P   W R I T E"  ( VMBW ) [TC]
+COMPILER CR ." V D P   W R I T E"  ( VMBW ) TARGET
 
 CODE VWRITE  ( RAM-addr VDP-addr cnt -- )
          TOS R0 MOV,         \ cnt in R0
@@ -132,6 +159,34 @@ CODE >VPOS ( col row -- vaddr) \ compute a VDP screen address
          NEXT,
          ENDCODE
 
+CODE CPUT ( char --  n) \ write to screen, return VCOL value 
+         TOS     R2  MOV,
+                 R1  STWP,    \ workspace is USER area base address
+         32 (R1) R3  MOV,     \ vrow->r3
+         2E (R1) R3  MPY,     \ vrow*c/l->R4
+         34 (R1) TOS ADD,     \ add vcol
+         7E (R1) TOS ADD,     \ add video page# VPG. tos=vdp cursor address 
+            WMODE @@ BL,      
+         5 (R1) VDPWD @@ MOVB,  \ !! Odd byte of R2, write to screen
+         34 (R1)  INC,          \ bump VCOL
+         34 (R1)  2E (R1) CMP,  \ compare VCOL = C/L
+         TOS CLR, 
+         EQ IF,
+            TOS SETO,           \ set true flag
+         ENDIF,
+         2 LIMI,
+         NEXT,
+         ENDCODE
+
+ CODE (CR) ( -- n)   \ inc VROW, return VROW value
+         R1 STWP,
+         34 (R1) CLR,     \ VCOL OFF
+         32 (R1) INC,     \ vrow 1+! 
+         TOS PUSH,
+         32 (R1) TOS MOV, \ vrow @ 
+         NEXT,
+         ENDCODE
+
 \ * VDP write to register. Kept the TI name
 CODE VWTR   ( c reg -- )          \ Usage: 5 7 VWTR
          TOS SWPB,              \ register goes to left side
@@ -146,6 +201,12 @@ CODE VWTR   ( c reg -- )          \ Usage: 5 7 VWTR
          NEXT,
          ENDCODE
 
+\ CODE VDPWA  ( Vaddr -- ) \ set vdp write address
+\         WMODE @@ BL,
+\         TOS POP,
+\         NEXT,
+\         ENDCODE
+
 \ FAST user variable for screen driver
 CROSS-ASSEMBLING
 CODE C/L@   ( -- n )        \ this is used 8 times in the KERNEL. Saves 24 bytes
@@ -154,3 +215,8 @@ CODE C/L@   ( -- n )        \ this is used 8 times in the KERNEL. Saves 24 bytes
          2E (TOS) TOS MOV,
          NEXT,
          ENDCODE
+
+CODE BYE   ( -- )
+          83C4 @@ CLR,        \ clear interrupt vector
+          0000 @@ BLWP,       \ ROM reset vector >0000
+          ENDCODE

@@ -3,6 +3,7 @@ CR .( branch cross-compilers if then else etc...)
 COMPILER 
 : <BACK    ( addr --) THERE  -    T, ;
 : AHEAD    ( -- addr) THERE     0 T, ;
+: (THEN)   ( addr -- ) THERE OVER - SWAP T! ; \ resolves branch/?branch
 
 \ Note:
 \ This is one of the thornier bits of a Forth cross-compiler
@@ -10,8 +11,8 @@ COMPILER
 \ TCOMPILE is used to compile a word into a TARGET definition.
 
 \ POSTPONE must be used to compile COMPILER words into COMPILER definitions
-
-IMPORT: >R  \ need this for FOR NEXT loop 
+COMPILER 
+IMPORT: >R  
 
 \                  >> important <<
 COMPILER ALSO META DEFINITIONS \ put these names in META 
@@ -19,7 +20,7 @@ COMPILER ALSO META DEFINITIONS \ put these names in META
 : FOR  ( n -- ) TCOMPILE >R THERE ;  IMMEDIATE
 
 : IF            TCOMPILE ?BRANCH  AHEAD ; IMMEDIATE
-: THEN          THERE OVER - SWAP T! ; IMMEDIATE \ resolves a branch
+: THEN          (THEN) ; IMMEDIATE \ resolves a branch
 : ELSE          TCOMPILE  BRANCH  AHEAD SWAP POSTPONE THEN ; IMMEDIATE
 : UNTIL         TCOMPILE ?BRANCH  <BACK ; IMMEDIATE
 : AGAIN         TCOMPILE  BRANCH  <BACK ; IMMEDIATE

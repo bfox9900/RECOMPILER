@@ -10,7 +10,6 @@ CODE <?DO>  ( limit ndx -- )
         TOS POP, 
         IP RPOP,
         NEXT,
-
 +CODE <DO>  ( limit indx -- )
 1 $:    R0  8000 LI,  
         *SP+ R0  SUB,
@@ -62,22 +61,15 @@ TARGET
 : L>        ( -- x ) ( L: x -- ) LP @ @  -2 LP +! ;
 
 : RAKE  ( -- ) ( L: 0 a1 a2 .. aN -- )
-        BEGIN  L> ?DUP WHILE   POSTPONE THEN  REPEAT ;
+        BEGIN  L> ?DUP WHILE   (THEN)  REPEAT ;
 
 
 COMPILER ALSO META DEFINITIONS 
-: DO        TCOMPILE <DO>  POSTPONE BEGIN ; IMMEDIATE
-: ?DO       TCOMPILE <?DO> POSTPONE BEGIN ; IMMEDIATE
-
-: LOOP      TCOMPILE <LOOP>  <BACK ; IMMEDIATE
-: +LOOP     TCOMPILE <+LOOP> <BACK ; IMMEDIATE 
-
-: DO        ( n n -- adr)  TCOMPILE <DO>   0 >L  POSTPONE BEGIN  ; IMMEDIATE
-: ?DO       ( n n -- adr)  TCOMPILE <?DO>  0 >L  POSTPONE BEGIN  ; IMMEDIATE
+: DO        ( n n -- adr)  TCOMPILE <DO>   0 >L  THERE  ; IMMEDIATE
+: ?DO       ( n n -- adr)  TCOMPILE <?DO>  0 >L  THERE  ; IMMEDIATE
 : LEAVE     ( -- ) TCOMPILE UNLOOP  TCOMPILE BRANCH AHEAD  >L ; IMMEDIATE
 
 \ complete a DO loop
 : LOOP      ( -- )  TCOMPILE <LOOP>  <BACK  RAKE ; IMMEDIATE
 : +LOOP     ( -- )  TCOMPILE <+LOOP> <BACK  RAKE ; IMMEDIATE
-
 PREVIOUS DEFINITIONS 

@@ -23,6 +23,7 @@ L: DOCOL    \ enter a colon definition
     IP RPUSH,  
     W IP MOV, 
     NEXT,
+    
 \ ===========================================
 CODE EXIT                  \ return from a colon definition 
                IP RPOP,    \ get previous XT into IP register
@@ -52,12 +53,6 @@ CODE BRANCH ( -- ) \ jump unconditionally
     *IP IP ADD,     
     NEXT, 
 ENDCODE 
-
-\ CODE (FOR)    \ same as >R but could change to a register 
-\     TOS RPUSH, 
-\     TOS POP,
-\     NEXT, 
-\ ENDCODE      
 
 CODE (NEXT)
     *RP DEC,          \ decrement loop ON RSTACK or R15

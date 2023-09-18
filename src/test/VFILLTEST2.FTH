@@ -3,7 +3,7 @@
 HEX 2000 ORG   \ this must be set before compiling any code 
 
 INCLUDE DSK7.ITC-FORTH \ preamble for indirect threaded Forth
-INCLUDE DSK7.STD-OUT1A  \ uses For/next & EMIT+ as CODE 
+INCLUDE DSK7.STD-OUT  \ uses For/next & EMIT+ as CODE 
 
 IMPORT: ?TERMINAL 
 
@@ -18,7 +18,8 @@ TARGET
    VFILLTEST 
    PAGE
    BEGIN 
-     S"   VFILL in Forth  " TYPE  
+     S"   VFILL in Forth. " TYPE  
+     S"   FOR/NEXT loops and EMIT+ is CODE" TYPE 
     ?TERMINAL 
    UNTIL
    BYE 

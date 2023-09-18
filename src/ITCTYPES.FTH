@@ -3,7 +3,7 @@ HOST
 : ?RUNTARGET  STATE @ ABORT" Can't run TARGET words" ;
 
 COMPILER
-\ resolve TLITERAL ( neeed a place to put this)
+\ resolve TLITERAL 
 :NONAME ( n -- n|~) 
     STATE @ IF  TCOMPILE LIT   T,  THEN ; IS TLITERAL 
 
