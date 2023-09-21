@@ -1,5 +1,7 @@
 \ eForth Initial Model (8086)
 
+                **** WORK IN PROGRESS ****
+
 \ Based on bFORTH 1990 by Bill Muench, 1990
 \ Donated to eForth Working Group, Silicon Valley FIG Chapter
 \ to serve as a model of portable Forth for experimentation.
@@ -7,7 +9,7 @@
 \ Ported to TI-99 by Brian Fox, Kilworth Ontario Canada 2023 
 
 \ This program can be metacompiled with METAFORTH 1.0 for TI-99
-\ and the eForth extensions 
+\ and the eForth extension files 
 
 \ Conventions
 \
@@ -71,12 +73,12 @@ H# E890 EQU =CALL \ 8086 CALL opcode (NOP CALL)
 \ ** R5      general purpose register
 \ ** R6      parameter stack pointer
 \ ** R7      return stack pointer
-\ ** R8      Forth 'W' register OR general purpose in a system CODE word
+\ ** R8      Forth 'W' register ( holds XT on entry to word)
 \ ** R9      Forth VM IP (Interpreter pointer)
 \ ** R10     Forth's "NEXT" routine cache
 \ ** R11     9900 sub-routine linkage, holds pfa after doLIST (enter)
 \ ** R12     9900 CRU register  - OR - general purpose register
-\ ** R13     Multi-tasker LINK to next task
+\ ** R13     Multi-tasker LINK toNEXT, task
 \ ** R14     Multi-tasker Program counter
 \ ** R15     Multi-tasker task Status register
 
@@ -173,19 +175,19 @@ ENDCODE
 
 CODE branch ( -- ) COMPILE-ONLY
    *IP IP ADD,  \ take the jump 
-   NEXT
+  NEXT,
 ENDCODE
 
 .( Memory fetch & store )
 
-CODE ! ( w a -- )  R4 POP,  *SP+ *R4 MOV,   NEXT ENDCODE
-CODE @ ( a -- w )  *SP R4 MOV,  *R4 *SP MOV,  NEXT ENDCODE
+CODE ! ( w a -- )  R4 POP,  *SP+ *R4 MOV,  NEXT, ENDCODE
+CODE @ ( a -- w )  *SP R4 MOV,  *R4 *SP MOV, NEXT, ENDCODE
 
 CODE C! ( w b -- )
    R4 POP, 
    *SP SWPB,
    *SP+ *R4 MOVB,
-   NEXT
+  NEXT,
 ENDCODE
 
 CODE C@ ( b -- c )
@@ -194,30 +196,30 @@ CODE C@ ( b -- c )
    *W R4 MOVB,  
     R4 SWPB,
     R4 PUSH,   
-   NEXT
+  NEXT,
 ENDCODE
 
 .( Return Stack )
 
-CODE RP@ ( -- a )  RP PUSH,             NEXT ENDCODE
-CODE RP! ( a -- )  RP POP,              NEXT ENDCODE COMPILE-ONLY
-CODE R>  ( -- w ) *RP PUSH,   RP INCT,  NEXT ENDCODE COMPILE-ONLY
-CODE R@  ( -- w ) *RP PUSH,             NEXT ENDCODE
-CODE >R  ( w -- )  RP DECT,  *RP PUSH,  NEXT ENDCODE COMPILE-ONLY
+CODE RP@ ( -- a )  RP PUSH,            NEXT, ENDCODE
+CODE RP! ( a -- )  RP POP,             NEXT, ENDCODE COMPILE-ONLY
+CODE R>  ( -- w ) *RP PUSH,   RP INCT, NEXT, ENDCODE COMPILE-ONLY
+CODE R@  ( -- w ) *RP PUSH,            NEXT, ENDCODE
+CODE >R  ( w -- )  RP DECT,  *RP PUSH, NEXT, ENDCODE COMPILE-ONLY
 
 .( Data Stack )
 
-CODE SP@ ( -- a )  SP DECT, SP *SP MOV,  NEXT ENDCODE
-CODE SP! ( a -- )  *SP+ SP MOV,          NEXT ENDCODE
+CODE SP@ ( -- a )  SP DECT, SP *SP MOV, NEXT, ENDCODE
+CODE SP! ( a -- )  *SP+ SP MOV,         NEXT, ENDCODE
 
-CODE DROP ( w -- )      SP INCT, NEXT ENDCODE
-CODE DUP  ( w -- w w )  SP DECT, NEXT ENDCODE
+CODE DROP ( w -- )      SP INCT,NEXT, ENDCODE
+CODE DUP  ( w -- w w )  SP DECT,NEXT, ENDCODE
 
 CODE SWAP ( w1 w2 -- w2 w1 )
    *SP W MOV, 
    2 (SP) *SP MOV,
    W 2 (SP) MOV, 
-   NEXT
+  NEXT,
 ENDCODE
 
 CODE OVER ( w1 w2 -- w1 w2 w1 ) 
@@ -227,15 +229,11 @@ CODE OVER ( w1 w2 -- w1 w2 w1 )
    NEXT 
 ENDCODE
 
-: ?DUP ( w -- w w, 0 ) DUP IF DUP THEN ;
-
-: NIP ( w w -- w ) SWAP DROP ;
-
-: ROT ( w1 w2 w3 -- w2 w3 w1 ) >R SWAP R> SWAP ;
-
-: 2DROP ( w w -- ) DROP DROP ;
-
-: 2DUP ( w1 w2 -- w1 w2 w1 w2 ) OVER OVER ;
+: ?DUP   ( w -- w w, 0 ) DUP IF DUP THEN ;
+: NIP    ( w w -- w ) SWAP DROP ;
+: ROT    ( w1 w2 w3 -- w2 w3 w1 ) >R SWAP R> SWAP ;
+: 2DROP  ( w w -- ) DROP DROP ;
+: 2DUP   ( w1 w2 -- w1 w2 w1 w2 ) OVER OVER ;
 
 .( Logic )
 
@@ -246,33 +244,32 @@ CODE 0< ( n -- t )
    IF, 
       *SP SETO,  
    ENDIF,
-   NEXT
+  NEXT,,
 ENDCODE
 
 CODE AND ( w w -- w )
-   *SP+ TOS MOV, 
-   TOS INV,    
-   TOS *SP  SZC, 
-   NEXT
+   *SP+ R0 MOV, 
+   R0 INV,    
+   R0 *SP  SZC, 
+   NEXT,
 ENDCODE
 
 CODE OR ( w w -- w )
-POP BX
-POP AX
-OR BX, AX
-PUSH BX
-NEXT
+   *SP+ R0 MOV,   
+   *SP  R0 SOC, 
+    R0 *SP MOV, 
+   NEXT,
 ENDCODE
 
-CODE XOR ( w w -- w )
-POP BX
-POP AX
-XOR BX, AX
-PUSH BX
-NEXT
+CODE XOR ( w w -- w ) 
+   *SP+ R0 MOV,   
+   *SP  R0 XOR, 
+    R0 *SP MOV, 
+   NEXT,    
 ENDCODE
 
-: INVERT ( w -- w ) -1 XOR ;
+\ : INVERT ( w -- w ) -1 XOR ;
+CODE INVERT   *SP INV,  NEXT, ENDCODE 
 
 .( Arithmetic )
 
@@ -311,8 +308,8 @@ DUP USER '?KEY 1 CELL+ \ character input ready vector
 DUP USER 'EMIT 1 CELL+ \ character output vector
 
 DUP USER 'EXPECT 1 CELL+ \ line input vector
-DUP USER 'TAP 1 CELL+ \ input case vector
-DUP USER 'ECHO 1 CELL+ \ input echo vector
+DUP USER 'TAP 1 CELL+   \ input case vector
+DUP USER 'ECHO 1 CELL+  \ input echo vector
 DUP USER 'PROMPT 1 CELL+ \ operator prompt vector
 
 DUP USER BASE 1 CELL+ \ number base
@@ -534,31 +531,30 @@ THEN R> ( n ?sign) 2DROP R> BASE ! ;
 .( Parsing )
 
 : parse ( b u c -- b u delta \ )
-temp ! OVER >R DUP \ b u u
-IF 1 - temp @ BL =
-IF \ b u' \ 'skip'
-FOR COUNT temp @ SWAP - 0< INVERT WHILE
-NEXT ( b) R> DROP 0 DUP EXIT \ all delim
-THEN 1 - R>
-THEN OVER SWAP \ b' b' u' \ 'scan'
-FOR COUNT temp @ SWAP - temp @ BL =
-IF 0< THEN WHILE
-NEXT DUP >R ELSE R> DROP DUP >R 1 -
-THEN OVER - R> R> - EXIT
-THEN ( b u) OVER R> - ;
+   temp ! OVER >R DUP \ b u u
+   IF 1 - temp @ BL =
+      IF \ b u' \ 'skip'
+         FOR COUNT temp @ SWAP - 0< INVERT WHILE
+         NEXT ( b) R> DROP 0 DUP EXIT \ all delim
+         THEN 1 - R>
+   THEN OVER SWAP \ b' b' u' \ 'scan'
+   FOR COUNT temp @ SWAP - temp @ BL =
+   IF 0< THEN WHILE
+   NEXT DUP >R ELSE R> DROP DUP >R 1 -
+   THEN OVER - R> R> - EXIT
+   THEN ( b u) OVER R> - ;
 
 : PARSE ( c -- b u \ )
->R TIB >IN @ + #TIB @ >IN @ - R> parse >IN +! ;
+  >R TIB >IN @ + #TIB @ >IN @ - R> parse >IN +! ;
 
 : .( ( -- ) [ CHAR ) ] LITERAL PARSE TYPE ; IMMEDIATE
-: ( ( -- ) [ CHAR ) ] LITERAL PARSE 2DROP ; IMMEDIATE
-: \ ( -- ) #TIB @ >IN ! ; IMMEDIATE
+: (  ( -- ) [ CHAR ) ] LITERAL PARSE 2DROP ; IMMEDIATE
+: \  ( -- ) #TIB @ >IN ! ; IMMEDIATE
 
 : CHAR ( -- c ) BL PARSE DROP C@ ;
 : CTRL ( -- c ) CHAR $001F AND ;
 
-: TOKEN ( -- a \ )
-BL PARSE 31 MIN NP @ OVER - 2 - PACK$ ;
+: TOKEN ( -- a \ ) BL PARSE 31 MIN NP @ OVER - 2 - PACK$ ;
 
 : WORD ( c -- a \ ) PARSE HERE PACK$ ;
 
@@ -567,55 +563,69 @@ BL PARSE 31 MIN NP @ OVER - 2 - PACK$ ;
 : NAME> ( na -- ca ) 2 CELLS - @ ;
 
 : SAME? ( a a u -- a a f \ -0+ )
-FOR AFT OVER R@ CELLS + @
-OVER R@ CELLS + @ - ?DUP
-IF R> DROP EXIT THEN THEN
-NEXT 0 ;
+   FOR 
+      AFT OVER R@ CELLS + @
+      OVER R@ CELLS + @ - ?DUP
+      IF R> DROP EXIT THEN 
+      THEN
+   NEXT 0 ;
 
 : find ( a va -- ca na, a F )
-SWAP \ va a
-DUP C@ 2 / temp ! \ va a \ get cell count
-DUP @ >R \ va a \ count byte & 1st char
-CELL+ SWAP \ a' va
-BEGIN @ DUP \ a' na na
-IF DUP @ [ =MASK ] LITERAL AND R@ XOR \ ignore lexicon bits
-IF CELL+ -1 ELSE CELL+ temp @ SAME? THEN
-ELSE R> DROP EXIT
-THEN
-WHILE 2 CELLS - \ a' la
-REPEAT R> DROP NIP 1 CELLS - DUP NAME> SWAP ;
+   SWAP \ va a
+   DUP C@ 2 / temp ! \ va a \ get cell count
+   DUP @ >R \ va a \ count byte & 1st char
+   CELL+ SWAP \ a' va
+   BEGIN @ DUP \ a' na na
+      IF DUP @ [ =MASK ] LITERAL AND R@ XOR \ ignore lexicon bits
+         IF CELL+ -1 
+         ELSE CELL+ temp @ SAME? 
+         THEN
+      ELSE R> DROP EXIT
+      THEN
+   WHILE 2 CELLS - \ a' la
+   REPEAT 
+   R> DROP NIP 1 CELLS - DUP NAME> SWAP ;
 
 : NAME? ( a -- ca na, a F )
-CONTEXT DUP 2@ XOR IF 1 CELLS - THEN >R \ context<>also
-BEGIN R> CELL+ DUP >R @ ?DUP
-WHILE find ?DUP
-UNTIL R> DROP EXIT THEN R> DROP 0 ;
+   CONTEXT DUP 2@ XOR IF 1 CELLS - THEN >R \ context<>also
+   BEGIN R> CELL+ DUP >R @ ?DUP
+   WHILE find ?DUP
+   UNTIL R> DROP EXIT THEN R> DROP 0 ;
 
 .( Terminal )
 
 : ^H ( b b b -- b b b ) \ backspace
->R OVER R@ < DUP
-IF [ CTRL H ] LITERAL 'ECHO @EXECUTE THEN R> + ;
+   >R OVER R@ < DUP
+   IF [ CTRL H ] LITERAL 'ECHO @EXECUTE 
+   THEN R> + ;
 
 : TAP ( bot eot cur key -- bot eot cur )
-DUP 'ECHO @EXECUTE OVER C! 1 + ;
+   DUP 'ECHO @EXECUTE OVER C! 1 + ;
 
 : kTAP ( bot eot cur key -- bot eot cur )
-DUP 13 XOR
-IF [ CTRL H ] LITERAL XOR IF BL TAP ELSE ^H THEN EXIT
-THEN DROP NIP DUP ;
+   DUP 13 XOR
+   IF [ CTRL H ] LITERAL XOR 
+      IF BL TAP 
+      ELSE ^H 
+      THEN EXIT
+   THEN 
+   DROP NIP DUP ;
 
 : accept ( b u -- b u )
-OVER + OVER
-BEGIN 2DUP XOR
-WHILE KEY DUP BL - 95 U<
-IF TAP ELSE 'TAP @EXECUTE THEN
-REPEAT DROP OVER - ;
+   OVER + OVER
+   BEGIN 2DUP XOR
+   WHILE
+      KEY DUP BL - 95 U<
+      IF TAP 
+      ELSE 'TAP @EXECUTE 
+      THEN
+   REPEAT 
+   DROP OVER - ;
 
 : EXPECT ( b u -- ) 'EXPECT @EXECUTE SPAN ! DROP ;
 
 : QUERY ( -- )
-TIB 80 'EXPECT @EXECUTE #TIB ! 0 NIP >IN ! ;
+   TIB 80 'EXPECT @EXECUTE #TIB ! 0 NIP >IN ! ;
 
 .( Error handling )
 
@@ -636,12 +646,12 @@ CREATE NULL$ 0 ,
 .( Interpret )
 
 : $INTERPRET ( a -- )
-NAME? ?DUP
-IF @ [ =COMP ] LITERAL AND
-ABORT" compile ONLY" EXECUTE EXIT
-THEN
-'NUMBER @EXECUTE
-IF EXIT THEN THROW ;
+   NAME? ?DUP
+   IF @ [ =COMP ] LITERAL AND
+      ABORT" compile ONLY" EXECUTE EXIT
+   THEN
+   'NUMBER @EXECUTE
+   IF EXIT THEN THROW ;
 
 : [ ( -- ) [ ' $INTERPRET ] LITERAL 'EVAL ! ; IMMEDIATE
 
@@ -650,30 +660,28 @@ IF EXIT THEN THROW ;
 : ?STACK ( -- ) DEPTH 0< IF $" underflow" THROW THEN ;
 
 : EVAL ( -- )
-BEGIN TOKEN DUP C@
-WHILE 'EVAL @EXECUTE ?STACK
-REPEAT DROP 'PROMPT @EXECUTE ;
+   BEGIN TOKEN DUP C@
+   WHILE 'EVAL @EXECUTE ?STACK
+   REPEAT DROP 'PROMPT @EXECUTE ;
 
 .( Device I/O )
 
 CODE IO? ( -- f ) \ FFFF is an impossible character
-XOR BX, BX
-MOV DL, # $0FF \ input
-MOV AH, # 6 \ MS-DOS Direct Console I/O
-INT $021
-0<> IF \ ?key ready
-OR AL, AL
-0= IF \ ?extended ascii code
-INT $021
-MOV BH, AL \ extended code in msb
-ELSE MOV BL, AL
-THEN
-PUSH BX
-MOVE BX, # -1
-THEN
-PUSH BX
-NEXT
-ENDCODE
+\ Interface to call ROM KSCAN
+   TOS PUSH,
+   TOS CLR,            \ TOS will be our true/false flag
+   0 LIMI,             \ disable interrupts, ALL VDP routines restore them 
+   TOS 837C @@ MOVB,   \ clear GPL flags
+   83E0 LWPI,          \ switch to GPL workspace
+   000E @@ BL,         \ call ROM keyboard scanning routine
+   WRKSP0 LWPI,        \ return to Forth's workspace
+   837C @@ R1 MOVB,    \ read GPL status byte (=2000 if key pressed)
+   R1  3 SLA,          \ check the key bit
+   OC IF,              \ if carry flag set
+      8375 @@ TOS MOV, \ read the key
+   ENDIF,
+   NEXT,               \ return
+   ENDCODE
 
 CODE TX! ( c -- )
 POP DX
@@ -709,16 +717,17 @@ CREATE I/O ' RX? , ' TX! , \ defaults
 : que ( -- ) QUERY EVAL ;
 
 : QUIT ( -- ) \ clear return stack ONLY
-RP0 @ RP!
-BEGIN [COMPILE] [
-BEGIN [ ' que ] LITERAL CATCH ?DUP
-UNTIL ( a)
-CONSOLE NULL$ OVER XOR
-IF CR TIB #TIB @ TYPE
-CR >IN @ [ CHAR ^ ] LITERAL CHARS
-CR .$ ." ? "
-THEN PRESET
-AGAIN ;
+   RP0 @ RP!
+   BEGIN [COMPILE] [
+      BEGIN 
+         [ ' que ] LITERAL CATCH ?DUP
+      UNTIL ( a)
+      CONSOLE NULL$ OVER XOR
+      IF CR TIB #TIB @ TYPE
+         CR >IN @ [ CHAR ^ ] LITERAL CHARS
+         CR .$ ." ? "
+      THEN PRESET
+   AGAIN ;
 
 .( Compiler Primitives )
 
