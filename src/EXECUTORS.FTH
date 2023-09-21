@@ -54,14 +54,3 @@ CODE BRANCH ( -- ) \ jump unconditionally
     NEXT, 
 ENDCODE 
 
-CODE (NEXT)
-    *RP DEC,          \ decrement loop ON RSTACK or R15
-    OC IF,            \ test carry flag
-        *IP IP ADD,   \ take the jump 
-        NEXT,
-    ENDIF, 
-    RP INCT,       \ remove counter from Rstack 
-    R9 INCT,       \ move past (LOOP)'s in-line parameter
-    NEXT, 
-ENDCODE
-

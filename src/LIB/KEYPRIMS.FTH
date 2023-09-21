@@ -18,7 +18,6 @@ CODE KEY? ( -- ?)  \ *WARNING* it takes 1,128uS for KEY? scan to run
          OC IF,              \ if carry flag set
             8375 @@ TOS MOV, \ read the key
          ENDIF,
-\         2 LIMI,            \ I think removing this improves RKEY reliability 
          NEXT,               \ return
          ENDCODE
 

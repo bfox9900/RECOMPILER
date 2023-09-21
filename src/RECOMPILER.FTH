@@ -119,6 +119,9 @@ HEX
 ;
 
 ONLY FORTH ALSO COMPILERS DEFINITIONS 
+
+: EQU       CONSTANT ; 
+
 \ Note: The TARGET XT is held in the "body" (PFA) of the HOST word
 \ Below we take a HOST XT and fetch the TARGET XT
 : >TARG-XT ( xt -- xt')  >BODY @   ;
@@ -181,6 +184,21 @@ ONLY FORTH ALSO COMPILERS ALSO FORTH DEFINITIONS
       REPEAT
       DROP ;
 
+\ $ (hex number prefix) 
+\ Convert the next word in the input stream to a hex number
+\ Adapted from Open Firmware by Mitch Bradley
+\ Changed to use PARSE-WORD. Faster in CAMEL99 Forth (no copying)
+
+: H#  ( "hexnumber" -- n )
+    0 0 PARSE-NAME ( -- 0 0 str len)
+    BASE @ >R      \ save the current RADIX 
+    HEX  >NUMBER   \ convert the number in BASE 16
+    R> BASE !      \ restore previous radix 
+    ( -- n flag) ABORT" $ expected HEX number"  
+    2DROP  
+    STATE @ IF  POSTPONE TLITERAL  THEN   \ if compiling, compile literal no.
+; IMMEDIATE
+
 \ switches for "normal" Forth or cross-compiler Forth interpreters
 \ 'IV is CAMEL99 "interpreter vector" variable 
  : FORTH-REPL   ['] <INTERP>  'IV ! ;
@@ -234,7 +252,7 @@ HEX
 : GO   
     WARM  E4 7 VWTR 
     INIT-WORDLISTS  
-    CR ." Meta Compiler v0.82 Sept 17 2023" 
+    CR ." Meta Compiler v0.82 Sept 21 2023" 
     CR S" COMPILER NEW " EVALUATE 
     ORDER
     ABORT ;

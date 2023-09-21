@@ -24,6 +24,6 @@ CODE 0LIMI   0 LIMI,   NEXT,  ENDCODE
 : V@    ( VDPadr -- n) VC@  VC@+  FUSE  ;
 : V!    ( n vaddr --) >R  SPLIT R> VC! VC!+ ;
 
-: VWRITE ( addr Vaddr cnt -- ) SWAP WMODE 0 DO  COUNT VC!+  LOOP DROP ;
 : VFILL  ( Vaddr cnt char --)  ROT WMODE  SWAP 0 DO  DUP VC!+  LOOP DROP ;
+: VWRITE ( addr Vaddr cnt -- ) SWAP WMODE 0 DO  COUNT VC!+  LOOP DROP ;
 : VREAD  ( Vaddr Ram cnt --)   ROT RMODE  BOUNDS DO  VC@+ I C! LOOP DROP ;

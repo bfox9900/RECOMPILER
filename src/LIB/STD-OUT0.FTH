@@ -41,20 +41,23 @@ TARGET
 : AT-XY  ( col row -- ) ROW ! COL ! CURSOR WMODE ;
 
 : ?WRAP ( -- )
-  COL @ C/SCR @ 1- >  IF  0 0 AT-XY  THEN  ;
+  COL @ C/SCR @ 1- >  
+  IF  0 0 AT-XY  THEN  ;
 
 : ROW+!  ( n -- ) 
   ROW @ + DUP 24 < IF  ROW ! EXIT  THEN ROW OFF ;
 
-: EMIT   ( c --) CURSOR WMODE VDPWD C! ?WRAP ; 
+: EMIT+  ( c --) VDPWD C!  COL 1+! ;
+: EMIT   ( c --) CURSOR WMODE EMIT+ ?WRAP ;
 : CR     ( -- )  1 ROW+! COL OFF CURSOR WMODE ;
-: SPACE  ( -- )   BL EMIT ;
+: SPACE  ( -- )  BL EMIT ;
 
 : TYPE   ( addr len -- )
     CURSOR WMODE 
     >R
     BEGIN
-      COUNT VDPWD C! ?WRAP   
+      COUNT EMIT+ 
+      ?WRAP   
       R> 1- DUP>R
     -UNTIL
     R> 2DROP ;

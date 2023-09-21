@@ -1,17 +1,21 @@
 \ ITC-SYSTEM.FTH  preamble to make an indirect threaded system  Sep 2023 Fox
  
 COMPILER
+HEX 2000 ORG 
 NEW
  
 WARNINGS OFF
 INCLUDE DSK7.EXECUTORS  \ load EXIT DOCOL DOVAR ETC.
+INCLUDE DSK7.FORNEXT    \ runtime code 
+
+INCLUDE DSK7.RSTACK     \ IMPORTs needed for FOR NEXT 
+WARNINGS ON
+
 INCLUDE DSK7.BRANCHING  \ compilers for IF THEN BEGIN AGAIN...
 
 INCLUDE DSK7.ITCTYPES   \ CONSTANT VARIABLE : ;  S"
-WARNINGS ON
- 
+
 COMPILER HEX
- 
 TARGET
 VARIABLE BOOT  \ hold the cfa of the word that boots from COLD
 
@@ -44,7 +48,10 @@ TARGET
 
 \ META-compiling S" 
 COMPILER ALSO META DEFINITIONS 
-HOST: S"   [CHAR] " PARSE  TCOMPILE (S")  TS, ;HOST IMMEDIATE 
+HOST: S"   
+   [CHAR] " PARSE  
+   TCOMPILE (S")  TS, 
+;HOST IMMEDIATE 
 
 
 CR .( ITC FORTH Preamble loaded )

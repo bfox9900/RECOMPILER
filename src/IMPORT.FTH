@@ -1,4 +1,4 @@
-\ import.fth
+\ import.fth    ** FOR ITC FORTH ONLY ** 
  
 \ recompile a threaded Forth primitives in low RAM
 \ Dictionary headers are kept in the regular Forth dictionary

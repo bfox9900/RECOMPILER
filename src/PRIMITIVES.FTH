@@ -3,9 +3,9 @@
 
 \ steal some primitives code from the Kernel and copy into target
 IMPORT: DUP DROP SWAP OVER ROT -ROT NIP 
-IMPORT: C!  C@ COUNT  @ !  +! C+!  2!  2@   
+\ IMPORT: C!  C@ COUNT  @ !  +! C+!  2!  2@   
 IMPORT: SP@  SP! RP@  RP!
-IMPORT: DUP>R  >R  R>  R@   2>R 2R>  
+\  IMPORT: DUP>R  >R  R>  R@   2>R 2R>  
 IMPORT: ?DUP  ><  2DROP 2DUP  2SWAP PICK  
 IMPORT: AND OR XOR 
 IMPORT: 1+  1-  2+  2-  2*  4*  8*  2/   
@@ -28,6 +28,9 @@ CODE EXECUTE ( xt -- )
     R5 ** B, 
 ENDCODE
 
+COMPILER HEX 
+
+TARGET 
 CODE BYE   ( -- )
     83C4 @@ CLR,  
     0000 @@ BLWP, 

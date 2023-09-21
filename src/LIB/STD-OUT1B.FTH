@@ -25,14 +25,6 @@ VARIABLE C/SCR     COMPILER 3C0 C/SCR T!
 TARGET
 20 CONSTANT BL
 
-\ : EMIT+  ( c --) VDPWD C! ; \ write & inc. address
- CODE EMIT+ ( c --)
-    TOS SWPB, 
-    TOS VDPWD @@ MOVB, 
-    COL @@ INC, 
-    TOS POP, 
-    NEXT, 
- ENDCODE     
 
 CODE (VFILL) ( len c -- )
     TOS SWPB, 
@@ -56,6 +48,16 @@ ENDCODE  ( 14 BYTES)
   COL @ C/SCR @ 1- >  IF  0 0 AT-XY  THEN  ;
 
 : ROW+!  ( n -- ) ROW @ +  0 23 CLIP ROW ! ;
+
+\ : EMIT+  ( c --) VDPWD C! ; \ write & inc. address
+ CODE EMIT+ ( c --)
+    TOS SWPB, 
+    TOS VDPWD @@ MOVB, 
+    COL @@ INC, 
+    TOS POP, 
+    NEXT, 
+ ENDCODE     
+
 : EMIT   ( c --)  CURSOR WMODE EMIT+ ?WRAP ; 
 : CR     ( -- )   1 ROW+!  COL OFF ;
 : SPACE  ( -- )   BL EMIT ;

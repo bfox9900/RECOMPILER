@@ -11,22 +11,21 @@ COMPILER DECIMAL
 
 TARGET 
 : VFILLTEST
-   BL >R  
+   32 >R  
    BEGIN   
       0 C/SCR @ R@ VFILL
       R> 1+ DUP>R 
-   43 = UNTIL  
+   127 = UNTIL  
    R> DROP 
 ;
 
 TARGET
 : MAIN  ( -- ) 
-   767 C/SCR !  
+   768 C/SCR !  
    VFILLTEST 
-   PAGE
    BEGIN 
-      S" VDP Driver in Forth," TYPE  
-      S" BEGIN loops only.   " TYPE 
+     S" VDP Driver in Forth, " TYPE  
+     S" BEGIN loops only.   " TYPE 
     ?TERMINAL 
    UNTIL
    BYE 

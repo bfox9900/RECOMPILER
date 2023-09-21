@@ -3,23 +3,27 @@
 HEX 2000 ORG   \ this must be set before compiling any code 
 
 INCLUDE DSK7.ITC-FORTH \ preamble for indirect threaded Forth
-INCLUDE DSK7.STD-OUT  \ uses For/next & EMIT+ as CODE 
+
+INCLUDE DSK7.STD-OUT1A2 \ uses ALC VFILL 
 
 IMPORT: ?TERMINAL 
 
 COMPILER DECIMAL 
 
 TARGET 
-: VFILLTEST  58 FOR   0 C/SCR @ R@ BL + VFILL  NEXT ;
+: VFILLTEST
+   95 FOR   
+      0  C/SCR @  R@ 33 + VFILL
+   NEXT
+;
 
 TARGET
 : MAIN  ( -- ) 
-   767 C/SCR !  
+   768 C/SCR !  
    VFILLTEST 
-   PAGE
+   5 12 AT-XY ."   VFILL in Assembler  "   
+   5 13 AT-XY ."   in FOR NEXT loop    "  
    BEGIN 
-     S"   VFILL in Forth. " TYPE  
-     S"   FOR/NEXT loops and EMIT+ is CODE" TYPE 
     ?TERMINAL 
    UNTIL
    BYE 

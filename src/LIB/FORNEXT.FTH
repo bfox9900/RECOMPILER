@@ -9,13 +9,14 @@ CODE (NEXT)
         NEXT,
     ENDIF, 
     RP INCT,        \ remove counter from Rstack 
-    R9 INCT,        \ move past (LOOP)'s in-line parameter
+    IP INCT,        \ move past (LOOP)'s in-line parameter
     NEXT, 
 ENDCODE
 
+IMPORT: >R
 
 COMPILER ALSO META DEFINITIONS 
-: FOR  ( n --)  TCOMPILE >R   THERE ; IMMEDIATE
-: NEXT ( -- )   TCOMPILE (NEXT) <BACK ; IMMEDIATE
+: FOR  ( n --)  TCOMPILE  >R   THERE ; IMMEDIATE
+: NEXT ( -- )   TCOMPILE (NEXT) THERE  -  T,  ; IMMEDIATE
 
 COMPILER 

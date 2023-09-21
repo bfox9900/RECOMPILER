@@ -53,17 +53,19 @@ CODE J      ( -- n)
         NEXT,
 ENDCODE
 
+\ This stack to handle "LEAVE" are only needed at compile time.
+COMPILER  
 VARIABLE LP 
-VARIABLE L0       COMPILER  4 CELLS TALLOT 
+VARIABLE L0       6 CELLS ALLOT ( in  HOST forth memory)
 
-TARGET 
 : >L        ( x -- ) ( L: -- x ) 2 LP +!   LP @ ! ;     \ LP stack grows up
 : L>        ( -- x ) ( L: x -- ) LP @ @  -2 LP +! ;
 
 : RAKE  ( -- ) ( L: 0 a1 a2 .. aN -- )
-        BEGIN  L> ?DUP WHILE   (THEN)  REPEAT ;
+  BEGIN  L> ?DUP WHILE  THERE OVER - SWAP T!  REPEAT ;
 
-
+\ These words are META compilers. 
+\ They look like Forth but do TARGET COMPILING 
 COMPILER ALSO META DEFINITIONS 
 : DO        ( n n -- adr)  TCOMPILE <DO>   0 >L  THERE  ; IMMEDIATE
 : ?DO       ( n n -- adr)  TCOMPILE <?DO>  0 >L  THERE  ; IMMEDIATE

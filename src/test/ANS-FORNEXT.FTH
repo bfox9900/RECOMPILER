@@ -1,5 +1,4 @@
 
-: <BACK    ( addr --) HERE  -  , ;
 
 CODE  <NEXT>
    *RP DEC,         \ decr top of R-stack
@@ -12,5 +11,5 @@ CODE  <NEXT>
 ENDCODE
 
 : FOR  ( n --)  POSTPONE >R  HERE ; IMMEDIATE
-: NEXT ( -- )   POSTPONE <NEXT> <BACK ; IMMEDIATE
+: NEXT ( -- )   POSTPONE <NEXT> HERE  -  ,  ; IMMEDIATE
 
