@@ -178,7 +178,7 @@ ONLY FORTH ALSO COMPILERS ALSO FORTH DEFINITIONS
             THEN
         ELSE ( it's a number)
             COUNT NUMBER? ?ERR
-            POSTPONE TLITERAL  \ change #2 
+            TLITERAL        \ change #2 
         THEN
         DEPTH 0< ABORT" Short stack"
       REPEAT
@@ -196,7 +196,7 @@ ONLY FORTH ALSO COMPILERS ALSO FORTH DEFINITIONS
     R> BASE !      \ restore previous radix 
     ( -- n flag) ABORT" $ expected HEX number"  
     2DROP  
-    STATE @ IF  POSTPONE TLITERAL  THEN   \ if compiling, compile literal no.
+    TLITERAL    \ if compiling, compile literal no.
 ; IMMEDIATE
 
 \ switches for "normal" Forth or cross-compiler Forth interpreters

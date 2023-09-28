@@ -1,6 +1,12 @@
-\ eForth Initial Model (8086)
+\ eForth Initial Model (tms9900)
 
-                **** WORK IN PROGRESS ****
+                **** WORK IN PROGRESS **** 
+
+\ ***************************************************************                
+\ NOTE: 
+\ In cases where TMS9900 has a machine instruction for a specific
+\ function, we have replaced the Forth code with Assembler.
+\ ***************************************************************
 
 \ Based on bFORTH 1990 by Bill Muench, 1990
 \ Donated to eForth Working Group, Silicon Valley FIG Chapter
@@ -110,9 +116,9 @@ H# E890 EQU =CALL \ 8086 CALL opcode (NOP CALL)
 \ to write it as inline code 
 
 H# 2000 ORG 
+NEW TARGET         \ CROSS COMPILER DIRECTIVES
 
-NEW TARGET 
-L: NEXT ( -- )
+L: NEXT ( -- )     \ Indirect threaded NEXT
   *IP+ W  MOV,     \ move CFA into Working register 
       *W  B,       \ branch to the address in w
 
@@ -216,16 +222,16 @@ CODE DROP ( w -- )      SP INCT,NEXT, ENDCODE
 CODE DUP  ( w -- w w )  SP DECT,NEXT, ENDCODE
 
 CODE SWAP ( w1 w2 -- w2 w1 )
-   *SP W MOV, 
+  *SP      W  MOV, 
    2 (SP) *SP MOV,
-   W 2 (SP) MOV, 
+   W   2 (SP) MOV, 
   NEXT,
 ENDCODE
 
 CODE OVER ( w1 w2 -- w1 w2 w1 ) 
-   2 (SP) R4 MOV, 
-   SP DECT, 
-   R4 *SP MOV,
+   2 (SP) W MOV, 
+         SP DECT, 
+   W    *SP MOV,
    NEXT 
 ENDCODE
 
@@ -238,9 +244,9 @@ ENDCODE
 .( Logic )
 
 CODE 0< ( n -- t )
-   *SP TOS MOV,  
-   *SP CLR,
-   TOS 0 CI, LT 
+  *SP W MOV,  
+  *SP CLR,
+   W 0 CI, LT 
    IF, 
       *SP SETO,  
    ENDIF,
@@ -248,9 +254,9 @@ CODE 0< ( n -- t )
 ENDCODE
 
 CODE AND ( w w -- w )
-   *SP+ R0 MOV, 
-   R0 INV,    
-   R0 *SP  SZC, 
+  *SP+  R0 MOV, 
+        R0 INV,    
+   R0  *SP SZC, 
    NEXT,
 ENDCODE
 
@@ -273,25 +279,38 @@ CODE INVERT   *SP INV,  NEXT, ENDCODE
 
 .( Arithmetic )
 
-CODE UM+ ( u u -- u cy ) \ or ( u u -- ud )
-XOR CX, CX
-POP BX
-POP AX
-ADD AX, BX
-RCL CX, # 1 \ pick up carry
-PUSH AX
-PUSH CX
-NEXT
+\ CODE UM+ ( u u -- u cy ) \ or ( u u -- ud )
+
+\ D+ is a better primitive for TMS9900 than M+
+CODE D+   ( lo hi lo' hi' -- d)
+  *SP+    R0  MOV,
+  *SP+    TOS ADD,  \ add hi #s
+   R0     *SP ADD,  \ add lo #s
+   OC IF,           \ carry set?
+         TOS INC,   \ incr hi
+   ENDIF,
+   NEXT,
 ENDCODE
 
-: + ( u u -- u ) UM+ DROP ;
+: S>D    ( n -- d)  DUP 0< ;
+: M+     ( d n -- d) S>D  D+ ; 
 
-: NEGATE ( n -- -n ) INVERT 1 + ;
+\ : + ( u u -- u ) UM+ DROP ;
+CODE +  ( u u -- u ) \ Same size as Forth code
+  *SP+ W MOV, 
+   W *SP ADD,    
+   NEXT,
+ENDCODE
+
+\ : NEGATE ( n -- -n ) INVERT 1 + ;
+CODE NEGATE   *SP NEG,  NEXT, ENDCODE 
+
 : DNEGATE ( d -- -d ) INVERT >R INVERT 1 UM+ R> + ;
 
 : - ( w w -- w ) NEGATE + ;
 
-: ABS ( n -- +n ) DUP 0< IF NEGATE THEN ;
+\ : ABS ( n -- +n ) DUP 0< IF NEGATE THEN ;
+CODE ABS   *SP ABS,  NEXT, ENDCODE 
 
 .( User variables )
 
@@ -345,8 +364,8 @@ DUP USER CP 1 CELL+ \ dictionary code pointer
 
 : = ( w w -- t ) XOR 0= ;
 
-: U< ( u u -- t ) 2DUP XOR 0< IF NIP 0< EXIT THEN - 0< ;
-: < ( n n -- t ) 2DUP XOR 0< IF DROP 0< EXIT THEN - 0< ;
+: U< ( u u -- t ) 2DUP XOR 0< IF  NIP 0< EXIT THEN - 0< ;
+: <  ( n n -- t ) 2DUP XOR 0< IF DROP 0< EXIT THEN - 0< ;
 
 : MAX ( n n -- n ) 2DUP < IF SWAP THEN DROP ;
 : MIN ( n n -- n ) 2DUP SWAP < IF SWAP THEN DROP ;
@@ -355,14 +374,24 @@ DUP USER CP 1 CELL+ \ dictionary code pointer
 
 .( Divide )
 
-: UM/MOD ( udl udh un -- ur uq )
-   2DUP U<
-   IF NEGATE 15
-   FOR >R DUP UM+ >R >R DUP UM+ R> + DUP
-   R> R@ SWAP >R UM+ R> OR
-   IF >R DROP 1 + R> ELSE DROP THEN R>
-   NEXT DROP SWAP EXIT
-   THEN DROP 2DROP -1 DUP ;
+\ : UM/MOD ( udl udh un -- ur uq )
+\   2DUP U<
+\   IF NEGATE 15
+\   FOR >R DUP UM+ >R >R DUP UM+ R> + DUP
+\   R> R@ SWAP >R UM+ R> OR
+\   IF >R DROP 1 + R> ELSE DROP THEN R>
+\   NEXT DROP SWAP EXIT
+\   THEN DROP 2DROP -1 DUP ; \ 92 bytes 
+
+\ TMS9900 is higher level than eForth 
+CODE UM/MOD ( ud u1 -- u2 u3 ) 
+   TOS  R0 MOV,     \ divisor->R0                 14
+  *SP+ TOS MOV,     \ POP high word into TOS      22
+  *SP   R5 MOV,     \ MOVE low word to r5         18
+   R0  TOS DIV,     \ perform unsigned division  124
+   R5  *SP MOV,     \ push remainder              22
+   NEXT,            \                            200
+ENDCODE \ 10 bytes :-)
 
 : M/MOD ( d n -- r q ) \ floored
    DUP 0< DUP >R
@@ -376,11 +405,17 @@ DUP USER CP 1 CELL+ \ dictionary code pointer
 
 .( Multiply )
 
-: UM* ( u1 u2 -- ud )
-   0 SWAP ( u1 0 u2 ) 15
-   FOR DUP UM+ >R >R DUP UM+ R> + R>
-   IF >R OVER UM+ R> + THEN
-   NEXT ROT DROP ;
+\ : UM* ( u1 u2 -- ud )
+\   0 SWAP ( u1 0 u2 ) 15
+\   FOR DUP UM+ >R >R DUP UM+ R> + R>
+\   IF >R OVER UM+ R> + THEN
+\   NEXT ROT DROP ;
+
+CODE UM*    ( n n -- d)     \ 2 cells in -- 2 cells out
+  *SP  TOS MPY,    \ 52+4=56
+   R5  *SP MOV,    \ 18
+   NEXT,           \ 
+ENDCODE
 
 : * ( n n -- n ) UM* DROP ;
 
@@ -400,7 +435,7 @@ DUP USER CP 1 CELL+ \ dictionary code pointer
 : BL ( -- 32 ) 32 ;
 
 : >CHAR ( c -- c )
-127 AND DUP 127 BL WITHIN IF [ CHAR _ ] LITERAL NIP THEN ;
+  127 AND DUP 127 BL WITHIN IF [ CHAR _ ] LITERAL NIP THEN ;
 
 : DEPTH ( -- n ) SP@ SP0 @ SWAP - 2 / ;
 
@@ -427,7 +462,7 @@ DUP USER CP 1 CELL+ \ dictionary code pointer
 : @EXECUTE ( a -- ) @ ?DUP IF EXECUTE THEN ;
 
 : CMOVE ( b b u -- )
-FOR AFT >R COUNT R@ C! R> 1 + THEN NEXT 2DROP ;
+  FOR AFT >R COUNT R@ C! R> 1 + THEN NEXT 2DROP ;
 
 : -TRAILING ( b u -- b u )
 \ : -TRAILING  ( adr len char -- adr len')  \ might be faster
@@ -438,10 +473,11 @@ FOR AFT >R COUNT R@ C! R> 1 + THEN NEXT 2DROP ;
 \            1-            \ while char is a match, decrement length
 \         REPEAT
 \         NIP OVER -  ;    \ 30 bytes  12.26 seconds
-
- FOR AFT DUP R@ + C@ BL XOR
- IF R> 1 + EXIT THEN THEN
- NEXT 0 ;
+   FOR 
+      AFT DUP R@ + C@ BL XOR
+      IF R> 1 + EXIT THEN 
+      THEN
+   NEXT 0 ;
 
 : FILL ( b u c -- )
   SWAP FOR SWAP AFT 2DUP C! 1 + THEN NEXT 2DROP ;
@@ -449,7 +485,7 @@ FOR AFT >R COUNT R@ C! R> 1 + THEN NEXT 2DROP ;
 : ERASE ( b u -- ) 0 FILL ;
 
 : PACK$ ( b u a -- a ) \ null terminated
-DUP >R 2DUP C! 1 + 2DUP + 0 SWAP ! SWAP CMOVE R> ;
+   DUP >R 2DUP C! 1 + 2DUP + 0 SWAP ! SWAP CMOVE R> ;
 
 .( Numeric Output ) \ single precision
 
@@ -457,19 +493,12 @@ DUP >R 2DUP C! 1 + 2DUP + 0 SWAP ! SWAP CMOVE R> ;
 : EXTRACT ( n base -- n c ) 0 SWAP UM/MOD SWAP DIGIT ;
 
 : <# ( -- ) PAD HLD ! ;
-
 : HOLD ( c -- ) HLD @ 1 - DUP HLD ! C! ;
-
 : # ( u -- u ) BASE @ EXTRACT HOLD ;
-
 : #S ( u -- 0 ) BEGIN # DUP WHILE REPEAT ;
-
 : SIGN ( n -- ) 0< IF [ CHAR - ] LITERAL HOLD THEN ;
-
 : #> ( w -- b u ) DROP HLD @ PAD OVER - ;
-
 : str ( w -- b u ) DUP >R ABS <# #S R> SIGN #> ;
-
 : HEX ( -- ) 16 BASE ! ;
 : DECIMAL ( -- ) 10 BASE ! ;
 
@@ -630,12 +659,12 @@ THEN R> ( n ?sign) 2DROP R> BASE ! ;
 .( Error handling )
 
 : CATCH ( ca -- err#/0 )
-SP@ >R HANDLER @ >R RP@ HANDLER !
-EXECUTE
-R> HANDLER ! R> DROP 0 ;
+   SP@ >R HANDLER @ >R RP@ HANDLER !
+   EXECUTE
+   R> HANDLER ! R> DROP 0 ;
 
 : THROW ( err# -- err# )
-HANDLER @ RP! R> HANDLER ! R> SWAP >R SP! DROP R> ;
+   HANDLER @ RP! R> HANDLER ! R> SWAP >R SP! DROP R> ;
 
 CREATE NULL$ 0 ,
 
