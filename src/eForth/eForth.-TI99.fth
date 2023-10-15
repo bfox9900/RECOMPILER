@@ -161,16 +161,18 @@ CODE next ( -- ) COMPILE-ONLY \ single index loop
     NEXT, 
 ENDCODE
 
-\ Original code conserved noBRAN for next and ?branch
-\ but it is just one instruction on 9900
-\ OP BX
+\ Original 8086 code 
+\ CODE ?branch ( f -- ) COMPILE-ONLY
+\ POP BX
 \ OR BX, BX \ test flag
-\ JNZ noBRAN  \ exit loop
+\ JNZ noBRAN
 \ MOV SI, 0 [SI] \ branch, r> @ >r
+\ NEXT
+\ END-CODE
 
 CODE ?branch ( f -- ) COMPILE-ONLY
     R4 POP, 
-    R4, R4 SOC,    \ test flag
+    R4, R4 SOC,      \ test flag
     EQ IF,           \ if R4 = 0
         *IP IP ADD,  \ take the jump 
         NEXT, 
@@ -180,8 +182,8 @@ CODE ?branch ( f -- ) COMPILE-ONLY
 ENDCODE 
 
 CODE branch ( -- ) COMPILE-ONLY
-   *IP IP ADD,  \ take the jump 
-  NEXT,
+   *IP IP ADD,   \ take the jump 
+    NEXT,
 ENDCODE
 
 .( Memory fetch & store )
