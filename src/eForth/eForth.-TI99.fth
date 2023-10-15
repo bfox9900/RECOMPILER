@@ -118,7 +118,7 @@ H# E890 EQU =CALL \ 8086 CALL opcode (NOP CALL)
 H# 2000 ORG 
 NEW TARGET         \ CROSS COMPILER DIRECTIVES
 
-L: NEXT ( -- )     \ Indirect threaded NEXT
+L: NEXT ( -- )     \ Direct threaded NEXT
   *IP+ W  MOV,     \ move CFA into Working register 
       *W  B,       \ branch to the address in w
 
@@ -160,15 +160,6 @@ CODE next ( -- ) COMPILE-ONLY \ single index loop
     IP INCT,        \ move past (LOOP)'s in-line parameter
     NEXT, 
 ENDCODE
-
-\ Original 8086 code 
-\ CODE ?branch ( f -- ) COMPILE-ONLY
-\ POP BX
-\ OR BX, BX \ test flag
-\ JNZ noBRAN
-\ MOV SI, 0 [SI] \ branch, r> @ >r
-\ NEXT
-\ END-CODE
 
 CODE ?branch ( f -- ) COMPILE-ONLY
     R4 POP, 
