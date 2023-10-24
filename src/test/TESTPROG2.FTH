@@ -4,12 +4,12 @@ HEX 2000 ORG   \ this must be set before compiling any code
 
 INCLUDE DSK7.ITC-FORTH \ preamble for indirect threaded Forth
 
+\ give us a primitive screen output word ( EMIT+ )
 COMPILER HEX 
 TARGET
 8800 CONSTANT VDPRD               \ vdp ram read data
 8C00 CONSTANT VDPWD               \ vdp ram write data
 8C02 CONSTANT VDPWA               \ vdp ram read/write address
-
 
 CODE WMODE 
     TOS 4000 ORI,   
@@ -21,14 +21,7 @@ CODE WMODE
     NEXT, 
 ENDCODE 
 
-\ : EMIT+  ( c --) VDPWD C! ; \ write & inc. address
- CODE EMIT+ ( c --)
-    TOS SWPB, 
-    TOS VDPWD @@ MOVB, 
-    TOS POP, 
-    NEXT, 
- ENDCODE     
-
+: EMIT+  ( c --) VDPWD C! ; \ write c & inc. address
 
 TARGET
 : LOOP1 ( -- ) FFFF BEGIN  1-  DUP WHILE REPEAT DROP ; \ 10 secs
