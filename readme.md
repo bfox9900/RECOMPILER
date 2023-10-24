@@ -1,6 +1,6 @@
 # Forth Re-compiler
 
-Tradionally when Forth is saved as a program the entire dictionary is saved in the image. The includes the interpreter, the compiler and sometimes even the Forth Assembler. 
+Traditionally when Forth is saved as a program the entire dictionary is saved in the image. The includes the interpreter, the compiler and sometimes even the Forth Assembler. 
 
 This is an experimental project to compile "threaded" code as a standalone
 binary program that consists only of the Forth words required to make the
