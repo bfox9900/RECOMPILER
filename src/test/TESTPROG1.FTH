@@ -3,10 +3,10 @@
 COMPILER 
 
 HEX 2000 ORG 
-
-INCLUDE DSK7.ITC-FORTH  \ ITC preamble package 
+INCLUDE DSK7.ITC-FORTH 
 
 TARGET 
+
 : MAIN  
     BYE  
 ;

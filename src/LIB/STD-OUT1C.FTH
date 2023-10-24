@@ -62,13 +62,12 @@ ENDCODE  ( 14 BYTES)
 : CURSOR ( -- Vaddr) COL @ ROW @ >VPOS ;
 : AT-XY  ( col row -- ) ROW ! COL ! CURSOR WMODE ;
 
-: ?WRAP ( -- )
-  COL @ C/SCR @ 1- >  IF  0 0 AT-XY  THEN  ;
+: ?WRAP ( -- ) COL @ C/SCR @ 1- >  IF  0 0 AT-XY  THEN ;
 
 : ROW+!  ( n -- ) ROW @ +  0 23 CLIP ROW ! ;
 : CR     ( -- )   1 ROW+!  COL OFF  CURSOR WMODE ;
 : EMIT   ( c --)  ?WRAP EMIT+ ; 
-: TYPE   ( addr len -- ) CURSOR WMODE  FOR  COUNT EMIT+ ?WRAP  NEXT DROP ; 
+: TYPE   ( addr len -- ) CURSOR WMODE 1- FOR  COUNT EMIT+ ?WRAP  NEXT DROP ; 
 
 : SPACE  ( -- )   BL EMIT ;
 : PAGE   0  C/SCR @ BL VFILL  0 0 AT-XY ;

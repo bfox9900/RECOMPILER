@@ -34,7 +34,7 @@ COLD 2002 T!          \ COLD will run at startup now
 \ Add S"  string compiler Yikes!
  COMPILER ALSO META DEFINITIONS ( META holds "immediate" words and support )
  HOST: TALIGN     ( -- )   THERE ALIGNED H ! ;HOST
- HOST: TS,       ( c-addr u -- ) THERE OVER 1+ TALLOT PLACE  TALIGN ;HOST
+ HOST: S,       ( c-addr u -- ) THERE OVER 1+ TALLOT PLACE  TALIGN ;HOST
  
 COMPILER WARNINGS OFF
   INCLUDE DSK7.PRIMITIVES \ TARGET code words
@@ -50,10 +50,10 @@ TARGET
 COMPILER ALSO META DEFINITIONS 
 HOST: S"   
    [CHAR] " PARSE  
-   TCOMPILE (S")  TS, 
+   TCOMPILE (S")  S, 
 ;HOST IMMEDIATE 
 
 
-CR .( ITC FORTH Preamble loaded )
+CR .( DTC FORTH Preamble loaded )
  
  

@@ -1,4 +1,4 @@
-\ ITC-SYSTEM.FTH  preamble to make an indirect threaded system  Sep 2023 Fox
+\ ITC-FORTH.FTH  preamble to make an indirect threaded system  Sep 2023 Fox
  
 COMPILER
 HEX 2000 ORG 

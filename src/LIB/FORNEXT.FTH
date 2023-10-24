@@ -12,7 +12,7 @@ CODE (NEXT)
     IP INCT,        \ move past (LOOP)'s in-line parameter
     NEXT, 
 ENDCODE
-
+ALSO FORTH 
 IMPORT: >R
 
 COMPILER ALSO META DEFINITIONS 

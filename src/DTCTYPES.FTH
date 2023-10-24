@@ -1,4 +1,5 @@
 \ DATATYPES.FTH for recompiler Sep 2023 
+
 HOST
 : ?RUNTARGET  STATE @ ABORT" Can't run TARGET words" ;
 
@@ -7,9 +8,21 @@ COMPILER
 :NONAME ( n -- n|~) 
     STATE @ IF  TCOMPILE LIT   T,  THEN ; IS TLITERAL 
 
+
 \ TCREATE makes a dictionary header in HOST Forth,
 \ and records the TARGET XT address ie: where the code was compiled
 : TCREATE  CREATE  THERE , ;
+
+\ DTC code is different. There is no CFA.
+: +CODE  
+    CREATE              \  name is in HOST Forth      
+      THERE ,           \ and remember where the word is in TARGET 
+      !CSP 
+    DOES> STATE @ 
+          IF  TRUE ABORT" Can't run TARGET code word"   
+          THEN  @ ;
+
+: CODE    ( <name> ) NEWLABELS +CODE ;  \ start new label scope 
 
 \ NOW we can compile the addresses of the EXECUTORS and primitives 
 
