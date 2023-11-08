@@ -1,4 +1,4 @@
-\ VDPDRVR.FTH    tms9918 video chip API
+\ VDPDRVR.FTH    tms9918 video chip API in mostly Forth   2023 B Fox 
 
 COMPILER HEX
 
