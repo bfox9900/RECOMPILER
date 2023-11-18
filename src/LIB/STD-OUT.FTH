@@ -51,7 +51,7 @@ TARGET
 20 CONSTANT BL
 
 : CLIP   ( n lo hi -- n) ROT MIN MAX ;
-: >VPOS  ( col row -- vaddr) C/L @ * + ;
+: >VPOS  ( col row -- vaddr) C/L @ * +  0 768 CLIP ;
 : CURSOR ( -- Vaddr) COL @ ROW @ >VPOS  0 C/SCR @ CLIP ;
 
 : COL+!  ( n -- )

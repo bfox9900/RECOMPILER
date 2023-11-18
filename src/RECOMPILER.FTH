@@ -184,7 +184,7 @@ ONLY FORTH ALSO COMPILERS ALSO FORTH DEFINITIONS
       REPEAT
       DROP ;
 
-\ $ (hex number prefix) 
+\ H# (hex number prefix) 
 \ Convert the next word in the input stream to a hex number
 \ Adapted from Open Firmware by Mitch Bradley
 \ Changed to use PARSE-WORD. Faster in CAMEL99 Forth (no copying)
@@ -194,7 +194,7 @@ ONLY FORTH ALSO COMPILERS ALSO FORTH DEFINITIONS
     BASE @ >R      \ save the current RADIX 
     HEX  >NUMBER   \ convert the number in BASE 16
     R> BASE !      \ restore previous radix 
-    ( -- n flag) ABORT" $ expected HEX number"  
+    ( -- n flag) ABORT" expected HEX number"  
     2DROP  
     TLITERAL    \ if compiling, compile literal no.
 ; IMMEDIATE

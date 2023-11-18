@@ -4,6 +4,7 @@ HEX 2000 ORG   \ this must be set before compiling any code
 
 INCLUDE DSK7.ITC-FORTH \ preamble for indirect threaded Forth
 INCLUDE DSK7.STD-OUT
+INCLUDE DSK7.FORNEXT
 
 IMPORT: ?TERMINAL
 
@@ -11,11 +12,9 @@ COMPILER DECIMAL
 TARGET
 : MAIN  ( -- ) 
    768 C/SCR !     \ init this variable 
-   
-   PAGE  
-   S" HELLO WORLD" TYPE 
-
+   PAGE 
    BEGIN 
+     S" Hello world  " TYPE 
     ?TERMINAL 
    UNTIL 
    BYE 
@@ -30,3 +29,4 @@ HOST  \ return to HOST Forth
 
 \ you could automatically exit to TI-99 Main page
 ( BYE )  
+
