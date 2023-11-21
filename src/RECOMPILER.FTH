@@ -157,7 +157,7 @@ PREVIOUS DEFINITIONS
 \ is compiled, but we need the name NOW for <TINTERP> 
 
 
-DEFER TLITERAL  IMMEDIATE 
+DEFER TLITERAL \ IMMEDIATE 
 
 \ *****************************************************
 
