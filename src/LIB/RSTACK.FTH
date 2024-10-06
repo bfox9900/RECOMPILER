@@ -1,3 +1,8 @@
 \ Rstack.fth  return stack primitives 
 
-IMPORT: DUP>R  >R  R>  R@   2>R 2R>  
+IMPORT: DUP>R  
+IMPORT: >R  
+IMPORT: R>  
+IMPORT: R@   
+IMPORT: 2>R 
+IMPORT: 2R>  

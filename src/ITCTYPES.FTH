@@ -1,6 +1,6 @@
 \ DATATYPES.FTH for recompiler Sep 2023 
 HOST
-: ?RUNTARGET  STATE @ ABORT" Can't run TARGET words" ;
+: ?RUNTARGET  STATE @ 0= ABORT" Can't run TARGET words" ;
 
 COMPILER
 \ resolve TLITERAL 

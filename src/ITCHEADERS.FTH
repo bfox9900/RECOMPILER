@@ -1,13 +1,15 @@
-\ DATATYPES.FTH for recompiler Sep 2023 
-COMPILER 
-: ?RUNTARGET  STATE @ ABORT" Can't run TARGET words" ;
+\ DATATYPES.FTH for recompiler Sep 25 2024 
 
+HOST 
+: ?RUNTARGET  STATE @ 0= ABORT" Can't run TARGET words" ;
+
+COMPILER 
 : TALIGN    HERE ALIGNED H ! ;
 
 : TS,       ( c-addr u -- ) THERE OVER 1+ TALLOT PLACE  TALIGN ;
+
 HEX 
 : >NAME ( nfa -- addr len)  COUNT 1F AND ;
-DECIMAL 
 
 \ CREATES A CAMEL FORTH HEADER
 : THEADER, ( addr len --)
@@ -27,6 +29,7 @@ DECIMAL
             CURRENT @ !     \ Also store in the current 'WID'
 ;
 
+DECIMAL 
 : THEADER ( <TEXT> )  BL PARSE-WORD HEADER, ;
 
 COMPILER
@@ -37,8 +40,6 @@ COMPILER
     LATEST @ >NAME THEADER, \ create the name in the TARGET Forth 
     DOVAR T,                \ compile the executor for a variable 
 ;
-
-
 
 \ resolve TLITERAL 
 :NONAME ( n -- n|~) STATE @ IF  TCOMPILE LIT T,  THEN ; IS TLITERAL 

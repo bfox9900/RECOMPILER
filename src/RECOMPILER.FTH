@@ -1,4 +1,6 @@
-\ recompiler.fth 
+\ recompiler.fth   Oct 2024   Brian Fox 
+
+\ ** this version builds on Camel99 Supercart version **
 
 \ recompile a threaded Forth program in low ram. 
 \ Dictionary headers are kept in the regular Forth dictionary
@@ -120,7 +122,8 @@ HEX
 
 ONLY FORTH ALSO COMPILERS DEFINITIONS 
 
-: EQU       CONSTANT ; 
+: EQU     CONSTANT ; 
+: equ     EQU ;
 
 \ Note: The TARGET XT is held in the "body" (PFA) of the HOST word
 \ Below we take a HOST XT and fetch the TARGET XT
@@ -252,15 +255,15 @@ HEX
 : GO   
     WARM  E4 7 VWTR 
     INIT-WORDLISTS  
-    CR ." Meta Compiler v0.82 Sept 21 2023" 
+    CR ." Meta Compiler v0.83 Oct 6 2024" 
     CR S" COMPILER NEW " EVALUATE 
     ORDER
     ABORT ;
 
 LOCK 
-INCLUDE DSK1.SAVESYS
+INCLUDE DSK1.SUPERSAVE
 
-' GO SAVESYS DSK7.METAFORTH
+' GO SUPERSAVE DSK7.METAFORTH
 
 
 
