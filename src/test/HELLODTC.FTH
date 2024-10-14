@@ -1,5 +1,7 @@
 \ HELLO.FTH  for the recompiler.  Demo Sep 16 2023 Fox 
 
+***DOES-NOT-WORK***
+
 HEX 2000 ORG   \ this must be set before compiling any code 
 
 INCLUDE DSK7.DTC-FORTH \ preamble for indirect threaded Forth

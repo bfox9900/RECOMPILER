@@ -11,6 +11,7 @@ ONLY FORTH DEFINITIONS
 NEEDS DUMP  FROM DSK1.TOOLS 
 NEEDS DEFER FROM DSK1.DEFER 
 NEEDS LOCK  FROM DSK1.MARKER 
+NEEDS VIRT>REAL FROM DSK1.SAMS 
 
 \ we need clean copies of words that are weird in the Camel99 kernel
 \ for IMPORT: to access 
@@ -22,22 +23,23 @@ CODE DROP   C136 ,         NEXT, ENDCODE
 CODE C@     D114 , 0984 ,  NEXT, ENDCODE
 CODE +      A136 ,         NEXT, ENDCODE   
 
-
 ONLY FORTH DEFINITIONS 
-VOCABULARY COMPILERS  \ words that are the cross-compiler
+: CODE    TRUE ABORT" Attempt to use HOST 'CODE'" ;
+: ENDCODE TRUE ABORT" Attempt to use HOST 'ENDCODE'" ; 
+
+VOCABULARY COMPILERS  \ words that make the cross-compiler
 VOCABULARY TARGETS    \ *New* Forth system words 
 VOCABULARY META       \ words that look like Forth but cross-compile 
-
 VOCABULARY ASSEMBLER 
-INCLUDE DSK7.MFORTHASM    \ contains the cross-compiler guts 
+
+ALSO ASSEMBLER DEFINITIONS 
+INCLUDE DSK7.SAMASM9900   \ cross assemble into SAMS segment (64K max)
 INCLUDE DSK7.MASMLABELS   \ handy to have labels for jumping around
 
 \ REDEFINE CODE for Cross-compiling
 \ use +CODE to jump across words within same label scope
 \ CROSS-COMPILER CODE +CODE need ASSEMBLER in the search order
 \ This is provided with the COMPILER and TARGET commands
-
- ONLY FORTH  ALSO ASSEMBLER ALSO COMPILERS DEFINITIONS 
 : +CODE  
     CREATE              \  name is in HOST Forth      
       THERE ,           \ and remember where the word is in TARGET 
@@ -52,6 +54,7 @@ INCLUDE DSK7.MASMLABELS   \ handy to have labels for jumping around
 : ENDCODE ( -- ) ?CSP RESOLVER ;
 
 
+ ONLY FORTH  ALSO ASSEMBLER ALSO COMPILERS DEFINITIONS 
 \ pull in some Forth words to COMPILERS so they are visible in TARGET mode 
 : \    1 PARSE 2DROP ; IMMEDIATE
 : (    POSTPONE (  ;  IMMEDIATE  ( borrowed from Forth )
@@ -69,16 +72,18 @@ INCLUDE DSK7.MASMLABELS   \ handy to have labels for jumping around
 
 : TWORDS   ALSO TARGETS  WORDS   PREVIOUS ; ( searches TARGETS wordlist)
 : CELL+  CELL+ ;
+: CELLS  CELLS ;
+
 : >BODY  >BODY ;
 
 \ THESE were important !!
 : STATE  STATE ;
 : [     STATE OFF ; 
 : ]     POSTPONE ] ; IMMEDIATE 
-
 \ : EXIT   EXIT ;
 : ON   ON ;
 : OFF  OFF ;
+: IMMEDIATE  IMMEDIATE ;
 
 \ Host forth's colon/semi renamed so we can use it anywhere 
 : ;HOST     POSTPONE ;  ;  IMMEDIATE
@@ -91,33 +96,32 @@ ONLY FORTH  ALSO COMPILERS DEFINITIONS
 
 \ directives 
 HEX 
-2000 CONSTANT CDATA  \ location of the code buffer 
 
 VARIABLE  LDADDR   \ program's load address in TI-99 memory 
-: ORG   ( addr -- )  LDADDR ! ;
+: ORG   ( addr -- )  LADDR ! ;
 
-
-\ *future* deal with relocated images 
-: OFFSET   ( -- n)  LDADDR @ CDATA -  ;
-: REL>TARG  ( relocated -- target)  OFFSET - ;
+: CDATA  ( -- addr) LDADDR @ ;  \ location of the code buffer 
 
 \ target image fetch and store take relocated addresses and convert them
 HEX 
-: T!      ( n relocated -- ) REL>TARG ! ;
-: T@      ( relocated -- n)  REL>TARG @ ;
+: T!      ( n relocated -- ) !L ;
+: T@      ( relocated -- n)  @L ;
 
 \ SAVEIMG can save our programs as E/A 5 binary file 
-INCLUDE DSK7.SAVEIMG 
+INCLUDE DSK7.SAMSSAVE 
 
-ONLY FORTH ALSO COMPILERS DEFINITIONS 
-
-ALSO ASSEMBLER             \ needed to Assembler the branch code
+ONLY FORTH ALSO ASSEMBLER ALSO COMPILERS DEFINITIONS 
 HEX 
+: SAMSFILL  ( addr n c -- ) ROT VIRT>REAL -ROT FILL ;
+
 : NEW   
-    CDATA 2000 FF FILL   
-    CDATA H !              \ ASM code will go into CDATA now
+    CDATA 1000 FF SAMSFILL  
+    CDATA 1000 + 1000 SAMSFILL 
+    
+    LDADDR @ SMP !         \ set sams mem pointer to load address 
     DEAD @@ B,             \ initial instruction branches into start code 
     ['] TARGETS >BODY OFF  \ erase all the targets words 
+    CR ." memory cleared"
 ;
 
 ONLY FORTH ALSO COMPILERS DEFINITIONS 
@@ -143,6 +147,12 @@ ONLY FORTH ALSO COMPILERS DEFINITIONS
 \ and "compile" it into the TARGET definition 
 : TCOMPILE   ( -- <name>) 
     T'   POSTPONE LITERAL   POSTPONE T, ;  IMMEDIATE  
+
+: TPOSTPONE ( <name> -- ) \ *G replaces COMPILE and [COMPILE]
+      ?COMP
+      BL WORD FIND DUP 0= ?ERR
+      0< IF COMPILE TCOMPILE 
+      THEN  TCOMPILE, ; IMMEDIATE  
 
 \ T[']  and T' can now be put into the META vocabulary
 \ and given names that look "normal".
@@ -255,7 +265,9 @@ HEX
 : GO   
     WARM  E4 7 VWTR 
     INIT-WORDLISTS  
-    CR ." Meta Compiler v0.83 Oct 6 2024" 
+    SAMSINI 
+    CR ." Meta Compiler v0.84 Oct 10 2024" 
+    CR 
     CR S" COMPILER NEW " EVALUATE 
     ORDER
     ABORT ;

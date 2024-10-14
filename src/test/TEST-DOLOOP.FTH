@@ -3,13 +3,14 @@
 HEX 2000 ORG   \ this must be set before compiling any code 
 
 INCLUDE DSK7.ITC-FORTH \ preamble for indirect threaded Forth
+INCLUDE DSK7.BRANCHING 
+INCLUDE DSK7.DOLOOP 
 
-\ INCLUDE DSK7.DOLOOP 
-
-COMPILER DECIMAL 
-
+COMPILER 
+DECIMAL 
 : MAIN  
-     32000 DO  LOOP 
+     32000 0 DO  LOOP 
+     BYE 
 ;
 
 COMPILER 

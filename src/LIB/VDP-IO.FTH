@@ -3,6 +3,12 @@
 
 
 COMPILER CR .( VDP CHIP INTERFACE)
+HEX 
+8800 CONSTANT VDPRD               \ vdp ram read data
+8802 CONSTANT VDPSTS              \ vdp status
+8C00 CONSTANT VDPWD               \ vdp ram write data
+8C02 CONSTANT VDPWA               \ vdp ram read/write address
+
 
 \ Register Usage:
 \ R0  down counter
@@ -124,7 +130,7 @@ CODE VFILL ( VDP-addr count char-- )
 \      32 USER: VROW
 \      34 USER: VCOL
 
-       7E USER VPG       \ Each task can have it's own video page 
+\       7E USER VPG       \ Each task can have it's own video page 
 
 
 CODE >VPOS ( col row -- vaddr) \ compute a VDP screen address

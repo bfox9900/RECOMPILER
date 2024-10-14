@@ -2,7 +2,9 @@
 
 \ Could not IMPORT these words because they jump into each other a lot
 \ and some have multiple NEXT points. 
+
 TARGET 
+
 CODE <?DO>  ( limit ndx -- )
         *SP TOS CMP, 
         1 $ JNE, 
@@ -53,25 +55,20 @@ CODE J      ( -- n)
         NEXT,
 ENDCODE
 
-\ This stack to handle "LEAVE" are only needed at compile time.
-COMPILER  
-VARIABLE LP 
-VARIABLE L0       6 CELLS ALLOT ( in  HOST forth memory)
 
-: >L        ( x -- ) ( L: -- x ) 2 LP +!   LP @ ! ;     \ LP stack grows up
-: L>        ( -- x ) ( L: x -- ) LP @ @  -2 LP +! ;
-
-: RAKE  ( -- ) ( L: 0 a1 a2 .. aN -- )
-  BEGIN  L> ?DUP WHILE  THERE OVER - SWAP T!  REPEAT ;
 
 \ These words are META compilers. 
-\ They look like Forth but do TARGET COMPILING 
+\ They look like Forth but do TARGET COMPILING  
 COMPILER ALSO META DEFINITIONS 
+: RAKE  ( -- ) ( L: 0 a1 a2 .. aN -- )
+  BEGIN  L> ?DUP WHILE  POSTPONE THEN   REPEAT ;
+
 : DO        ( n n -- adr)  TCOMPILE <DO>   0 >L  THERE  ; IMMEDIATE
 : ?DO       ( n n -- adr)  TCOMPILE <?DO>  0 >L  THERE  ; IMMEDIATE
-: LEAVE     ( -- ) TCOMPILE UNLOOP  TCOMPILE BRANCH AHEAD  >L ; IMMEDIATE
+: LEAVE     ( -- ) TCOMPILE UNLOOP  TCOMPILE BRANCH THERE 0 ,  >L ; IMMEDIATE
 
 \ complete a DO loop
-: LOOP      ( -- )  TCOMPILE <LOOP>  <BACK  RAKE ; IMMEDIATE
-: +LOOP     ( -- )  TCOMPILE <+LOOP> <BACK  RAKE ; IMMEDIATE
+: LOOP      ( -- )  TCOMPILE <LOOP>  <BACK RAKE ; IMMEDIATE
+: +LOOP     ( -- )  TCOMPILE <+LOOP> <BACK RAKE ; IMMEDIATE
+
 PREVIOUS DEFINITIONS 

@@ -51,3 +51,5 @@ ENDCODE
 COMPILER 
 T' MAIN  BOOT T!   \ set the boot variable 
 SAVE DSK7.TEST3
+
+HOST 
