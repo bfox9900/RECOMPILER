@@ -12,6 +12,7 @@ NEEDS DUMP  FROM DSK1.TOOLS
 NEEDS DEFER FROM DSK1.DEFER 
 NEEDS LOCK  FROM DSK1.MARKER 
 NEEDS VIRT>REAL FROM DSK1.SAMS 
+NEEDS SAMS.FILL FROM DSK7.SAMSMEM
 
 \ we need clean copies of words that are weird in the Camel99 kernel
 \ for IMPORT: to access 
@@ -24,8 +25,8 @@ CODE C@     D114 , 0984 ,  NEXT, ENDCODE
 CODE +      A136 ,         NEXT, ENDCODE   
 
 ONLY FORTH DEFINITIONS 
-: CODE    TRUE ABORT" Attempt to use HOST 'CODE'" ;
-: ENDCODE TRUE ABORT" Attempt to use HOST 'ENDCODE'" ; 
+: CODE    TRUE ABORT" Can't use HOST 'CODE'" ;
+: ENDCODE TRUE ABORT" Can't to use HOST 'ENDCODE'" ; 
 
 VOCABULARY COMPILERS  \ words that make the cross-compiler
 VOCABULARY TARGETS    \ *New* Forth system words 
@@ -98,30 +99,40 @@ ONLY FORTH  ALSO COMPILERS DEFINITIONS
 HEX 
 
 VARIABLE  LDADDR   \ program's load address in TI-99 memory 
-: ORG   ( addr -- )  LADDR ! ;
+ALSO ASSEMBLER
+: ORG   ( addr -- ) 
+    DUP LDADDR !  
+    SDP !  
+    DEAD @@ B, ;  \ compile the jump to code in first 2 bytes 
+PREVIOUS    
 
-: CDATA  ( -- addr) LDADDR @ ;  \ location of the code buffer 
+\ location of the code buffer in SAMS memory
+: CDATA  ( -- addr) LDADDR @ ;  
 
 \ target image fetch and store take relocated addresses and convert them
 HEX 
 : T!      ( n relocated -- ) !L ;
 : T@      ( relocated -- n)  @L ;
 
+: TALIGN  THERE ALIGNED SDP ! ;
+: TPLACE  SAMS.PLACE ;
+
+
 \ SAVEIMG can save our programs as E/A 5 binary file 
-INCLUDE DSK7.SAMSSAVE 
+INCLUDE DSK7.SAMSAVE 
 
 ONLY FORTH ALSO ASSEMBLER ALSO COMPILERS DEFINITIONS 
 HEX 
-: SAMSFILL  ( addr n c -- ) ROT VIRT>REAL -ROT FILL ;
+\ erase entire 64k segment in 4K chunks
+: PURGE  FFFF 0 DO I VIRT>REAL 1000 FFFF FILLW  1000 +LOOP ;
 
 : NEW   
-    CDATA 1000 FF SAMSFILL  
-    CDATA 1000 + 1000 SAMSFILL 
-    
-    LDADDR @ SMP !         \ set sams mem pointer to load address 
-    DEAD @@ B,             \ initial instruction branches into start code 
+    CR ." Erasing 64K segment ..."
+    PURGE    
+    LDADDR OFF   
     ['] TARGETS >BODY OFF  \ erase all the targets words 
-    CR ." memory cleared"
+    ."  success" 
+    CR 
 ;
 
 ONLY FORTH ALSO COMPILERS DEFINITIONS 
@@ -151,8 +162,21 @@ ONLY FORTH ALSO COMPILERS DEFINITIONS
 : TPOSTPONE ( <name> -- ) \ *G replaces COMPILE and [COMPILE]
       ?COMP
       BL WORD FIND DUP 0= ?ERR
-      0< IF COMPILE TCOMPILE 
+      0< IF POSTPONE TCOMPILE 
       THEN  TCOMPILE, ; IMMEDIATE  
+
+\ compile a stack string into target memory
+: TS,    ( adr len -- ) THERE OVER 1+  TALLOT TPLACE TALIGN ;
+
+\ parse input string into TARGET memory
+: T,"         ( <text>" -- ) [CHAR] " PARSE TS, ; 
+
+DEFER '(S")
+DEFER 'TYPE
+
+: TS"         '(S") T,  T," ; IMMEDIATE
+
+ : T."        '(S") T,  T,"  'TYPE T, ;  IMMEDIATE 
 
 \ T[']  and T' can now be put into the META vocabulary
 \ and given names that look "normal".
@@ -162,6 +186,13 @@ ONLY FORTH ALSO COMPILERS DEFINITIONS
 ALSO META DEFINITIONS 
 : '       T'   ;
 : [']     POSTPONE T['] ; IMMEDIATE 
+
+\ : ."          POSTPONE T." ; IMMEDIATE
+\ : S"          POSTPONE TS" ; IMMEDIATE
+\ : CHAR        TCHAR ;
+\ : [CHAR]      ?XCOMP TCHAR  POSTPONE TLITERAL ; IMMEDIATE
+\ : [COMPILE]   POSTPONE  T[COMPILE] ; IMMEDIATE
+
 
 PREVIOUS DEFINITIONS 
 
@@ -244,7 +275,6 @@ ONLY FORTH ALSO COMPILERS ALSO FORTH DEFINITIONS
     XFORTH-REPL      \ cross-compiler REPL is used 
 ;  
 
-
 COMPILER    \ add duplicate names to the compilers wordlist 
 : HOST      HOST ;  
 : COMPILER  COMPILER ;  
@@ -255,8 +285,9 @@ COMPILER    \ add duplicate names to the compilers wordlist
 : [COMPILER]  COMPILER ;  IMMEDIATE 
 : [TARGET]    TARGET ;  IMMEDIATE   
 
-\ We use a text macro because the variable BOOT has not be created yet
-: AUTOSTART  T'   S" BOOT T!" EVALUATE ; 
+: AUTOSTART  T'   CDATA CELL+  T! ; 
+
+: END.  LDADDR @ 0= ABORT" AUTOSTART missing"  HOST ;
 
 \ /\/\/\/\/\/\/\/\/\/\/\/ COMPILER ENDS /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\//\
 ONLY FORTH DEFINITIONS 
@@ -266,7 +297,8 @@ HEX
     WARM  E4 7 VWTR 
     INIT-WORDLISTS  
     SAMSINI 
-    CR ." Meta Compiler v0.84 Oct 10 2024" 
+    CR ." XFC Meta Compiler, for SuperCart"
+    CR ." V0.84 Oct 15 2024"
     CR 
     CR S" COMPILER NEW " EVALUATE 
     ORDER
@@ -275,7 +307,7 @@ HEX
 LOCK 
 INCLUDE DSK1.SUPERSAVE
 
-' GO SUPERSAVE DSK7.METAFORTH
+' GO SUPERSAVE DSK7.XFC-SUPER
 
 
 

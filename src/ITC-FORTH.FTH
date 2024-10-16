@@ -1,9 +1,6 @@
 \ ITC-FORTH.FTH  preamble to make an indirect threaded system  Sep 2023 Fox
  
 COMPILER
-HEX 2000 ORG 
-NEW
- 
 
 WARNINGS OFF
 INCLUDE DSK7.EXECUTORS  \ load EXIT DOCOL DOVAR ETC.
@@ -31,7 +28,6 @@ L: COLD               \ COLD runs at boot time to build the Forth VM
       *R10 B,         \ jump into the interpreter
  
 COMPILER
-COLD 2002 T!          \ COLD will run at startup now
  
 \ Add S"  string compiler Yikes!
  COMPILER ALSO META DEFINITIONS ( META holds "immediate" words and support )

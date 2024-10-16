@@ -11,9 +11,8 @@ TARGET
     BYE  
 ;
 
-\ technically we don't need MAIN. We could AUTOSTART BYE 
+\ Postlude commands: SET start word, save, END does checks 
 COMPILER 
 AUTOSTART MAIN 
 SAVE DSK7.TEST1
-
-HOST 
+END.

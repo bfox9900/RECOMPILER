@@ -1,4 +1,4 @@
-\ import.fth    ** FOR ITC FORTH ONLY ** 
+CR .( import.fth  import machine code from kernel to target 2024 Brian Fox)
  
 \ recompile a threaded Forth primitives in low RAM
 \ Dictionary headers are kept in the regular Forth dictionary
@@ -8,7 +8,7 @@ ONLY FORTH ALSO ASSEMBLER ALSO COMPILERS DEFINITIONS
 HEX
 045A CONSTANT 'NEXT'  \ 9900 CODE for B *R10   Camel99 Forth's NEXT code
  
-: TNEXT,    'NEXT'  T, ;
+: NEXT,    'NEXT'  T, ;
  
 \ Read code word from kernel, compile into target memory
 : TCODE,  ( xt --)
@@ -50,7 +50,7 @@ VARIABLE ITC   ITC ON
             THERE CELL+ T, \ ITC code entry points to next cell  
        THEN 
        TCODE,         \ compile code from Kernel into the target
-       TNEXT,         \ append NEXT to the TARGET code
+       NEXT,          \ append NEXT to the TARGET code
     DOES>
     STATE @ ABORT" Can't run TARGET word"
     @   ( interpret mode, return the address )
@@ -58,11 +58,12 @@ VARIABLE ITC   ITC ON
  
 : IMPORT:
     ONLY ASSEMBLER ALSO COMPILERS  ALSO TARGETS DEFINITIONS  ALSO FORTH 
-    BEGIN PARSE-NAME DUP WHILE
+    BEGIN PARSE-NAME 
+    DUP WHILE
       IMPORT,
     REPEAT
     2DROP
-;  \ remove Forth from the search list 
+; 
  
  
  

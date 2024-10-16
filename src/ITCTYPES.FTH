@@ -23,7 +23,7 @@ COMPILER
 : CONSTANT ( n --) 
     TCREATE  
     TCOMPILE DOCON  ( n) T,  
-    DOES> ?RUNTARGET @ >BODY @ ; \ returns 'n'  in TARGET memory
+    DOES> ?RUNTARGET @ >BODY T@ ; \ returns 'n'  from TARGET memory
 
 : (:NONAME) ( -- )  TCOMPILE DOCOL  HIDE  ] ;
 

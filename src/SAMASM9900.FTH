@@ -13,7 +13,6 @@ ONLY FORTH DEFINITIONS
 NEEDS @L     FROM DSK1.SAMS 
 NEEDS .S     FROM DSK1.TOOLS
 NEEDS CASE   FROM DSK1.CASE
-
 NEEDS SAMS.HERE FROM DSK7.SAMSMEM 
 
 \ see: RECOMPILER.FTH 
@@ -22,15 +21,13 @@ ONLY FORTH ALSO COMPILERS DEFINITIONS
 \ SAMS SEGMENT MEMORY MANAGER 
 1 SEGMENT 
 
-HEX
-VARIABLE SMP   \ sams memory pointer 
 \ Target versions of HERE and ALLOT
 : THERE   ( -- addr) SAMS.HERE  ;   \ FETCH the value in SAMS mem pointer
-: TALLOT  ( n -- )   SMP +! ;  \ add n to the value in SAMS mem pointer
+: TALLOT  ( n -- )   SAMS.ALLOT ;   \ add n to the value in SAMS mem pointer
 
-\ integer and byte "Target" compilers
-: TC,     ( n -- )   THERE C!L  1 TALLOT ;
-: T,      ( n -- )   THERE  !L  2 TALLOT ;
+\ integer and byte "Target" compilers using "LONG" operators
+: T,      ( n -- )  SAMS.HERE !L 2 TALLOT ;
+: TC,     ( n -- )  SAMS.HERE C!L 1 TALLOT ; 
 
 \ : TCOUNT  ( vdp$adr -- vdpadr len ) DUP 1+ SWAP C@L ;
 \ : TCREATE ( <text> -- ) SHERE CONSTANT  ; \ address when <text> invoked

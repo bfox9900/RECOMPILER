@@ -1,10 +1,12 @@
-\ SAMS card memory management like Forth dictionary
+\ SAMS card memory management  Oct 15 2024 Brian Fox
 
 NEEDS VIRT>REAL  FROM DSK1.SAMS
+NEEDS FILLW      FROM DSK1.FILLW 
 
 1 SEGMENT 
 
-VARIABLE SDP   \ sams dictionary pointer
+HERE 
+VARIABLE SDP   \ sams dictionary pointer 
 
 : SAMS.HERE   SDP @ ;
 : SAMS.ALLOT  SDP +! ;
@@ -14,44 +16,12 @@ VARIABLE SDP   \ sams dictionary pointer
 HEX
 : BOUNDARY  ( addr -- addr addr') F000 AND  1000 + ;
 : CROSSING? ( addr len -- addr len ?) 2DUP OVER BOUNDARY -ROT +  U< ;
-: ?PAGE     ( addr len -- ) CROSSING? ABORT" SAMS page limit"  ;
+: ?PAGE     ( addr len -- ) CROSSING? ABORT" SAMS page crossed"  ;
 
-: SAMS.BLOCK ( n -- addr) 400 * >REAL ; \ 1K blocks in SAMS 
-: SAMS.REC   ( n -- addr)  80 * >REAL ; \ 128 byte records in SAMS 
-: SAMS.PARA  ( n -- addr)  10 * >REAL ;
-
-: SAMS.WRITE ( addr len Virtaddr) >REAL OVER ?PAGE MOVE ;
-: SAMS.READ  ( Virtaddr len addr )>R  SWAP >REAL SWAP ?PAGE  R> MOVE ;
-
-: SAMS.MOVE  ( Virt1 Virt2 u --) \ slow move but can cross pages 
-    BOUNDS DO  DUP @L I !L  2 +LOOP ;
-
-
-HEX
-CODE FILLW ( src dst u --)
-  C036 , C236 , CE04 , 0640 , 18FD ,
-  C136 , NEXT,
-ENDCODE
- 
-
-\  fill 4k pages at a time. *NO PROTECTION* 
-NEEDS FILLW  FROM DSK1.FILLW 
-HEX 1000 CONSTANT 4K 
-: PAGE.FILL  ( addr len char --)
-    -ROT 
-    BOUNDS 
-    DO 
-       I >REAL OVER 4K SWAP FILLW 
-    4K +LOOP    
-; 
-
-: PARA.FILL  ( addr size char -- ) 
-    -ROT 
-    BOUNDS 
-    DO 
-       I >REAL OVER 10 SWAP FILLW 
-    10 +LOOP    
-; 
+\ read,write,fill within 1 page ONLY 
+: SAMS.WRITE ( addr sams len ) SWAP VIRT>REAL SWAP ?PAGE MOVE ;
+: SAMS.READ  ( sams addr len ) 2>R  VIRT>REAL 2R>  ?PAGE MOVE ;
+: SAMS.FILL  ( sams len char --) >R >R VIRT>REAL R> ?PAGE R> FILL ; 
 
 HEX
 CODE MOVEW  ( src dst u -- ) \ u= no. of bytes to move
@@ -66,15 +36,43 @@ CODE MOVEW  ( src dst u -- ) \ u= no. of bytes to move
 ENDCODE
 
 DECIMAL 
-: PARA.MOVE ( a1 a2 u -- ) \ moves in 16 byte blocks 
-    BOUNDS 
-    DO  
-       DUP >REAL  I >REAL 16 MOVEW  
-       16 +   
-    16 +LOOP 
-    DROP 
-;
+16 CONSTANT #16 
+HEX 
+CODE 16+   0224 , #16 , NEXT, ENDCODE \ TOS #16 AI,  
 
-: SAMS.MOVE   ( a1 a2 u -- ) BOUNDS DO  DUP @L  I !L   2 +LOOP DROP ;
-: SAMS.CMOVE  ( a1 a2 u -- ) BOUNDS DO  DUP C@L I C!L  LOOP DROP ;
-: FORTH.CMOVE ( a1 a2 u -- ) BOUNDS DO  DUP C@ I C!  LOOP DROP ;
+\ SLOWER but can cross page boundaries, 16 byte boundaries
+DECIMAL 
+: PARA.WRITE ( addr Sams len --) 
+    BOUNDS DO  DUP  I VIRT>REAL #16 MOVEW 16+  #16 +LOOP DROP ;
+
+: PARA.READ  ( sams addr len --) 
+    BOUNDS DO  DUP VIRT>REAL  I #16 MOVEW 16+  #16 +LOOP DROP ;
+
+: PARA.FILL  ( addr size char -- ) 
+    DUP >< + 
+    -ROT BOUNDS DO I VIRT>REAL OVER #16 SWAP FILLW  #16 +LOOP DROP ; 
+
+CREATE TEMP #16 ALLOT 
+
+: PARA.MOVE ( a1 a2 u -- ) \ moves in 16 byte blocks 
+    BOUNDS DO  
+       DUP VIRT>REAL TEMP #16 MOVEW
+       TEMP I VIRT>REAL #16 MOVEW  
+       16+   
+    #16 +LOOP 
+    DROP ;
+
+: SAMS.MOVE   ( a1 a2 u -- ) BOUNDS DO  DUP @L  I !L   CELL+  2 +LOOP DROP ;
+: SAMS.CMOVE  ( a1 a2 u -- ) BOUNDS DO  DUP C@L I C!L  CHAR+     LOOP DROP ;
+
+\ move RAM string to SAMS memory
+: SAMS.PLACE ( addr len sams) VIRT>REAL 2DUP C!  1+ SWAP ?PAGE SAMS.WRITE ;
+
+: SAMS>VDP ( sams vdp U --)  \ writes in 16 byte chunks   
+    BOUNDS DO  DUP VIRT>REAL  I  #16 VWRITE  16+ #16 +LOOP ; 
+
+: VDP>SAMS ( vdp sams u --) 
+    BOUNDS DO  DUP   I VIRT>REAL #16 VREAD   16+ #16 +LOOP ; 
+
+HERE SWAP -
+CR DECIMAL . .( bytes)
