@@ -3,8 +3,7 @@ CR .( import.fth  import machine code from kernel to target 2024 Brian Fox)
 \ recompile a threaded Forth primitives in low RAM
 \ Dictionary headers are kept in the regular Forth dictionary
 
-ONLY FORTH ALSO ASSEMBLER ALSO COMPILERS DEFINITIONS 
- 
+COMPILER 
 HEX
 045A CONSTANT 'NEXT'  \ 9900 CODE for B *R10   Camel99 Forth's NEXT code
  
@@ -28,7 +27,7 @@ HEX
 : ?CODE   ( xt --) DUP @ 2- - ABORT" Not a CODE word" ;
  
 \ like CREATE but takes the name from a stack string
-: CREATE, ( addr len -- ) HEADER,  POSTPONE DOVAR ;
+: TCREATE, ( addr len -- )  TARGET HEADER,  POSTPONE DOVAR   COMPILER ;
 
 \ ========================================================================
 \                  >>> WORKS FOR ITC CODE ONLY <<<< 
@@ -36,30 +35,41 @@ HEX
 \ It creates a CONSTANT in the Forth dictioinary that returns the target
 \ execution token.
 
-VARIABLE ITC   ITC ON 
- 
+\ Oct 29 2024: IMPORT, now does not import a word more than once.
+\              This means import: statements can be used where needed
+
+\ test if $word is not in target vocabulary 
+: IMPORTED? ( $addr -- ?) 
+    ONLY TARGETS FIND NIP   \ search only the TARGETS wordlist 
+    COMPILER                \ go back to compiler mode 
+; 
+
 :  IMPORT,  ( addr len -- )
     PAD PLACE    \ save the name in PAD
-    PAD FIND 0= ABORT" IMPORT, can't find"
+    PAD HOST FIND 0= ABORT" IMPORT, can't find"
     ( xt) DUP ?CODE
-\ CREATE/DOES> but with a string argument
-    PAD COUNT CREATE,
-       THERE ,
-       ITC @ 
-       IF
-            THERE CELL+ T, \ ITC code entry points to next cell  
-       THEN 
-       TCODE,         \ compile code from Kernel into the target
-       NEXT,          \ append NEXT to the TARGET code
-    DOES>
-    STATE @ ABORT" Can't run TARGET word"
-    @   ( interpret mode, return the address )
+    
+    PAD IMPORTED? 
+    IF  
+      DROP 
+    ELSE 
+    \ CREATE/DOES> but with a string argument
+      PAD COUNT TCREATE,
+      THERE ,        \ remember address in HOST 
+
+      THERE CELL+ T, \ put ITC code entry in TARGET 
+      TCODE,         \ compile code from Kernel into the target
+      NEXT,          \ append NEXT to the TARGET code
+      DOES>
+        STATE @ ABORT" Can't run TARGET word"
+        @   ( interpret mode, return the address )
+    THEN 
 ;
  
 : IMPORT:
-    ONLY ASSEMBLER ALSO COMPILERS  ALSO TARGETS DEFINITIONS  ALSO FORTH 
-    BEGIN PARSE-NAME 
-    DUP WHILE
+    BEGIN 
+     PARSE-NAME DUP 
+    WHILE
       IMPORT,
     REPEAT
     2DROP

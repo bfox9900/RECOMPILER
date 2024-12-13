@@ -29,6 +29,10 @@ VDPBUFF  3 CELLS + CONSTANT CODEORG     \ COPY 8K program chunks to here
 : ?PATH    ( addr len -- addr len )
     2DUP  [CHAR] . SCAN NIP 0= ABORT" Path expected" ;
 
+: .PROGSIZE   ." Program size=" DECIMAL SYS-SIZE U. ." bytes" ;
+: .#FILES     ." Saved in " #FILES .  ." EA5 files"  ;
+
+ONLY FORTH ALSO ASSEMBLER ALSO COMPILERS DEFINITIONS
 HEX 
 : SAVE  ( -- <textpath> )
   BL PARSE-WORD  ?PATH  PAD PLACE
@@ -49,9 +53,9 @@ HEX
      PAD LASTCHAR++   \ Update file name
      CR
   LOOP
-  CR ." System size=" DECIMAL SYS-SIZE U. ." bytes"
-  CR ." Saved in " #FILES .  ." EA5 files"
-  CR
+  CR .PROGSIZE 
+  CR .#FILES 
+  CR 
 ;
  
  

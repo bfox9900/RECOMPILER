@@ -42,6 +42,8 @@ CODE DT ( T1 T2 -- n)
             NEXT, 
 ENDCODE 
 
+IMPORT: >R R> 0< 2DROP 
+
 : TICKS ( n -- ) \ ** n(max) = 4000 ticks ~= 100 ms ** 
     >R
     TMR@
@@ -52,6 +54,8 @@ ENDCODE
     REPEAT
     R> 2DROP
 ;
+
+IMPORT: RSHIFT 
 
 \ 1500 TICKS ~= to 32mS 
 : MS ( n -- ) 5 RSHIFT 0 ?DO  1500 TICKS  LOOP ; 

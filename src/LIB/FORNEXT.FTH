@@ -1,7 +1,10 @@
 \ FORNEXT.FTH  for RECOMPILER                   Sept 15 2023 Fox 
 \ waaay smaller code than DO LOOP 
+COMPILER HEX
+
+IMPORT: >R
+
 TARGET
-HEX
 CODE (NEXT)
     *RP DEC,        \ dec counter value
     OC IF,          
@@ -12,11 +15,10 @@ CODE (NEXT)
     IP INCT,        \ move past (LOOP)'s in-line parameter
     NEXT, 
 ENDCODE
-ALSO FORTH 
-IMPORT: >R
 
-COMPILER ALSO META DEFINITIONS 
-: FOR  ( n --)  TCOMPILE  >R   THERE ; IMMEDIATE
-: NEXT ( -- )   TCOMPILE (NEXT) THERE  -  T,  ; IMMEDIATE
+
+COMPILER 
+HOST: FOR  ( n --)  TCOMPILE >R  THERE  ;HOST IMMEDIATE 
+HOST: NEXT ( -- )   TCOMPILE (NEXT) THERE - T, ;HOST IMMEDIATE 
 
 COMPILER 

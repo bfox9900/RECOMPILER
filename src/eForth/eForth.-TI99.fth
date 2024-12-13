@@ -115,8 +115,10 @@ H# E890 EQU =CALL \ 8086 CALL opcode (NOP CALL)
 \ On other processors it may be better
 \ to write it as inline code 
 
+\ CROSS COMPILER DIRECTIVES
+NEW 
+TARGET    
 H# 2000 ORG 
-NEW TARGET         \ CROSS COMPILER DIRECTIVES
 
 L: NEXT ( -- )     \ Direct threaded NEXT
   *IP+ W  MOV,     \ move CFA into Working register 
@@ -633,7 +635,7 @@ THEN R> ( n ?sign) 2DROP R> BASE ! ;
    THEN 
    DROP NIP DUP ;
 
-: accept ( b u -- b u )
+: ACCEPT ( b u -- b u )
    OVER + OVER
    BEGIN 2DUP XOR
    WHILE
@@ -705,15 +707,26 @@ CODE IO? ( -- f ) \ FFFF is an impossible character
    NEXT,               \ return
    ENDCODE
 
+\ TI-99 "video display peripheral" (VDP) port addresses
+H# 8800 EQU VDPRD               \ vdp ram read data
+H# 8802 EQU VDPSTS              \ vdp status
+H# 8C00 EQU VDPWD               \ vdp ram write data
+H# 8C02 EQU VDPWA               \ vdp ram read/write address
+
+VARIABLE OUT 
+
 CODE TX! ( c -- )
-POP DX
-CMP DL, # $0FF
-0= IF \ do NOT allow input
-MOV DL, # 32 \ change to blank
-THEN
-MOV AH, # 6 \ MS-DOS Direct Console I/O
-INT $021
-NEXT
+     OUT @@ R0 MOV, 
+     R0 4000 ORI, 
+     R0 SWPB,
+     R0 VDPWA @@ MOVB, 
+     R0 SWPB, 
+     R0 VDPWA @@ MOVB,
+     TOS SWPB,
+     TOS VDPWD @@ MOVB,   
+     OUT @@ INC, 
+     TOS POP, 
+     NEXT, 
 ENDCODE
 
 : !IO ( -- ) ; IMMEDIATE \ initialize I/O device
@@ -723,7 +736,7 @@ ENDCODE
 : PRESET ( -- ) SP0 @ SP! [ =TIB ] LITERAL #TIB CELL+ ! ;
 
 : XIO ( a a a -- ) \ reset 'EXPECT 'TAP 'ECHO 'PROMPT
-[ ' accept ] LITERAL 'EXPECT !
+[ ' ACCEPT ] LITERAL 'EXPECT !
 'TAP ! 'ECHO ! 'PROMPT ! ;
 
 : FILE ( -- )
@@ -784,8 +797,7 @@ CREATE I/O ' RX? , ' TX! , \ defaults
 
 .( Name Compiler )
 
-: ?UNIQUE ( a -- a )
-DUP NAME? IF ." reDef " OVER .$ THEN DROP ;
+: ?UNIQUE ( a -- a ) DUP NAME? IF ." Redef " OVER .$ THEN DROP ;
 
 : $,n ( na -- )
 DUP C@

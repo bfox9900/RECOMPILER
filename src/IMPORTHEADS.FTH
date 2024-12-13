@@ -42,21 +42,17 @@ HEX
 \ It creates a CONSTANT in the Forth dictioinary that returns the target
 \ execution token.
 
-VARIABLE ITC   ITC ON 
  
-:  IMPORT,  ( addr len -- )
+:  ITC-IMPORT,  ( addr len -- )
     PAD PLACE    \ save the name in PAD
     PAD FIND 0= ABORT" IMPORT, can't find"
     ( xt) DUP ?CODE
 \ CREATE/DOES> but with a string argument
     PAD COUNT CREATE,
-       THERE ,
-       ITC @ 
-       IF
-            THERE CELL+ T, \ ITC code entry points to next cell  
-       THEN 
-       TCODE,         \ compile code from Kernel into the target
-       TNEXT,         \ append NEXT to the TARGET code
+    THERE ,
+    THERE CELL+ T, \ ITC code entry points to next cell  
+    TCODE,         \ compile code from Kernel into the target
+    TNEXT,         \ append NEXT to the TARGET code
     DOES>
     STATE @ ABORT" Can't run TARGET word"
     @   ( interpret mode, return the address )
@@ -64,11 +60,13 @@ VARIABLE ITC   ITC ON
  
 : IMPORT:
     ONLY ASSEMBLER ALSO COMPILERS  ALSO TARGETS DEFINITIONS  ALSO FORTH 
-    BEGIN PARSE-NAME DUP WHILE
+    BEGIN 
+      PARSE-NAME 
+    DUP WHILE
       IMPORT,
     REPEAT
     2DROP
-;  \ remove Forth from the search list 
+; 
  
  
  

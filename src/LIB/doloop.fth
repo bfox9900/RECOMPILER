@@ -3,6 +3,9 @@
 \ Could not IMPORT these words because they jump into each other a lot
 \ and some have multiple NEXT points. 
 
+COMPILER HEX
+
+\ Runtime code for DO LOOP
 TARGET 
 
 CODE <?DO>  ( limit ndx -- )
@@ -23,21 +26,19 @@ CODE <?DO>  ( limit ndx -- )
 ENDCODE
 
 CODE <+LOOP>
-        TOS *RP ADD, 
-        TOS POP,   
+        TOS *RP ADD,   \ save space by jumping into <loop>
+        TOS POP,       \ refill TOS, (does'nt change overflow flag)
         2 $ JMP,
-        
 +CODE <LOOP>
-        *RP INC,      
-2 $:    1 $ JNO,  
-        IP INCT, 
-        3 $ JMP, 
-
-1 $:    *IP IP ADD, 
+        *RP INC,       \ increment loop
+2 $:    OO IF,   
+             IP INCT,  \ skip past jump back value 
+             1 $ JMP, 
+        ENDIF, 
+        *IP IP ADD,    \ jump back
         NEXT,
-
 +CODE UNLOOP
-3 $:    RP  4 AI, 
+1 $:    RP  4 AI,      \ collapse rstack frame
         NEXT,
 ENDCODE
 
@@ -55,20 +56,22 @@ CODE J      ( -- n)
         NEXT,
 ENDCODE
 
-
-
-\ These words are META compilers. 
-\ They look like Forth but do TARGET COMPILING  
+\ COMPILER words for DO LOOP 
+\ These versions are used to compile internal words that use DO LOOP
+\ ** LEAVE is NOT supported in the Meta compiler **
+\ For a live kernel you need to also compile ISOLOOPS.FTH 
+\ ------------------
 COMPILER ALSO META DEFINITIONS 
-: RAKE  ( -- ) ( L: 0 a1 a2 .. aN -- )
-  BEGIN  L> ?DUP WHILE  POSTPONE THEN   REPEAT ;
-
-: DO        ( n n -- adr)  TCOMPILE <DO>   0 >L  THERE  ; IMMEDIATE
-: ?DO       ( n n -- adr)  TCOMPILE <?DO>  0 >L  THERE  ; IMMEDIATE
-: LEAVE     ( -- ) TCOMPILE UNLOOP  TCOMPILE BRANCH THERE 0 ,  >L ; IMMEDIATE
+\ These words are META compilers. They are in the HOST Forth. 
+\ They look like Forth words but they COMPILE code into the TARGET image 
+HOST: DO        ( n n -- adr)  TCOMPILE <DO>    THERE  ;HOST IMMEDIATE
+HOST: ?DO       ( n n -- adr)  TCOMPILE <?DO>   THERE  ;HOST IMMEDIATE
+HOST: LEAVE     ( -- ) 
+  TCOMPILE UNLOOP  TCOMPILE BRANCH  THERE 0 T,   ;HOST IMMEDIATE
 
 \ complete a DO loop
-: LOOP      ( -- )  TCOMPILE <LOOP>  <BACK RAKE ; IMMEDIATE
-: +LOOP     ( -- )  TCOMPILE <+LOOP> <BACK RAKE ; IMMEDIATE
+HOST: LOOP      ( -- )  TCOMPILE <LOOP>  THERE - T, ;HOST IMMEDIATE
+HOST: +LOOP     ( -- )  TCOMPILE <+LOOP> THERE - T, ;HOST IMMEDIATE
 
 PREVIOUS DEFINITIONS 
+DECIMAL 

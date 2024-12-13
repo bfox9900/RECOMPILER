@@ -4,6 +4,8 @@
 \ ** If < 1FFF show the screen char. Flash rate is about 2 per second.
 COMPILER HEX 
 
+IMPORT: KEY? 
+
 TARGET
 : KEY      ( -- char)
       BEGIN                 \ start the loop
@@ -11,8 +13,8 @@ TARGET
         CURS @              \ fetch 2 char cursor (space & _ )
         TMR@ 1FFF <         \ compare hardware timer to 1FFF
         IF >< THEN VPUT     \ swap cursor bytes & write
-            KEY?            \ check the keyboard
-            ?DUP            \ DUP IF <> 0
+        KEY?                \ check the keyboard
+        ?DUP                \ DUP IF <> 0
       UNTIL                 \ loop until a key pressed
       BL VPUT ;             \ put the space char on screen
 

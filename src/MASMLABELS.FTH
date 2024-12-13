@@ -13,7 +13,7 @@ DECIMAL
 #LABELS 2* CONSTANT #FWD
 
 \ Make a stack to handle jumps
-CREATE FS0    #FWD CELLS ALLOT
+CREATE FS0      #FWD    CELLS ALLOT
 CREATE LABELS   #LABELS CELLS ALLOT
 
 : ]LBL  ( n -- addr) CELLS LABELS + ;  \ array of label addresses

@@ -2,54 +2,82 @@
 
 \ You see T on 1st line and F on 3rd line.
 
+
 COMPILER 
-HEX 2000 ORG 
-INCLUDE DSK7.ITC-FORTH
+NEW 
 
-IMPORT: ?TERMINAL 
+HEX A000 ORG 
 
-\ Gives us primitive screen output 
+\ ===============[ THIS WILL BE PUT INTO A SINGLE FILE ]==================
+\ target code starts here
+\ build:;  EXIT NEXT DOCOL DOVAR DOCON LIT ?BRANCH BRANCH (NEXT)
+INCLUDE DSK7.EXECUTORS  
+
+\ IMPORT:  needs the word DOVAR and so must be loaded after EXECUTORS 
+INCLUDE DSK7.IMPORT     \ teach cross-compiler how "steal" host code words
+INCLUDE DSK7.ITCTYPES   \ teach compiler CONSTANT VARIABLE : ; etc. 
+INCLUDE DSK7.BRANCHING  \ teach cross-compiler IF ELSE THEN BEGIN etc.
+
+\ create program entry word, COLD, which builds the Forth stacks
+\ Also creates the target variable called BOOT 
+INCLUDE DSK7.PREAMBLE 
+
+\ ========================================================================
+INCLUDE DSK7.FORNEXT 
+
+IMPORT: OR C! ?TERMINAL 
+
 COMPILER HEX 
+
 TARGET
 8800 CONSTANT VDPRD               \ vdp ram read data
 8C00 CONSTANT VDPWD               \ vdp ram write data
 8C02 CONSTANT VDPWA               \ vdp ram read/write address
 
-\ set VDP address to write mode or read mode 
-CODE WMODE 
-    TOS 4000 ORI,   
-+CODE RMODE ( we can fall thru because there is no dictionary)   
+CODE RMODE 
+    R1 STWP,               \ avoids 2 SWPB instructions
     0 LIMI,
-    TOS SWPB,  TOS VDPWA @@ MOVB, 
-    TOS SWPB,  TOS VDPWA @@ MOVB,
-    TOS POP, 
-    NEXT, 
-ENDCODE 
+    9 (R1) 8C02 @@ MOVB,   \ write odd byte from TOS (ie: R4)
+    TOS    8C02 @@ MOV,    \ MOV writes the even byte to the port
+    NEXT,
+ENDCODE     
+
+CODE BYE   ( -- )
+    83C4 @@ CLR,  
+    0000 @@ BLWP, 
+ENDCODE
+
+\ simpler to now use Forth for write mode 
+: WMODE  4000 OR RMODE ;
 
 : EMIT+  ( c --) VDPWD C! ; \ write C and inc. address
 
 54 CONSTANT 'T'
 46 CONSTANT 'F'
 
+: .TRUE     10 FOR 'T' EMIT+  NEXT ;
+: .FALSE    10 FOR 'F' EMIT+  NEXT ;
+
+: TESTFLAG  IF  .TRUE   ELSE .FALSE  THEN ;
+
 : MAIN  
     0 WMODE        \ Set to line 0 col 0 
-    FFFF           \ Test this true flag 
-    IF   'T' EMIT+ \ Shows T 
-    ELSE 'F' EMIT+
-    THEN 
+    FFFF TESTFLAG 
 
     40 WMODE       \ set VDP address to line 2 col 0 
-    0              \ test this number 
-    IF   'T' EMIT+
-    ELSE 'F' EMIT+ \ shows F
-    THEN    
+    0 TESTFLAG
 
-    BEGIN ?TERMINAL UNTIL 
+    FFFF FOR  
+         ?TERMINAL IF BYE THEN  
+    NEXT 
     BYE 
 ;
 
 COMPILER 
-T' MAIN  BOOT T!   \ set the boot variable 
-SAVE DSK7.TEST3
+PREAMBLE COLD 
+BOOT AUTOSTART MAIN 
+END. 
+
+SAVE DSK7.ITCTEST3
 
 HOST 

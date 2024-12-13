@@ -62,11 +62,15 @@ CREATE TEMP #16 ALLOT
     #16 +LOOP 
     DROP ;
 
+\ move within SAMS segment 
 : SAMS.MOVE   ( a1 a2 u -- ) BOUNDS DO  DUP @L  I !L   CELL+  2 +LOOP DROP ;
 : SAMS.CMOVE  ( a1 a2 u -- ) BOUNDS DO  DUP C@L I C!L  CHAR+     LOOP DROP ;
 
-\ move RAM string to SAMS memory
-: SAMS.PLACE ( addr len sams) VIRT>REAL 2DUP C!  1+ SWAP ?PAGE SAMS.WRITE ;
+\ SAMS string operators move memory BYTE by BYTE. Slow but can cross pages 
+: SAMS.$WRITE  ( a1 a2 u -- )  BOUNDS DO  DUP C@  I C!L  CHAR+    LOOP DROP ;
+: SAMS.$READ   ( sams a2 u --) BOUNDS DO  DUP C@L  I C!  CHAR+    LOOP DROP ;
+
+: SAMS.PLACE ( addr len sams) 2DUP C!L  1+ SWAP SAMS.$WRITE ;
 
 : SAMS>VDP ( sams vdp U --)  \ writes in 16 byte chunks   
     BOUNDS DO  DUP VIRT>REAL  I  #16 VWRITE  16+ #16 +LOOP ; 

@@ -1,40 +1,13 @@
 \ CAMEL99 Forth HI-LEVEL WORDs RE-COMPILED 
+\ must be compile via  ITC-MAKE.FTH 
 
-**NOT_FINISHED**
+[CC] CR .( Constants and VARIABLEs...)
 
-COMPILER 
-NEW
-\ we MUST load Executors first
-\ EXIT DOCON DOVAR DOCOL ?BRANCH and BRANCH
-INCLUDE DSK7.EXECUTORS  
-
-\ Now we can make the reset of the compiler
-INCLUDE DSK7.BRANCHING   \ compilers for: IF THEN BEGIN AGAIN...
-INCLUDE DSK7.DATATYPES   \ CONSTANT VARIABLE : ;
-
-COMPILER HEX 
-
-TARGET ALSO FORTH 
-\ steal primitives code from the Kernel and copy into target
-IMPORT: @ ! C@ C!  2!  2@  COUNT  +!  C+! 
-IMPORT: RP@  RP! DUP>R  >R  R>  R@  SP@  SP!  2>R 2R>  
-IMPORT: NIP  ?DUP  SWAP  OVER  ROT -ROT  ><  2DROP 2DUP  2SWAP PICK  
-IMPORT: AND  OR  XOR 
-IMPORT: 1+  1-  2+  2-  2*  4*  8*  2/   
-IMPORT: 1+!  1-! 
-IMPORT: -  D+  RSHIFT LSHIFT INVERT ABS  NEGATE  ALIGNED 
-IMPORT: UM*  *  UM/MOD  M/MOD  
-IMPORT: =  OVER= 0<  U<  >  < 
-IMPORT: MIN  MAX SPLIT FUSE 
-IMPORT: MOVE FILL SKIP SCAN 
-IMPORT: ON OFF 
-
-COMPILER CR .( Constants and VARIABLEs...)
-
+\ these address equates are set in ITC-MAKE 
 TARGET
- 4000 CONSTANT SP0   
- 3FE0 CONSTANT RP0  
- FF00 CONSTANT TIB  
+'SP0 CONSTANT SP0   
+'SP0 CONSTANT RP0  
+'TIB CONSTANT TIB  
 
 \ Utility constants
     0 CONSTANT FALSE
@@ -43,9 +16,9 @@ TARGET
     1 CONSTANT 1
    20 CONSTANT BL
 
-COMPILER HEX 
-\ S Y S T E M   V A R I A B L E S
+[CC] HEX 
 
+\ S Y S T E M   V A R I A B L E S
 TARGET
     VARIABLE STATE
     VARIABLE LATEST
@@ -57,22 +30,21 @@ TARGET
     VARIABLE HP
     VARIABLE CSP
     VARIABLE BASE
-    VARIABLE >IN
+    VARIABLE >IN 
     VARIABLE C/L
     VARIABLE OUT
     VARIABLE VROW
     VARIABLE VCOL
     VARIABLE 'KEY     \ for vectored char input
     VARIABLE 'EMIT    \ for vectored char output
-    VARIABLE LP
     VARIABLE VPG      \ declared in TI99 VDP driver code TI99IO.HSF
 
-COMPILER DECIMAL
+[CC] DECIMAL
 
 TARGET
    0024 CONSTANT L/SCR
 
-COMPILER HEX 
+[CC] HEX 
 
 TARGET
   VARIABLE VMODE
@@ -89,10 +61,8 @@ TARGET
 
   TARGET
   VARIABLE VTOP
- \  VARIABLE WARNINGS COMPILER -1 WARNINGS T! 
 
-\ Hi-level FORTH Primitives
-
+[CC] CR .( Hi-level FORTH Primitives)
 TARGET
 : HERE      ( -- addr) DP @  ;
 : ALLOT     ( n --)   DP +! ;
@@ -113,7 +83,7 @@ TARGET
 \ PAB Base Address
 : VDPTOP  ( -- n) 8370 @ 1- ;
 
-COMPILER CR .( Stack primitives ...)  
+[CC] CR .( Stack primitives ...)  
 
 TARGET
 : TUCK  ( w1 w2 --  w2 w1 w2 ) SWAP OVER ;
@@ -138,12 +108,11 @@ TARGET
 \ S T R I N G   T H I N G S
 
 TARGET
-
 : PLACE   ( src n dst -- ) 2DUP C! 1+ SWAP MOVE ;
 : /STRING ( caddr1 u1 n - caddr2 u2 ) TUCK - >R + R> ;
 : S,       ( c-addr u -- ) HERE OVER 1+ ALLOT PLACE  ALIGN ;
 
-COMPILER CR .( CAMEL FORTH Number conversion)
+[CC] CR .( CAMEL FORTH Number conversion)
  HEX
 
 TARGET
@@ -181,7 +150,7 @@ TARGET
 \ added PAUSE for multi-tasking improvement 
 : SND!   ( c -- ) PAUSE 8400 C!  ;  \ 4 bytes, 277 uS
 
-COMPILER HEX
+[CC] HEX
 
 TARGET
 : BEEP     ( -- )
@@ -197,85 +166,12 @@ TARGET
       AA MS             \ Delay ~ 170 mS
       9F SND! ;         \ turn off OSC1
 
-COMPILER CR .( Console output)
+[CC] CR .( Console output)
 HEX 
-
-TARGET 
-: C/L!     ( c/l -- ) 
-     DUP C/L !           \ set chars per line
-     L/SCR *  C/SCR ! ;  \ calc. chars per screen
-
-: VPOS   ( -- vaddr) VROW 2@ >VPOS ;
-: VPUT   ( char -- ) VPOS VC! ;
-: AT-XY  ( col row -- ) VROW 2! ;  \ set VDP address for Fast type
-
-: TOPLN   ( -- vaddr)  VPG @ VTOP @ + ; 
-: LASTLN  ( -- vaddr)  VPG @ C/SCR @ + ;
-
-: SCROLL ( -- )
-      PAUSE
-      HERE 100 +     \ grab some space above Forth PAD
-      TOPLN C/SCR @  ( -- buffer Vstart len)
-      BOUNDS  ( -- buffer SCRend SCRstart)
-      DO
-        I  C/L@ +  OVER  C/L@ 8* VREAD
-        DUP  I           C/L@ 8* VWRITE
-      C/L@ 8* +LOOP
-      DROP
-      0 17 AT-XY VPOS C/L@ BL VFILL
-;
-
-\ ======================================================================
-\ V D P   T E X T   O U T P U T
-
-COMPILER HEX 
-
-TARGET
-: CR    ( -- )  (CR) L/SCR = IF  SCROLL  THEN ;
-: (EMIT) ( char -- ) CPUT IF  CR  THEN ;
-: PAGE   ( -- ) TOPLN LASTLN OVER -  BL VFILL   0 0 AT-XY ;
-: BS     ( --)  VCOL DUP @ 1- 0 MAX  SWAP ! ;
-
-: EMIT   ( char -- )  \ handles some control characters
-      PAUSE
-      0D OVER= IF  DROP CR     EXIT THEN
-      08 OVER= IF  DROP BS     EXIT THEN
-      (EMIT) ;
-
-: TYPE   ( addr cnt --)  PAUSE BOUNDS ?DO  I C@ (EMIT) LOOP ;
-
-: SPACE  ( -- )   BL (EMIT) ;
-: SPACES ( n -- ) 0 MAX  0 ?DO  SPACE  LOOP ;
-
-COMPILER CR .( Console input)
-
-TARGET
-: KEY      ( -- char)
-      BEGIN                 \ start the loop
-        PAUSE               \ Essential for Multi-tasking with Console
-        CURS @              \ fetch 2 char cursor (space & _ )
-        TMR@ 1FFF <         \ compare hardware timer to 1FFF
-        IF >< THEN VPUT     \ swap cursor bytes & write
-            KEY?            \ check the keyboard
-            ?DUP            \ DUP IF <> 0
-      UNTIL                 \ loop until a key pressed
-      BL VPUT ;             \ put the space char on screen
-
-: ACCEPT     ( caddr +n -- +n')
-      OVER + OVER          \ removed 1-  to accept all chars
-      BEGIN
-        KEY DUP 0D <>
-      WHILE
-        DUP EMIT
-        DUP 8 =
-        IF   DROP 1-  3 PICK  UMAX  \ changed to use: 3 PICK   B.F.
-        ELSE OVER C!  1+ OVER UMIN
-        THEN
-      REPEAT
-      DROP NIP SWAP - ;
+INCLUDE DSK7.CONSOLE 
 
 \ S T R I N G   L I T E R A L S
-COMPILER HEX 
+[CC] HEX 
 
 TARGET
 : (S")    ( -- c-addr u) R>  COUNT  2DUP + ALIGNED >R ;
@@ -376,12 +272,12 @@ COMPILER HEX
 TARGET
 CODE COLD
       WRKSP0 LWPI,
-      R0 HSprims LI,   \ source
-      R1 HSstart LI,   \ destination
-      BEGIN,           \ Copy hi-speed routines to fast RAM
-        *R0+ *R1+ MOV,
-         R1 HSend CMPI,
-      EQ UNTIL,
+\      R0 HSprims LI,   \ source
+\      R1 HSstart LI,   \ destination
+\      BEGIN,           \ Copy hi-speed routines to fast RAM
+\        *R0+ *R1+ MOV,
+\         R1 HSend CMPI,
+\      EQ UNTIL,
       SP  SP0  LI,     \ data stack
       RP  RP0  LI,     \ return stack
       R10 NEXT2 LI,    \ inner interpreter
@@ -411,6 +307,6 @@ TARGET
 
 : GO   WARM  
 
-       <you application goes here> 
+       <your application goes here> 
 
 ;

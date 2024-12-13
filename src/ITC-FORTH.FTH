@@ -1,57 +1,21 @@
-\ ITC-FORTH.FTH  preamble to make an indirect threaded system  Sep 2023 Fox
- 
-COMPILER
-
-WARNINGS OFF
-INCLUDE DSK7.EXECUTORS  \ load EXIT DOCOL DOVAR ETC.
-INCLUDE DSK7.ITCTYPES   \ CONSTANT VARIABLE : ;  S"
-
-INCLUDE DSK7.FORNEXT    \ runtime code 
-
-INCLUDE DSK7.RSTACK     \ IMPORTs needed for FOR NEXT 
-WARNINGS ON
-
-INCLUDE DSK7.BRANCHING  \ compilers for IF THEN BEGIN AGAIN...
-
-
-COMPILER HEX
-TARGET
-VARIABLE BOOT  \ hold the cfa of the word that boots from COLD
-
-L: COLD               \ COLD runs at boot time to build the Forth VM
-      8300 LWPI,      \ set 9900 workspace
-      SP 3FFE LI,     \ data stack in scratchpad
-      RP 3FAE LI,     \ return stack in scratchpad
-      IP BOOT LI,     \ load interpreter pointer with boot word
- 
-      R10 _NEXT LI,   \ inner interpreter stays in R10
-      *R10 B,         \ jump into the interpreter
- 
-COMPILER
- 
-\ Add S"  string compiler Yikes!
- COMPILER ALSO META DEFINITIONS ( META holds "immediate" words and support )
- HOST: TALIGN     ( -- )   THERE ALIGNED H ! ;HOST
- HOST: TS,       ( c-addr u -- ) THERE OVER 1+ TALLOT PLACE  TALIGN ;HOST
+CR .( ITC-FORTH.FTH  make an indirect threaded system  Oct 2024 Fox)
  
 COMPILER WARNINGS OFF
-  INCLUDE DSK7.PRIMITIVES \ TARGET code words
+\ minimal system requires these files 
+INCLUDE DSK7.EXECUTORS  \ load EXIT DOCOL DOVAR ETC.
+INCLUDE DSK7.IMPORT     \ *NEW* import needs DOVAR so goes here
+INCLUDE DSK7.ITCTYPES   \ CONSTANT VARIABLE : ;  S"
+INCLUDE DSK7.BRANCHING  \ compilers for IF THEN BEGIN AGAIN...
+INCLUDE DSK7.PREAMBLE   \ create program entry word, COLD
+\ -------------------------------------------------------
+
+\ Extras go here
+ INCLUDE DSK7.PRIMITIVES \ TARGET CORE primitives
+ INCLUDE DSK7.RSTACK     \ IMPORTs needed for FOR NEXT
+
 COMPILER WARNINGS ON
- 
-COMPILER DECIMAL 
-TARGET
-\ run-time for S" 
-\ 1st colon definition in the system. (could be a code word)
-: (S")  ( -- c-addr u) R>  COUNT  2DUP + ALIGNED >R ; 
 
-\ META-compiling S" 
-COMPILER ALSO META DEFINITIONS 
-HOST: S"   
-   [CHAR] " PARSE  
-   TCOMPILE (S")  TS, 
-;HOST IMMEDIATE 
+\ INCLUDE DSK7.FORNEXT    \ runtime code
 
+CR .( ITC FORTH loaded )
 
-CR .( ITC FORTH Preamble loaded )
- 
- 

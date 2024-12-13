@@ -15,26 +15,6 @@ TARGET
 : >L        ( x -- ) ( L: -- x ) 2 LP +!   LP @ ! ;     \ LP stack grows up
 : L>        ( -- x ) ( L: x -- ) LP @ @  -2 LP +! ;
 
-\ [else]  ( code is same size but faster)
-\ CODE >L
-\    R1 STWP,
-\    3A (R1) INCT,
-\    3A (R1) R0 MOV,
-\    TOS *R0 MOV,
-\    TOS POP,
-\    NEXT,
-\ ENDCODE
-
-\  CODE L>
-\     TOS PUSH,
-\     R1 STWP,
-\     3A (R1) TOS MOV,
-\     *TOS TOS MOV,
-\     3A (R1) DECT,
-\     NEXT,
-\  ENDCODE
-\ [then]
-
 \ -----------------------------------------------------------------------
 \ RAKE  resolves branching out of DO/LOOPS that use LEAVE
 \       CAMEL Forth calls this ENDLOOP... but it RAKEs the LEAVEs. Get it?
@@ -44,7 +24,7 @@ TARGET
 \       define the TARGET system LOOPS below.
 
 : RAKE  ( -- ) ( L: 0 a1 a2 .. aN -- )
-         BEGIN  L> ?DUP WHILE   [TPOSTPONE] THEN  REPEAT ;
+         BEGIN  L> ?DUP WHILE   TPOSTPONE THEN  REPEAT ;
 \ -----------------------------------------------------------------------
 \ SIMPLIFIED LOOPS
 \ Posted by dxforth comp.lang.forth
