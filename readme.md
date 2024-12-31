@@ -16,3 +16,11 @@ The method used here is based on information found in the "Forth Progammers Hand
 The fundamental idea is to use the Forth wordlists (Vocabulary) system
 to control the Cross-compiler's search order so that difference words will
 be accessed when needed.  See the file RECOMPILER.FTH and the words TARGET COMPILER and HOST to view the search order for each condition. 
+
+## Dec 2024
+Began work to allow creation of a dictionary in the target code.
+The commands HEADERS ON   -or-  HEADERS OFF  control the presence of the dictionary headers. 
+
+The header control is part of making a "meta-compiler" to allow Camel99 Forth to re-build itself. 
+
+
