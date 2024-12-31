@@ -8,7 +8,7 @@ COMPILER HEX
 \ There is NO PAB duplicate in CPU RAM.
 
 TARGET
-\ VARIABLE ^PAB            \ *moved to CAMEL kernel file
+VARIABLE ^PAB            \ active PAB pointer
 
 \ fast fetch of pab base pointer. (*This is also the OPCODE field)
 CODE [PAB   ( -- adr) TOS PUSH,  ^PAB @@ TOS MOV,  NEXT, ENDCODE
@@ -23,10 +23,10 @@ CODE [PAB   ( -- adr) TOS PUSH,  ^PAB @@ TOS MOV,  NEXT, ENDCODE
  CODE FLG]    ( vaddr -- vaddr') TOS INC,         NEXT, ENDCODE \ 1+   byte
  CODE FBUFF]  ( vaddr -- vaddr') TOS INCT,        NEXT, ENDCODE \ 2+   cell 
  CODE RECLEN] ( vaddr -- vaddr') *TOS+ *TOS+ MOV, NEXT, ENDCODE \ 4+   byte 
- CODE CHARS]  ( vaddr -- vaddr') TOS  5 ADDI,     NEXT, ENDCODE \ 5+   byte
- CODE REC#]   ( vaddr -- vaddr') TOS  6 ADDI,     NEXT, ENDCODE \ 6+   cell 
- CODE STAT]   ( vaddr -- vaddr') TOS  8 ADDI,     NEXT, ENDCODE \ 8+   byte 
- CODE FNAME]  ( vaddr -- vaddr') TOS  9 ADDI,     NEXT, ENDCODE \ 9+   string
+ CODE CHARS]  ( vaddr -- vaddr') TOS  5 AI,       NEXT, ENDCODE \ 5+   byte
+ CODE REC#]   ( vaddr -- vaddr') TOS  6 AI,       NEXT, ENDCODE \ 6+   cell 
+ CODE STAT]   ( vaddr -- vaddr') TOS  8 AI,       NEXT, ENDCODE \ 8+   byte 
+ CODE FNAME]  ( vaddr -- vaddr') TOS  9 AI,       NEXT, ENDCODE \ 9+   string
 
 \ control the PAB stack
 12C CONSTANT PSZ       \ size of PAB+BUFFER
@@ -68,7 +68,7 @@ CODE [PAB   ( -- adr) TOS PUSH,  ^PAB @@ TOS MOV,  NEXT, ENDCODE
 \ Cross-compiler usage: S" DSK1.START" INCLUDED
 : INCLUDED  ( caddr len -- )
         ?FILE
-        CR ." Loading: " 2DUP TYPE
+        CR T." Loading: " 2DUP TYPE
         SOURCE-ID @ >IN @ 2>R           \ save source-ID, input pointer
         PSZ NEGATE ^PAB +!              \ make new PAB, on pab stack
         ( $ len ) 50 14 FOPEN ?FILERR   \ OPEN as 80 FIXED DV80 INPUT

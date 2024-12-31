@@ -5,12 +5,6 @@
 COMPILER CR .( Console driver)
 
 DECIMAL 
-\ dependancies in this file 
-IMPORT: 2@ 2!  
-IMPORT: DUP>R R> >R R@
-IMPORT: + - 4*  * 1- 
-IMPORT: DUP DROP SWAP OVER 2DROP 2DUP ><
-IMPORT: @ !  C@ C! 
 
 TARGET
 
@@ -29,7 +23,14 @@ VARIABLE VTOP
 24 CONSTANT L/SCR 
 32 CONSTANT BL 
 
-: C/L@   C/L @ ;
+\ FAST user variable for screen driver
+[CC] HEX [TC]
+CODE C/L@   ( -- n )        \ used 8 times in the KERNEL. Saves 24 bytes
+         TOS         PUSH,  \ and is 50% faster than C/L @
+         TOS         STWP,
+         2E (TOS) TOS MOV,
+         NEXT,
+         ENDCODE
 
 : C/L!  ( c/l -- )  \ pronounced "SEE-PER-ELL-STORE"
         DUP C/L !           \ set chars per line
@@ -46,6 +47,7 @@ VARIABLE VTOP
       NEXT,
       ENDCODE \ 14 BYTES
 
+   
 : VPOS    ( -- Vaddr) VROW 2@ >VPOS ; 
 : VPUT    ( char -- ) VPOS VC! ;
 : AT-XY   ( col row -- ) VROW 2! ; 
@@ -86,68 +88,35 @@ CODE ++@ ( addr -- n) *TOS INC,  *TOS TOS MOV,  NEXT, ENDCODE
 : BS     ( -- )   VCOL DUP @ 1- 0 MAX  SWAP ! ;
 
 : EMIT   ( char -- )  \ handles some control characters
- \     PAUSE
+      PAUSE
       0D OVER= IF  DROP CR     EXIT THEN
       08 OVER= IF  DROP BS     EXIT THEN
       (EMIT) ;
 
-IMPORT: BOUNDS
-
 TARGET 
-: TYPE   ( addr cnt --) ( PAUSE) BOUNDS ?DO  I C@ (EMIT)  LOOP ;
+CODE BOUNDS ( adr len -- adr2 adr1)  \ same size as Forth version
+        *SP R1 MOV,
+        TOS *SP ADD,
+        R1 TOS MOV,
+        NEXT,
+        ENDCODE
+
+: TYPE   ( addr cnt --) PAUSE BOUNDS ?DO  I C@ (EMIT)  LOOP ;
+T' TYPE RESOLVES 'TYPE  
 
 : SPACE  ( -- )   BL (EMIT) ; 
 : SPACES ( n -- ) 0 MAX  0 ?DO  SPACE  LOOP ;
 
-COMPILER  CR .( Console input)
-HEX 
-TARGET
-CODE KEY? ( -- char)  \ *WARNING* it takes 1,128uS for KEY? scan to run
-        TOS PUSH,
-        TOS CLR,            \ TOS will be our true/false flag
-        0 LIMI,             \ disable interrupts
-        TOS 837C @@ MOVB,   \ clear GPL flags
-        83E0 LWPI,          \ swiTCh to GPL workspace
-        000E @@ BL,         \ call ROM keyboard scanning routine
-        8300 LWPI,        \ return to Forth's workspace
-        837C @@ R1 MOVB,    \ read GPL status byte (=2000 if key pressed)
-        R1  3 SLA,          \ check the key bit
-        OC IF,              \ if carry flag set
-           8375 @@ TOS MOV, \ read the key ( LEGACY reasons)
-        ENDIF,
-        2 LIMI, 
-        NEXT,          
-        ENDCODE
-
-\ *---------------------------------------------
-\ * Call very fast built-in Fctn-4 test in console ROM
-\   http://www.unige.ch/medecine/nouspikel/ti99/keyboard.htm
-\ *---------------------------------------------
-CODE ?TERMINAL ( -- ?)  \ ~200uS, 16 bit ROM code. Same name as TI-Forth
-        R12     RPUSH,       \ save CRU address makes life simpler
-        TOS     PUSH,
-        TOS     CLR,
-        0020 @@ BL,          \ Call ROM code, test FNCT 4 key press
-        EQ IF,               \ if flag=0
-           TOS  SETO,        \ KEY is pressed, TOS = -1
-           BEGIN,
-              0020 @@ BL,    \ call rom routine
-           NE UNTIL,         \ until key is released
-        ENDIF,
-        R12     RPOP,        \ Restore CRU address used by CAMEL Forth
-        NEXT,
-        ENDCODE
-
 
 \ *G Cursor flash control is done by reading the 9901 timer.
-\ ** It counts down from >3FFF in 349mS. If the timer > 1FFF we show the cursor.
+\ ** Counts down from >3FFF in 349mS. If the timer > 1FFF we show the cursor.
 \ ** If < 1FFF show the screen char. Flash rate is about 3 per second.
 
 VARIABLE CURS   5F20 CURS T!  \ space and '_' chars in one cell 
 
 : KEY      ( -- char)
         BEGIN          
-   \        PAUSE              \ Essential for Multi-tasking with Console
+           PAUSE              \ Essential for Multi-tasking with Console
            CURS @             \ feTCh 2 char cursor (space & _ )
            TMR@ 1FFF < 
            IF >< THEN VPOS VC! 
@@ -156,13 +125,7 @@ VARIABLE CURS   5F20 CURS T!  \ space and '_' chars in one cell
         8375 C@               \ read key code from RAM buffer 
         BL VPOS VC! ;         \ put the space char on screen
 
-
-IMPORT: PICK UMAX UMIN NIP INVERT 1- 1+ 
-
 TARGET
-
-: <>  ( n n -- ?)  =  INVERT ;
-
 \ High level: input/output          (c) 31mar95 bjr
 : ACCEPT     ( caddr +n -- +n')
         OVER + OVER         \ removed 1-  to aCCept all chars

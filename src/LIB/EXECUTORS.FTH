@@ -11,19 +11,30 @@ ENDCODE
 
 \ Forth data interpreters are code fragments not "words"
 \ action of a variable 
-L: DOVAR    TOS PUSH,      \ make room in TOS 
+TCREATE DOVAR    TOS PUSH,      \ make room in TOS 
             W TOS MOV,     \ contents of PFA -> TOS
             NEXT,
+T' DOVAR RESOLVES 'DOVAR, 
 
 \ action of a constant 
-L: DOCON    TOS PUSH,
+TCREATE DOCON    TOS PUSH,
             *W TOS MOV,
             NEXT,
+T' DOCON RESOLVES 'DOCON, 
 
 \ enter a colon definition 
-L: DOCOL    IP RPUSH,  
+TCREATE DOCOL    IP RPUSH,  
             W IP MOV, 
             NEXT,
+T' DOCOL  RESOLVES 'DOCOL,  
+
+L: DOUSER ( -- addr)
+            TOS PUSH,      \ Executor that executes a "USER VARIABLE"
+            TOS STWP,
+            *W TOS ADD,    \ add USER VAR's offset to Workspace pointer
+            NEXT,
+            ENDCODE
+T' DOUSER  RESOLVES 'DOUSER 
 
 \ action of a literal number 
 CODE LIT 
@@ -31,9 +42,9 @@ CODE LIT
         *IP+ TOS MOV, 
         NEXT, 
 ENDCODE     
+T' LIT  RESOLVES 'LIT, 
 
 \ *branches are IP relative (not absolute)
-
 \ branch if TOS = 0 
 CODE ?BRANCH 
         TOS DEC, 

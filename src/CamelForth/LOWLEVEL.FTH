@@ -6,17 +6,6 @@ COMPILER WARNINGS OFF
 \   **********************************************************
 CR .( FORTH PRIMITIVES BEGIN)
 
-\ In CAMEL99 the 9900 Workspace register (WP) doubles as USER pointer
-\ USER variables are local to each task
-TCREATE: DOUSER ( -- addr)
-            TOS PUSH,      \ Executor that executes a "USER VARIABLE"
-            TOS STWP,
-            *W TOS ADD,    \ add USER VAR's offset to Workspace pointer
-            NEXT,
-            ENDCODE
-T' DOUSER  RESOLVES 'DOUSER  \ 'DOUSER is used by the cross-compiler
-
-
 \ DODOES is the code action of a DOES> clause.
 \ For ITC Forth:
 \ defined word:  CFA: doescode
@@ -29,15 +18,15 @@ T' DOUSER  RESOLVES 'DOUSER  \ 'DOUSER is used by the cross-compiler
 \ field on top of stack.
 \ Using BL automatically computed the new parameter field into R11
 \ which is exactly what we need to be the IP so we just do one MOV.
-
-TCREATE: DODOES  ( -- a-addr)
+TARGET
+TCREATE DODOES  ( -- a-addr)
             TOS PUSH,       \ save TOS reg on data stack      28
             W TOS MOV,      \ put defined word's PFA in TOS   14
             IP RPUSH,       \ push old IP onto return stack   28
             R11 IP MOV,     \ R11 has the new PFA -> IP       14
             NEXT,                                       \     84
             ENDCODE
-
+FORWARD 'DODOES
 T' DODOES RESOLVES 'DODOES    \ 'DODOES is used by the cross-compiler
 
 \ ***********************end of executors *************************
@@ -55,13 +44,13 @@ CODE PERFORM  ( xt -- )
              ENDCODE
 
 \ these run from high speed RAM
-CODE ?BRANCH
-            _?BRANCH >HSRAM CFA!  \ put fast address into the CFA
-            ENDCODE
+\ CODE ?BRANCH
+\            _?BRANCH >HSRAM CFA!  \ put fast address into the CFA
+\            ENDCODE
 
-CODE BRANCH
-            _BRANCH >HSRAM CFA!   \ put fast address into the CFA
-            ENDCODE
+\ CODE BRANCH
+\            _BRANCH >HSRAM CFA!   \ put fast address into the CFA
+\            ENDCODE
 
 \ ==================================================================
 CR .( MEMORY FETCH & STORE)
@@ -73,9 +62,9 @@ CODE !      ( n addr -- )
              ENDCODE
 
 CODE @      ( a -- w )
-            _fetch >HSRAM CFA! 
-\            *TOS TOS MOV,
-\            NEXT,
+\            _fetch >HSRAM CFA! 
+            *TOS TOS MOV,
+            NEXT,
             ENDCODE
 
 \ Aug 4 2018: fixed order of data to be ANS compliant
@@ -103,12 +92,12 @@ CODE C!     ( c addr -- )
 CODE COUNT  ( addr -- addr' u)
             TOS PUSH,             \ make a copy of addr
             *SP INC,              \ inc. addr past the count byte
-l: _C@      *TOS TOS MOVB,        \ put C@ inline to save space
+L: _C@      *TOS TOS MOVB,        \ put C@ inline to save space
             TOS 8 SRL,            \ **BUG FIX** used to be SRA :-(
             NEXT,
             ENDCODE
 
-CODE C@     _C@  CFA! ENDCODE      \ give _C@ a dictionary header
+CODE C@     _C@  -2 TALLOT THERE T! ENDCODE      \ give _C@ a dictionary header
 
 CODE +!     ( n addr --)
             *SP+ *TOS ADD,         \ 14+8+4 = 26 cycles
@@ -160,7 +149,7 @@ CODE R@     ( -- w )
 
 \ double Rstack Forth2012
 CODE 2>R    ( d -- ) ( r-- n n)
-      RP -4 ADDI,          \ 14
+      RP  -4 AI,          \ 14
       TOS    *RP MOV,      \ 22
       *SP+ 2 (RP) MOV,     \ 26
       TOS POP,             \ 22
@@ -191,9 +180,9 @@ CODE SP!    ( a -- )
             ENDCODE
 
 CODE DROP   ( w -- )
-            _drop >HSRAM CFA!
-\           TOS POP,             \ 22 *SP+ TOS MOV,
-\           NEXT,
+\            _drop >HSRAM CFA!
+           TOS POP,             \ 22 *SP+ TOS MOV,
+           NEXT,
             ENDCODE
 
 CODE NIP    ( n n' -- n')
@@ -210,9 +199,9 @@ CODE ?DUP   ( x -- 0 | x x)       \ ?DUP interleaved with DUP to save space
             ENDCODE
 
 CODE DUP    ( w -- w w )          \ create a Forth Header for DUP
-            _DUP >HSRAM CFA!       \ use hi-speed ram version
-\           TOS PUSH,
-\           NEXT,
+\            _DUP >HSRAM CFA!       \ use hi-speed ram version
+           TOS PUSH,
+           NEXT,
             ENDCODE
 
 CODE SWAP   ( w1 w2 -- w2 w1 )
@@ -672,15 +661,6 @@ cr .( ANS Forth DO/LOOP )
 \ ; trick from Laxen & Perry F83.
 
 \ ===========================================================
-\ CAMEL Forth prefers to put loop index and limit in registers.
-\ Using 2 registers makes DO LOOPs about 14% faster
-\ BUT it is NOT COMPATIBLE with the workspace based multi-tasker
-
-REGISTERS [IF]
-      INCLUDE CC9900\CCLIB\DOFAST.HSF
-[ELSE]
-
-\ ===========================================================
 \ conventional do loops use 2 cells on the RSTACK
 [CC] cr .( Rstack based DO/LOOP ) [TC]
 
@@ -741,33 +721,16 @@ CODE BOUNDS ( adr len -- adr2 adr1)  \ same size as Forth version
             NEXT,
             ENDCODE
 
-\ ===========================================================
-[CC] CR .( ON / OFF) 
-
-[TC]
-CODE ON   ( adr -- )
-          *TOS SETO, 
-          TOS POP,
-          NEXT,
-          ENDCODE
-
-CODE OFF  ( adr -- )
-          *TOS CLR, 
-          TOS POP, 
-          NEXT, 
-          ENDCODE 
 
 \ ===========================================================
-[CC] cr .( SKIP SCAN ) 
 
-\ used CAMEL Forth MSP430 as reference code
+CR .( SKIP SCAN ) 
 
 \ ; Although SKIP, SCAN, and S= are perhaps not the ideal factors
 \ ; of WORD and FIND, they closely follow the string operations
 \ ; available on many CPUs, and so are easy to implement and fast.
 
-\ used CAMEL Forth MSP430 as reference code
-[TC]
+TARGET
 CODE SKIP  ( c-addr u char -- c-addr' u')    \ skip matching chars
         TOS SWPB,           \ char stays in TOS
         R1  POP,            \ POP count into R1,
@@ -807,7 +770,8 @@ CODE SCAN  ( adr len char -- adr' len' )    \ find matching char
         ENDCODE
 
 \ ===========================================================
-\ D I C T I O N A R Y   S E A R C H
+[CC] CR .( DICTIONARY SEARCH)
+
 \ We found the Camel Forth dictionary search to be a little slow on TI-99.
 \ Creating (FIND) in assembler is smaller and about 5X faster than using
 \ S= plus hi-level looping and address calculation
@@ -840,7 +804,6 @@ CODE SCAN  ( adr len char -- adr' len' )    \ find matching char
 
 \ Outputs: R2 = address of found string -OR- address of search string on stack
 \          R4 = Forth TOS register. Holds the true/false result flag
-
 
 CODE (FIND) ( Caddr NFA -- XT ? )
       TOS R3 MOV,                 \ R3 = NFA which is a counted string
@@ -890,7 +853,22 @@ CODE (FIND) ( Caddr NFA -- XT ? )
       ENDCODE                  \ 42 BYTES
 
 \ ===========================================================
-[CC] cr .( CAMEL99 custom primitives)
+CR .( CAMEL99 custom primitives)
+\ ===========================================================
+[CC] CR .( ON / OFF) 
+
+TARGET 
+CODE ON   ( adr -- )
+          *TOS SETO, 
+          TOS POP,
+          NEXT,
+          ENDCODE
+
+CODE OFF  ( adr -- )
+          *TOS CLR, 
+          TOS POP, 
+          NEXT, 
+          ENDCODE 
 
 \ multi-tasking support
 [TC]

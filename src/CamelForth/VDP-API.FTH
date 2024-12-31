@@ -1,4 +1,4 @@
-[CC] CR ." VDP CHIP API"
+[CC] CR .( VDP CHIP API)
 HEX 
 \ Register Usage:
 \ R0  down counter
@@ -7,7 +7,6 @@ HEX
 \ R4  VDP memory address
 
 \
-\ ================ LEAF SUB-ROUTINE  ** NOT NESTABLE ** ================
 TARGET
 8800 CONSTANT VDPRD               \ vdp ram read data port 
 8C00 CONSTANT VDPWD               \ vdp ram write data port 
@@ -19,6 +18,7 @@ TARGET
 \ R1 is set to the workspace address. 
 \ This is assumed to true in other VDP routines to access user variables 
 
+\ ================ LEAF SUB-ROUTINE  ** NOT NESTABLE ** ================
 L: WMODE  ( Vaddr -- Vaddr)
          TOS 4000 ORI,
 L: RMODE R1 STWP,               \ avoids 2 SWPB instructions
@@ -62,7 +62,7 @@ CODE VREAD ( VDP-adr RAM-addr cnt  -- )
          ENDCODE
 
 \ ===================================================================
-[CC] CR ." WRITE VC! V!" 
+[CC] CR .( WRITE VC! V!) 
 TARGET
 CODE VWRITE  ( RAM-addr VDP-addr cnt -- ) 
          TOS R0 MOV,         \ cnt in R0

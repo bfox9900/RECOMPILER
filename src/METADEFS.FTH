@@ -20,6 +20,6 @@ HOST: S"
    [CHAR] " PARSE  
    TCOMPILE (S")  TS, 
 ;HOST IMMEDIATE 
-
+ 
 
 CR .( ITC FORTH Preamble loaded )

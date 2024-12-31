@@ -67,8 +67,8 @@ CREATE TEMP #16 ALLOT
 : SAMS.CMOVE  ( a1 a2 u -- ) BOUNDS DO  DUP C@L I C!L  CHAR+     LOOP DROP ;
 
 \ SAMS string operators move memory BYTE by BYTE. Slow but can cross pages 
-: SAMS.$WRITE  ( a1 a2 u -- )  BOUNDS DO  DUP C@  I C!L  CHAR+    LOOP DROP ;
-: SAMS.$READ   ( sams a2 u --) BOUNDS DO  DUP C@L  I C!  CHAR+    LOOP DROP ;
+: SAMS.$WRITE  ( a1 a2 u -- )  BOUNDS DO  DUP C@  I C!L  CHAR+   LOOP DROP ;
+: SAMS.$READ   ( sams a2 u --) BOUNDS DO  DUP C@L  I C!  CHAR+   LOOP DROP ;
 
 : SAMS.PLACE ( addr len sams) 2DUP C!L  1+ SWAP SAMS.$WRITE ;
 

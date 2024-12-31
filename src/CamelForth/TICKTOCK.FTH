@@ -1,6 +1,6 @@
 \ TICKTOCK.HSF  TMS9901 hardware timer interface for Camel 99 Forth
 
-\ credit to: http://www.unige.ch/medecine/nouspikel/ti99/tms9901.htm#Timer
+\  http://www.unige.ch/medecine/nouspikel/ti99/tms9901.htm#Timer
 \ improvements based on code from Tursi Atariage
 \ TMR! now loads from the Forth stack
 \ Apr 2023  Went back to a new TICKS word that is more efficient. 
@@ -41,21 +41,17 @@ CODE DT ( T1 T2 -- n)
     NEXT, 
 ENDCODE 
 
-IMPORT: >R R> 2DROP 0<
-
-TARGET 
+\ maximum value that works is 12,000 ~= 260mS 
 : TICKS ( n -- ) \ ** n(max) = 4000 ~= 100 ms ** 
   >R
   TMR@
   BEGIN  
-    TMR@ DT 0<
-  WHILE
-    \ PAUSE
-  REPEAT
+    TMR@ DT 0< WHILE 
+  REPEAT    
   R> 2DROP
 ;
 
 \ 1500 TICKS ~= to 32mS. Miniumum time is 32mS
-IMPORT: RSHIFT MAX  
 : MS ( n -- ) 5 RSHIFT 1 MAX 0 DO  1500 TICKS  LOOP ; 
 
+COMPILER 

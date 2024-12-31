@@ -5,12 +5,14 @@
 \ recompile a threaded Forth program in SAMS memory 
 \ Dictionary headers are kept in the regular Forth dictionary
 
+\ v.89  ADDEd  SAMS.$WRITE to make headers in SAMS 
+
 NEEDS WORDLIST FROM DSK1.WORDLISTS 
 
 ONLY FORTH DEFINITIONS 
 NEEDS DUMP  FROM DSK1.TOOLS 
-\ NEEDS DEFER FROM DSK1.DEFER 
 NEEDS VALUE FROM DSK1.VALUES 
+NEEDS DEFER FROM DSK1.DEFER 
 NEEDS LOCK  FROM DSK1.MARKER 
 NEEDS VIRT>REAL FROM DSK1.SAMS 
 NEEDS SAMS.FILL FROM DSK7.SAMSMEM
@@ -74,7 +76,6 @@ INCLUDE DSK7.MASMLABELS   \ handy to have labels for jumping around
 : ALSO       ALSO ;
 : DEFINITIONS   DEFINITIONS ;
 
-: TWORDS   ALSO TARGETS  WORDS   PREVIOUS ; ( searches TARGETS wordlist)
 : CELL+  CELL+ ;
 : CELLS  CELLS ;
 
@@ -88,6 +89,7 @@ INCLUDE DSK7.MASMLABELS   \ handy to have labels for jumping around
 : ON   ON ;
 : OFF  OFF ;
 : IMMEDIATE  IMMEDIATE ;
+: CREATE     CREATE ;
 
 \ Host forth's colon/semi renamed so we can use it anywhere 
 : ;HOST     POSTPONE ;  ;  IMMEDIATE
@@ -96,14 +98,11 @@ INCLUDE DSK7.MASMLABELS   \ handy to have labels for jumping around
 : [CHAR]  ?COMP POSTPONE [CHAR] ; IMMEDIATE 
 : S"      POSTPONE S" ; IMMEDIATE 
 : INCLUDED   INCLUDED ;
+: :NONAME  :NONAME ;
 
-\ add words to the cros-compiler 
-ONLY FORTH  ALSO COMPILERS DEFINITIONS 
-
-\ directives 
 HEX 
+VARIABLE LDADDR
 
-VARIABLE  LDADDR   \ program's load address in TI-99 memory 
 ALSO ASSEMBLER
 : ORG   ( addr -- ) 
     DUP LDADDR !  
@@ -115,14 +114,24 @@ PREVIOUS
 : CDATA  ( -- addr) LDADDR @ ; 
 : 'PREAM ( -- addr) CDATA CELL+ ; \ address of first code word to run 
 
-\ target image fetch and store take relocated addresses and convert them
+\                   *** TARGET SPECIFIC COMMANDS ***
+\ target image fetch and store use virtual address in SAMS memory 
 HEX 
-: T!      ( n relocated -- ) !L ;
-: T@      ( relocated -- n)  @L ;
+: T!      ( n sams --)  !L ;
+: T@      ( sams -- n)  @L ;
+: TC!     ( c sams --) C!L ;
+: TC@     ( sams -- c) C@L ;
 
 : TALIGN  THERE ALIGNED SDP ! ;
 : TPLACE  SAMS.PLACE ;
 
+\ compile a stack string into target memory
+: TS,    ( adr len -- ) THERE OVER 1+  TALLOT TPLACE TALIGN ;
+
+\ parse input string into TARGET memory
+: T,"         ( <text>" -- ) [CHAR] " PARSE TS, ; 
+
+: TWORDS   ALSO TARGETS  WORDS   PREVIOUS ; ( searches TARGETS wordlist)
 
 \ SAVEIMG can save our programs as E/A 5 binary file 
 INCLUDE DSK7.SAMSAVE 
@@ -182,43 +191,30 @@ ONLY FORTH ALSO COMPILERS DEFINITIONS
       0< IF POSTPONE TCOMPILE 
       THEN  TCOMPILE, ; IMMEDIATE  
 
-\ compile a stack string into target memory
-: TS,    ( adr len -- ) THERE OVER 1+  TALLOT TPLACE TALIGN ;
 
-\ parse input string into TARGET memory
-: T,"         ( <text>" -- ) [CHAR] " PARSE TS, ; 
+\ create an immediate word to name a forward reference
+\ *NEW* FORWARD words compile into target when invoked 
+: FORWARD    
+    CREATE  0 ,   
+    DOES> @  
+          DUP 0= 
+          IF CR
+             CR SOURCE TYPE 
+             CR >IN @ 2/ SPACES ." ^^^^"
+             TRUE ABORT" Unresolved FORWARD" 
+          THEN 
+; 
 
-\ create a name for a forward reference
-: FORWARD 
-    CREATE  0 , 
-    DOES>  @  DUP 0= ABORT" Unresolved FORWARD"
-; IMMEDIATE 
 
 \ pass an XT to a forward reference word and store in the DATA field 
-: RESOLVES  ( xt -- ) T'  >BODY  ! ;
+: RESOLVES  ( xt -- ) '  >BODY  ! ;
 
-FORWARD (TS")  \ resolve this later in the kernel code 
 : TS,    ( adr len -- ) THERE OVER 1+  TALLOT TPLACE TALIGN ; 
-\ : TS"          (TS") T,  [CHAR] " PARSE TS, ; IMMEDIATE
 
-\ T[']  and T' can now be put into the META vocabulary
-\ and given names that look "normal".
-\ This makes the cross-compiler source code backwards compatible
-\ with standard forth but hides what's going on. 
-\ Keeping both names helps my pea-brain remember.
-\ ALSO META DEFINITIONS 
-\ : '       T'   ;
-\ : [']     POSTPONE T['] ; IMMEDIATE 
-\ : S"      POSTPONE TS" ; IMMEDIATE
+\ interactive debugging tools 
+: TCOUNT  ( sams$ -- sams len) DUP 1+ SWAP C@L  ;
+: TTYPE   ( sams len -- ) OVER + SWAP ?DO I C@L EMIT LOOP  ;
 
-\ : ."          POSTPONE T." ; IMMEDIATE
-\ : CHAR        TCHAR ;
-\ : [CHAR]      ?XCOMP TCHAR  POSTPONE TLITERAL ; IMMEDIATE
-\ : [COMPILE]   POSTPONE  T[COMPILE] ; IMMEDIATE
-\ PREVIOUS DEFINITIONS 
-
-
-DEFER TLITERAL \ resolve this once TARGET LIT is defined 
 
 \ H# (hex number prefix) 
 \ Convert the next word in the input stream to a hex number
@@ -231,9 +227,9 @@ DEFER TLITERAL \ resolve this once TARGET LIT is defined
     R> BASE !      \ restore previous radix 
     ( -- n flag) ABORT" expected HEX number"  
     2DROP  
-    TLITERAL    \ if compiling, compile literal no.
 ; IMMEDIATE
 
+DEFER TLITERAL \ this must be assigned in a build file 
 
 \ RECOMPILER loop uses TCOMPILE, and TLITERAL 
 \ That's the only difference. 
@@ -273,7 +269,7 @@ ONLY FORTH ALSO COMPILERS ALSO FORTH DEFINITIONS
     FORTH-REPL  
 ;    
 
-: COMPILER  
+: COMPILER   
     ONLY FORTH                   \ last searched 
     ALSO ASSEMBLER 
     ALSO TARGETS 
@@ -300,25 +296,10 @@ COMPILER
 : COMPILER  COMPILER ;  
 : TARGET    TARGET ;    
 
-\ REDEFINE CODE for Cross-compiling
-\ use +CODE to jump across words within same label scope
-\ CROSS-COMPILER CODE +CODE need ASSEMBLER in the search order
-\ This is provided with the COMPILER and TARGET commands
-COMPILER 
-: +CODE  
-    CREATE              \  name is in HOST Forth      
-      THERE ,           \ and remember where the word is in TARGET 
-
-      THERE CELL+ T,    \ TARGET compile the ITC entry address 
-      !CSP 
-    DOES> STATE @ 
-          IF  TRUE ABORT" Can't run TARGET code word"   
-          THEN  @ ;
-
-: CODE    ( <name> ) NEWLABELS +CODE ;  \ start new label scope 
-: ENDCODE ( -- ) ?CSP RESOLVER ;
-
-
+\ Just to be complete 
+2 CONSTANT TCELL     \ for 16 bit machines 
+: TCELL+   CELL+ ;   \ since target is  the same we can do this 
+: TCELLS   CELLS ;
 
 \ *******************************************************
 \ *** COMPILER DIRECTIVES TO PATCH THE BINARY PROGRAM ***
@@ -329,6 +310,8 @@ COMPILER
 FFAC VALUE DSTACK     \ data stack base address 
 FF3E VALUE RSTACK     \ return stack base address 
 8300 VALUE WKSPACE    \ 
+
+VARIABLE HEADERS      \ flag to control headers in target or not 
 
 \ usage: BOOT AUTOSTART MAIN
 \ where the variable BOOT is given the XT of the 1st Forth word to run
@@ -349,9 +332,9 @@ HEX
     WARM  E4 7 VWTR 
     INIT-WORDLISTS  
     HOST ALSO COMPILERS
-    CR ." FXCC Meta Compiler V0.88 Dec 11 2024"
+    CR ." FXCC Meta Compiler V0.89 Dec 30 2024"
     CR 
-    SAMSINI 
+    SAMSINI  
     CR COMPILER NEW 
     CR ." Ready"
     ABORT ;
@@ -362,4 +345,9 @@ INCLUDE DSK1.SUPERSAVE
 WARNINGS ON 
 
 ' GO SUPERSAVE DSK7.FXCC
+
+DECIMAL 
+CR .( Re-boot in ) ." 3 " 1000 MS ." 2 " 1000 MS ." 1 " 1000 MS 
+
+COLD 
 

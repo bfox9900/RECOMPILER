@@ -1,63 +1,83 @@
 \ MAKE CAMEL99 ITC Forth with FXCC cross-compiler  Nov 2024  Brian Fox
 
-\            ***   TIB AND STACK LOCATIONS ***
+\    *** TIB AND STACK LOCATIONS ***
 COMPILER 
 HEX
         FFFC    EQU EMEM     \ EMEM = "end of memory"
         0050    EQU TIBSIZE  \ 80 bytes is the longest file string
 EMEM TIBSIZE -  EQU 'TIB     \ Terminal input buffer just below
-
      'TIB  2 -  EQU 'SP0     \ FORTH DATA stack base address
      'SP0 6E -  EQU 'RP0     \ FORTH RETURN stack base address
+     
+      8300      EQU WRKSP0   \ primary workspace in 16 bit RAM
 
-
-\ ======================================================================
-\             *** TARGET MEMORY LOCATION ***
+\   *** TARGET MEMORY LOCATION ***
 
     A000 VALUE CODESEG
     2000 VALUE HEAPSEG
+     
+\ setup the build     
+    NEW
+    CODESEG ORG 
 
-    CODESEG ORG  
-
-COMPILER 
-NEW
-
-\ ** We MUST load Executors first ** 
-\ EXIT DOCON DOVAR DOCOL ?BRANCH and BRANCH
-\ This
-CHDIR DSK7.  \ FXCC system disk 
-S" EXECUTORS"  +PATH INCLUDED   \ Lowest level primitives 
-S" IMPORT"     +PATH INCLUDED   \ compiler extenstion to import code words 
+HEADERS ON  
+WARNINGS OFF 
 
 CHDIR DSK9.   \ camel99 source code disk 
 S" ITC-TYPES"  +PATH INCLUDED   \ teach compiler CONSTANT VARIABLE : ; etc. 
-S" BRANCHING"  +PATH INCLUDED   \ teach cross-compiler IF ELSE THEN BEGIN etc.
+S" BRANCHING"  +PATH INCLUDED   \ cross-compiler IF ELSE THEN BEGIN etc.
 
-
-\ *******************************************************************
 \ build the target image ...
 
 COMPILER HEX 
 CHDIR DSK9.
-S" LOWLEVEL" +PATH INCLUDED    \ primitives 
-S" DOLOOP"   +PATH INCLUDED   \ code primitives and compiling words 
 
-S" TI99IOY"      +PATH INCLUDED   \ ALL vdp primitives
-S" TICKTOCK"     +PATH INCLUDED   \ 9901 hardware timer
+\ FORTH "CODE" words === 
+S" FETCHSTORE" +PATH INCLUDED   
+S" RSTACK"     +PATH INCLUDED
+S" DODOES"     +PATH INCLUDED 
+S" DATASTACK"  +PATH INCLUDED 
+S" LOGICMATH"  +PATH INCLUDED 
+S" MULTDIV"    +PATH INCLUDED 
+S" COMPARES"   +PATH INCLUDED 
+S" MOVEFILL"   +PATH INCLUDED 
+S" SKIPSCAN"   +PATH INCLUDED
+S" FIND"       +PATH INCLUDED 
+S" MISC"       +PATH INCLUDED  \ contains PAUSE EXECUTE 
+S" DOLOOP1"    +PATH INCLUDED  \ primitives for DO/LOOP
 
-S" HILEVEL"      +PATH INCLUDED   \ core forth words
+\ TI-99  low level I/O drivers 
+S" VDP-API"    +PATH INCLUDED  
+S" KEYSCAN"    +PATH INCLUDED  \ has ?TERMINAL 
+\ =====================
 
-\ hand code any more that you need here 
+\ compiler extensions and forward references for (S") and TYPE 
+S" TSQUOTE"     +PATH INCLUDED  
+
+\ Meta words look like Forth but compile to TARGET 
+S" METADEFS"   +PATH INCLUDED 
+
+\ add cross-compiler colon/semi-colon 
+S" COLON"      +PATH INCLUDED   
+
+\ 1st Forth "secondary" definitions 
+S" TICKTOCK"   +PATH INCLUDED   \ 9901 hardware timer
+
+
+\ Camel Forth System 
+COMPILER 
+S" HILEVEL"    +PATH INCLUDED  
 
 COMPILER HEX 
-TARGET ( this is required)
 
+\ compile BYE last, means HOST BYE is always available 
+TARGET ( this is required)
 CODE BYE   ( -- )
     83C4 @@ CLR,  
     0000 @@ BLWP, 
 ENDCODE
 
-
+COMPILER 
 PREAMBLE COLD 
 BOOT AUTOSTART WARM 
 

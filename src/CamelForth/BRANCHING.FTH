@@ -1,8 +1,8 @@
-CR .( branch cross-compilers if then else etc...)
+CR .( branch cross-compilers if then else begin ...)
 
 COMPILER 
 : <BACK    ( addr --) THERE  -    T, ;
-: AHEAD    ( -- addr) THERE     0 T, ;
+: FWD>     ( -- addr) THERE     0 T, ;
 
 \ Note:
 \ This is one of the thornier bits of a Forth cross-compiler
@@ -12,23 +12,21 @@ COMPILER
 
 \                        >> important <<
 \ *DURING TARGET COMPILATION META WORDS ARE FOUND FIRST IN THE SEARCH ORDER*
-COMPILER ALSO META DEFINITIONS \ put these names in META 
+COMPILER 
 : BEGIN         THERE  ; IMMEDIATE
-: IF            TCOMPILE ?BRANCH  AHEAD ; IMMEDIATE
+: IF            TCOMPILE ?BRANCH  FWD> ; IMMEDIATE
 : THEN          THERE OVER - SWAP T! ; IMMEDIATE \ resolves a branch
-: ELSE          TCOMPILE  BRANCH  AHEAD SWAP POSTPONE THEN ; IMMEDIATE
+: ELSE          TCOMPILE  BRANCH  FWD> SWAP POSTPONE THEN ; IMMEDIATE
 : UNTIL         TCOMPILE ?BRANCH  <BACK ; IMMEDIATE
 : AGAIN         TCOMPILE  BRANCH  <BACK ; IMMEDIATE
 
-: FOR  ( n --)  TCOMPILE  >R   THERE ; IMMEDIATE
-: NEXT ( -- )   TCOMPILE (NEXT)  <BACK  ; IMMEDIATE
-
-\ See the use of POSTPONE 
+\ Note the use of host's POSTPONE 
 : WHILE         POSTPONE IF  SWAP  ; IMMEDIATE
 : REPEAT        POSTPONE AGAIN  POSTPONE THEN ; IMMEDIATE
 
-\ "NOT-UNTIL"   faster than 0= UNTIL 
-: -UNTIL        POSTPONE WHILE POSTPONE REPEAT ; IMMEDIATE 
+\ finite loop cross-compilers
+: DO            TCOMPILE <DO>  THERE ; IMMEDIATE
+: ?DO           TCOMPILE <?DO> THERE ; IMMEDIATE
+: LOOP          TCOMPILE <LOOP>  <BACK ; IMMEDIATE
+: +LOOP         TCOMPILE <+LOOP> <BACK ; IMMEDIATE
 
-
-COMPILER 
