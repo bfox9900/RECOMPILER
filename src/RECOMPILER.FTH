@@ -43,8 +43,6 @@ HEX
 
 : ?DOT   ( $ u --) [CHAR] . SCAN NIP 0= ABORT" '.' expected in path" ;
 
-
-
 ONLY FORTH DEFINITIONS 
 : CODE    TRUE ABORT" Can't use HOST 'CODE'" ;
 : ENDCODE TRUE ABORT" Can't to use HOST 'ENDCODE'" ; 
