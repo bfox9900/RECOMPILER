@@ -24,7 +24,7 @@ this is it.
 - Select 2 for Editor/Assembler 
 - Select 5 for RUN PROGRAM FILE 
 - At the FILE NAME? prompt type DSK1.CAML99SC  
-- You now be in Camel99 Forth. You should see the TI LOGO and the word READY. 
+- You are now in Camel99 Forth. You should see the TI LOGO and the word READY. 
 
 - Insert the RECOMPILER disk into the 2nd disk.
     - Note: If you have more than two disks, change the disk number to the one you use
