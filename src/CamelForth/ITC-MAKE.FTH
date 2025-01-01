@@ -8,7 +8,7 @@ HEX
 EMEM TIBSIZE -  EQU 'TIB     \ Terminal input buffer just below
      'TIB  2 -  EQU 'SP0     \ FORTH DATA stack base address
      'SP0 6E -  EQU 'RP0     \ FORTH RETURN stack base address
-     
+
       8300      EQU WRKSP0   \ primary workspace in 16 bit RAM
 
 \   *** TARGET MEMORY LOCATION ***
@@ -62,8 +62,6 @@ S" COLON"      +PATH INCLUDED
 
 \ 1st Forth "secondary" definitions 
 S" TICKTOCK"   +PATH INCLUDED   \ 9901 hardware timer
-
-
 \ Camel Forth System 
 COMPILER 
 S" HILEVEL"    +PATH INCLUDED  
