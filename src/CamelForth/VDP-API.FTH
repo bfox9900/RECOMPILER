@@ -1,24 +1,16 @@
-[CC] CR .( VDP CHIP API)
+COMPILER CR .( VDP CHIP API)
 HEX 
-\ Register Usage:
-\ R0  down counter
-\ R1  current workspace
-\ R3  VDP data port
-\ R4  VDP memory address
 
-\
-TARGET
-8800 CONSTANT VDPRD               \ vdp ram read data port 
-8C00 CONSTANT VDPWD               \ vdp ram write data port 
-8C02 CONSTANT VDPWA               \ vdp ram read/write address port 
+COMPILER 
+8800 EQU VDPRD               \ vdp ram read data port 
+8C00 EQU VDPWD               \ vdp ram write data port 
+8C02 EQU VDPWA               \ vdp ram read/write address port 
 
 \ VDP set-address sub-routines
 
-\ ** NOTE ** 
-\ R1 is set to the workspace address. 
-\ This is assumed to true in other VDP routines to access user variables 
-
-\ ================ LEAF SUB-ROUTINE  ** NOT NESTABLE ** ================
+\ NOTE: Workspace held in R1 for other VDP routines to access user variables 
+\ == LEAF SUB-ROUTINE  *NOT NESTABLE*
+TARGET
 L: WMODE  ( Vaddr -- Vaddr)
          TOS 4000 ORI,
 L: RMODE R1 STWP,               \ avoids 2 SWPB instructions
@@ -28,6 +20,11 @@ L: RMODE R1 STWP,               \ avoids 2 SWPB instructions
          RT,  \ 22 BYTES 
 
 \ ================== FORTH WORDS ======================
+\ Register Usage:
+\ R0  down counter
+\ R1  current workspace
+\ R3  VDP data port
+\ R4  VDP memory address
 CODE VC@ ( VDP-adr -- char )   \ Video CHAR fetch
          RMODE @@ BL,
          VDPRD @@ TOS MOVB,
@@ -62,7 +59,8 @@ CODE VREAD ( VDP-adr RAM-addr cnt  -- )
          ENDCODE
 
 \ ===================================================================
-[CC] CR .( WRITE VC! V!) 
+COMPILER CR .( WRITE VC! V!) 
+
 TARGET
 CODE VWRITE  ( RAM-addr VDP-addr cnt -- ) 
          TOS R0 MOV,         \ cnt in R0

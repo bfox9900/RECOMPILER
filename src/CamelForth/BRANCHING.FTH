@@ -23,10 +23,3 @@ COMPILER
 \ Note the use of host's POSTPONE 
 : WHILE         POSTPONE IF  SWAP  ; IMMEDIATE
 : REPEAT        POSTPONE AGAIN  POSTPONE THEN ; IMMEDIATE
-
-\ finite loop cross-compilers
-: DO            TCOMPILE <DO>  THERE ; IMMEDIATE
-: ?DO           TCOMPILE <?DO> THERE ; IMMEDIATE
-: LOOP          TCOMPILE <LOOP>  <BACK ; IMMEDIATE
-: +LOOP         TCOMPILE <+LOOP> <BACK ; IMMEDIATE
-

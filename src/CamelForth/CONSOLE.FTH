@@ -5,26 +5,15 @@
 COMPILER CR .( Console driver)
 
 DECIMAL 
-
-TARGET
-
-TCREATE VROW 0 T, 0 T, 
-
-VROW CELL+ CONSTANT VCOL 
-VARIABLE C/L     32 C/L T!  ( needs initial value)
-
 TARGET 
-VARIABLE C/SCR  768 C/SCR T! 
-
-TARGET 
+VARIABLE C/SCR 
 VARIABLE VPG 
 VARIABLE VTOP  
 
-24 CONSTANT L/SCR 
-32 CONSTANT BL 
+\ 32 CONSTANT BL 
 
 \ FAST user variable for screen driver
-[CC] HEX [TC]
+COMPILER HEX TARGET 
 CODE C/L@   ( -- n )        \ used 8 times in the KERNEL. Saves 24 bytes
          TOS         PUSH,  \ and is 50% faster than C/L @
          TOS         STWP,
@@ -76,7 +65,7 @@ COMPILER DECIMAL TARGET
 
 COMPILER HEX TARGET
 
-: PAGE   ( -- )   0 300 BL VFILL  ;
+: PAGE   ( -- ) 0 0 AT-XY  VPOS C/SCR @  BL VFILL  ;
 
 \ : ++@   ( addr -- n)  DUP 1+! @ ; 
 CODE ++@ ( addr -- n) *TOS INC,  *TOS TOS MOV,  NEXT, ENDCODE 
@@ -94,15 +83,16 @@ CODE ++@ ( addr -- n) *TOS INC,  *TOS TOS MOV,  NEXT, ENDCODE
       (EMIT) ;
 
 TARGET 
-CODE BOUNDS ( adr len -- adr2 adr1)  \ same size as Forth version
+CODE BOUNDS ( adr len -- adr2 adr1) \ same size as OVER + SWAP 
         *SP R1 MOV,
         TOS *SP ADD,
         R1 TOS MOV,
         NEXT,
         ENDCODE
 
-: TYPE   ( addr cnt --) PAUSE BOUNDS ?DO  I C@ (EMIT)  LOOP ;
-T' TYPE RESOLVES 'TYPE  
+\ : TYPE   ( addr cnt --) PAUSE BOUNDS ?DO  I C@ (EMIT)  LOOP ;
+: TYPE   ( addr len )  0 DO  COUNT (EMIT) LOOP DROP ;
+ T' TYPE RESOLVES 'TYPE  
 
 : SPACE  ( -- )   BL (EMIT) ; 
 : SPACES ( n -- ) 0 MAX  0 ?DO  SPACE  LOOP ;
@@ -139,4 +129,6 @@ TARGET
             THEN
         REPEAT
         DROP NIP SWAP - ;
+
+COMPILER DECIMAL 
 

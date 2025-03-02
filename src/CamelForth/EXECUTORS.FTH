@@ -1,6 +1,7 @@
 \ executors.fth  are the primary words for the Forth VM    Sept 2023
 
-\ cross compiler can use these when they are resolved 
+\ cross compiler can compile these before we know the address
+\ when they are resolved they return the resolved address 
 FORWARD 'DOVAR
 FORWARD 'DOCON
 FORWARD 'DOCOL 

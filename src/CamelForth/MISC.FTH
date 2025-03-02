@@ -45,4 +45,32 @@ CODE PERFORM ( addr -- )
         *R5 B,           \ branch to the address of the DOER routine
         ENDCODE
 
+\ : DIGIT?  ( c -- n -1)   \ if c is a valid digit
+\              -- x  0   \ otherwise
+\  DUP  39 > 100 AND +    \ silly looking
+\  DUP 140 > 107 AND -  [CHAR] 0 -   \ but it works!
+\  DUP BASE@ U< ;         \ 48 Bytes
+
+CODE DIGIT?   ( char -- n f )  \ 36 bytes, much faster
+      R1 STWP,           \ multi-tasking friendly for USER VARS
+      TOS PUSH,          \  dup char
+      TOS -30 AI,      \  convert char to number
+      TOS 9 CI,
+      HI IF,             \ > 9 ?
+          TOS -7 AI,
+          TOS 9 CI,
+          1 $ JL,        \ less than 9, jump out
+      ENDIF,
+      TOS 2A (R1) CMP,   \ compare to USER var 2A (BASE)
+      1 $ JHE,           \ tos>base, jump out
+      TOS *SP MOV,       \ replace char with no.
+      TOS SETO,          \ set flag to true
+      NEXT,
+\ error out here
+1 $:  TOS CLR,
+      NEXT,
+ENDCODE  
+
+
+
 CR .( Code primitives complete) 

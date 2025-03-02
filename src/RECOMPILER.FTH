@@ -16,7 +16,7 @@ NEEDS DEFER FROM DSK1.DEFER
 NEEDS LOCK  FROM DSK1.MARKER 
 NEEDS VIRT>REAL FROM DSK1.SAMS 
 NEEDS SAMS.FILL FROM DSK7.SAMSMEM
-NEEDS DIR      FROM DSK1.DIR 
+NEEDS DIR       FROM DSK1.DIR 
 
 \ we need clean copies of words that are weird in the Camel99 kernel
 \ for IMPORT: to access 
@@ -82,18 +82,21 @@ INCLUDE DSK7.MASMLABELS   \ handy to have labels for jumping around
 \ THESE were important !!
 : STATE  STATE ;
 : [     STATE OFF ; 
-: ]     POSTPONE ] ; IMMEDIATE 
-\ : EXIT   EXIT ;
+: ]     STATE ON ; IMMEDIATE 
 : ON   ON ;
 : OFF  OFF ;
-: IMMEDIATE  IMMEDIATE ;
+
+\ this did not work as a redefintion ?? 
+: IMMEDIATE ( --)  01 LATEST @ 1-  C! ;
+
 : CREATE     CREATE ;
 
 \ Host forth's colon/semi renamed so we can use it anywhere 
 : ;HOST     POSTPONE ;  ;  IMMEDIATE
 : HOST:     :  ;
-: CHAR    ?EXEC CHAR ;  \ interpreting only 
-: [CHAR]  ?COMP POSTPONE [CHAR] ; IMMEDIATE 
+
+: CHAR    PARSE-NAME DROP C@ ;  \ interpreting only 
+
 : S"      POSTPONE S" ; IMMEDIATE 
 : INCLUDED   INCLUDED ;
 : :NONAME  :NONAME ;
@@ -150,7 +153,6 @@ HEX
 \ support for "home" disk 
 CREATE $HOME 16 ALLOT 
 
-
 \ path control ...
 : CHDIR  ( <path> )  PARSE-NAME 2DUP ?DOT TOUPPER $HOME PLACE ;
 : +PATH  ( $ u -- $' u' ) $HOME COUNT PAD PLACE   PAD +PLACE  PAD COUNT ;
@@ -159,23 +161,20 @@ CREATE $HOME 16 ALLOT
 ONLY FORTH ALSO COMPILERS DEFINITIONS 
 
 : EQU     CONSTANT ; 
-: equ     EQU ;
 
 \ Note: The TARGET XT is held in the "body" (PFA) of the HOST word
-\ Below we take a HOST XT and fetch the TARGET XT
-: >TARG-XT ( xt -- xt')  >BODY @ ;
+: >TARG-XT ( host-xt -- targ-xt ) >BODY @ ;
 
-: T'      ( <text> -- XT)  ALSO TARGETS  '  >TARG-XT    PREVIOUS ;
+\ Below we tick the duplicate word in host memory and fetch the TARGET XT
+: T'      ( <text> -- target-XT) ALSO TARGETS  '  >TARG-XT PREVIOUS ;
 
-\ Now we can build the rest of the weapons
-: TCOMPILE, ( Host-XT -- )  >TARG-XT  T,  ;
+\ Tcompile gets an XT from HOST FIND. It cannot be compiled directly.
+\ We must reach inside to get the virtual memory address.
+: TCOMPILE, ( Host-XT -- ) >TARG-XT T, ;
 
-\ Brain stretcher: 
-\ Retain a TARGET XT in the compiler as a literal
-\ so you can give it to a TARGET definition
-: T[']    T'   POSTPONE LITERAL  ;  IMMEDIATE 
+DEFER TLITERAL  \ this must be assigned in a build file
 
-\ Same as above but now take the TARGET XT from the compiler
+\ take the TARGET XT from the HOST compiler
 \ and "compile" it into the TARGET definition 
 : TCOMPILE   ( -- <name>) 
     T'   POSTPONE LITERAL   POSTPONE T, ;  IMMEDIATE  
@@ -188,7 +187,6 @@ ONLY FORTH ALSO COMPILERS DEFINITIONS
       BL WORD FIND DUP 0= ?ERR
       0< IF POSTPONE TCOMPILE 
       THEN  TCOMPILE, ; IMMEDIATE  
-
 
 \ create an immediate word to name a forward reference
 \ *NEW* FORWARD words compile into target when invoked 
@@ -227,7 +225,6 @@ ONLY FORTH ALSO COMPILERS DEFINITIONS
     2DROP  
 ; IMMEDIATE
 
-DEFER TLITERAL \ this must be assigned in a build file 
 
 \ RECOMPILER loop uses TCOMPILE, and TLITERAL 
 \ That's the only difference. 
@@ -330,7 +327,7 @@ HEX
     WARM  E4 7 VWTR 
     INIT-WORDLISTS  
     HOST ALSO COMPILERS
-    CR ." FXCC Meta Compiler V0.89 Dec 30 2024"
+    CR ." FXCC Meta Compiler V0.89 Jan 25 2025"
     CR 
     SAMSINI  
     CR COMPILER NEW 

@@ -2,7 +2,14 @@ COMPILER CR .( Constants and VARIABLEs...)
 \ CAMEL99 Forth HI-LEVEL WORDs RE-COMPILED 
 \ must be compile via  ITC-MAKE.FTH 
 
+\ BANDAIDS because I can't get [CHAR]  to work @#$!$%
+COMPILER HEX 
+22 EQU '"'
+29 EQU ')'
+2D EQU '-'
+
 \ these 3 address equates are set in ITC-MAKE 
+\ Make them constants in the target system 
 TARGET
 'SP0 CONSTANT SP0   
 'SP0 CONSTANT RP0  
@@ -15,7 +22,9 @@ TARGET
     1 CONSTANT 1
    20 CONSTANT BL
 
-COMPILER DECIMAL TARGET
+COMPILER DECIMAL 
+
+TARGET
    0024 CONSTANT L/SCR
 
 
@@ -53,14 +62,18 @@ HEX
 TARGET
     VARIABLE STATE
     VARIABLE LATEST
+    
+    VARIABLE ORGDP
+    VARIABLE ORGLAST
     VARIABLE BOOT
+
     VARIABLE VPG      \ declared in TI99 VDP driver code TI99IO.HSF
     VARIABLE VMODE
     VARIABLE L0       COMPILER  4 CELLS TALLOT TARGET 
     VARIABLE ^PAB
     VARIABLE LINES
     VARIABLE C/SCR
-    VARIABLE 'IV    \ *G interpretor vector. Holds address of <INTERP>
+    VARIABLE 'IV      \ *G interpretor vector. Holds address of <INTERP>
     VARIABLE H
     VARIABLE VP
     VARIABLE CURS     COMPILER  205F CURS T!  TARGET 
@@ -80,9 +93,9 @@ TARGET
 : IMMEDIATE ( --)   01 LATEST @ 1-  C! ;
 
 
-: LITERAL   ( n -- n|~) STATE @ IF  COMPILE LIT ,  THEN ;  IMMEDIATE
+: LITERAL   ( n -- n|~) STATE @ IF  COMPILE LIT ,  THEN ;  XIMMEDIATE
 : ]         ( -- ) STATE ON  ;
-: [         ( -- ) STATE OFF ;  IMMEDIATE
+: [         ( -- ) STATE OFF ;  XIMMEDIATE
 : DEPTH     ( -- n ) SP0 SP@ 2+ - 2/ ; \ ** needs signed shift
 
 \ PAB Base Address
@@ -120,7 +133,7 @@ CODE NFA>LFA    TOS -3 AI,  NEXT, ENDCODE  ( faster, same size)
 \ Changed 7F to 1F . 31 character max name length. 
 \ Other bits for future use
 : NFA>CFA     ( nfa -- cfa ) COUNT  1F AND + ALIGNED ;
-: RECURSE     ( -- ) LATEST @ NFA>CFA , ; IMMEDIATE
+: RECURSE     ( -- ) LATEST @ NFA>CFA , ; XIMMEDIATE
 
 \ smudge bit control in the Camel Forth
 : HIDE        ( -- )  LATEST @ ( nfa) DUP C@ 80 OR  SWAP C! ;
@@ -133,27 +146,10 @@ TARGET
 : S,       ( c-addr u -- ) HERE OVER 1+ ALLOT PLACE  ALIGN ;
 
 \ =====================================================================
-\ H E A D E R   N A V I G A T I O N
-
-TARGET
-\ : NFA>LFA   ( nfa -- lfa)  3 - ;
-CODE NFA>LFA    TOS -3 AI, NEXT, ENDCODE  ( faster, same size)
-
-\ Changed 7F to 1F . 31 character max name length. 
-\ Other bits for future use
-: NFA>CFA     ( nfa -- cfa ) COUNT  1F AND + ALIGNED ;
-: RECURSE     ( -- ) LATEST @ NFA>CFA , ; IMMEDIATE
-
-\ smudge bit control in the Camel Forth
-: HIDE        ( -- )  LATEST @ ( nfa) DUP C@ 80 OR  SWAP C! ;
-: REVEAL      ( -- )  LATEST @ ( nfa) DUP C@ 7F AND SWAP C! ;
-
-\ =====================================================================
 \ P A R S E   W O R D
 COMPILER CR .( Parsing...)
 
 TARGET
-CODE DUP>R  ( n -- n) TOS RPUSH,  NEXT, ENDCODE  \ used 3 times
 
 : SOURCE   ( -- addr len) 'SOURCE 2@ ;
 
@@ -182,31 +178,6 @@ COMPILER CR .( CAMEL FORTH Number conversion)
 TARGET
 : BASE@   BASE @ ;
 
-\ : DIGIT?  ( c -- n -1)   \ if c is a valid digit
-\              -- x  0   \ otherwise
-\  DUP  39 > 100 AND +    \ silly looking
-\  DUP 140 > 107 AND -  [CHAR] 0 -   \ but it works!
-\  DUP BASE@ U< ;         \ 48 Bytes
-
-CODE DIGIT?   ( char -- n f )  \ 36 bytes, much faster
-      R1 STWP,           \ multi-tasking friendly for USER VARS
-      TOS PUSH,          \  dup char
-      TOS -30 AI,      \  convert char to number
-      TOS 9 CI,
-      HI IF,             \ > 9 ?
-          TOS -7 AI,
-          TOS 9 CI,
-          1 $ JL,        \ less than 9, jump out
-      ENDIF,
-      TOS 2A (R1) CMP,   \ compare to USER var 2A (BASE)
-      1 $ JHE,           \ tos>base, jump out
-      TOS *SP MOV,       \ replace char with no.
-      TOS SETO,          \ set flag to true
-      NEXT,
-\ error out here
-1 $:  TOS CLR,
-      NEXT,
-ENDCODE  
 
 : UD*      ( ud1 u2 -- ud3) DUP>R * SWAP R> UM* ROT + ;
 
@@ -222,7 +193,7 @@ ENDCODE
 
 : NUMBER?  ( addr len -- n ?)      \ ?=0 is good conversion
            (          -- addr len) \ bad conversion
-      OVER C@   [CHAR] - = DUP>R    \ save flag for later
+      OVER C@   '-' = DUP>R    \ save flag for later
       IF 1 /STRING THEN             \ remove minus sign
       0 0  2SWAP >NUMBER NIP NIP    \ convert the number
       R> IF SWAP NEGATE SWAP THEN   \ negate if needed
@@ -234,22 +205,22 @@ ENDCODE
 COMPILER HEX 
 
 TARGET
-
 : (S")    ( -- c-addr u) R>  COUNT  2DUP + ALIGNED >R ;
-T' (S") RESOLVES '(S")
+ T' (S") RESOLVES '(S")
 
 \ ======================================================================
 \  S C R E E N   D R I V E R
-
 COMPILER
-HEX 
 CR .( Console output)
 S" CONSOLE" +PATH INCLUDED 
 
 \ ======================================================================
 \ N U M B E R   T O   S T R I N G   C O N V E R S I O N
+COMPILER
+HEX 
+
 TARGET
-\ : >DIGIT   DUP 9 > IF 7 + THEN [CHAR] 0 + ;  \ 20 BYTES :)
+\ : >DIGIT   DUP 9 > IF 7 + THEN T[CHAR] 0 + ;  \ 20 BYTES :)
 CODE >DIGIT  ( n -- c)   \ ASM is 9 bytes, 4X faster
       TOS 9 CI,
       HI IF,             \ if n>9
@@ -264,7 +235,7 @@ CODE >DIGIT  ( n -- c)   \ ASM is 9 bytes, 4X faster
 : #      ( u -- ud2 ) 0 BASE@ UM/MOD >R  BASE@ UM/MOD SWAP >DIGIT HOLD R> ;
 : #S     ( ud1 -- ud2)  BEGIN  # 2DUP OR  WHILE REPEAT ;
 : #>     ( ud1 -- c-addr u) 2DROP HP @ PAD OVER - ;
-: SIGN   ( n -- ) 0< IF  [CHAR] -  HOLD  THEN ;
+: SIGN   ( n -- ) 0< IF  '-'  HOLD  THEN ;
 
 \ ======================================================================
 \ N U M B E R  O U T P U T 
@@ -323,6 +294,7 @@ TARGET
       2R> 'SOURCE 2!
       2R> >IN ! SOURCE-ID !
 ;
+
 \ ======================================================================
 \ E R R O R   H A N D L I N G
 \
@@ -362,15 +334,15 @@ TARGET
 \ *G Non-standard: when interpreting S" puts the string at PAD + >IN
 \ ** and returns the address.
       ( cccc" --- addr len) \ interpreting action *NON-STANDARD*
-      [CHAR] " PARSE
+      '"' PARSE
       STATE @
       IF   COMPILE (S")  S,  EXIT
       THEN PAD >IN @ + DUP>R PLACE R> COUNT
-; IMMEDIATE
+; XIMMEDIATE
 
 : ABORT"   ( i*x 0  -- i*x)    \ R: j*x -- j*x  x1=0
       [COMPILE] S"
-      COMPILE ?ABORT ; IMMEDIATE
+      COMPILE ?ABORT ; XIMMEDIATE
 
 \ ======================================================================
 \ D I C T I O N A R Y   S E A R C H
@@ -381,7 +353,7 @@ VARIABLE CONTEXT  COMPILER  0 T, 0 T, 0 T, 0 T, 0 T, 0 T, 0 T, 0 T, TARGET
 
 VARIABLE CURRENT \ ** wordlist where definitions will be added
 : <FIND>  ( caddr --  caddr  0  if not found)
-\                      xt    1  if immediate,
+\                      xt    1  if XIMMEDIATE,
 \                      xt   -1  if "normal"
       CONTEXT @ ( HASH) @ (FIND) ;
 
@@ -389,13 +361,13 @@ VARIABLE 'FIND   \ *G vector for the action of find
 
 : FIND     ( caddr -- ) 'FIND PERFORM ;
 : '        ( -- xt) BL WORD FIND 0= ?ERR ;
-: [']      ( -- <name> ) ?COMP  '  [COMPILE] LITERAL ; IMMEDIATE
+: [']      ( -- <name> ) ?COMP  '  [COMPILE] LITERAL ; XIMMEDIATE
 
  : POSTPONE ( <name> -- ) \ *G replaces COMPILE and [COMPILE]
       ?COMP
       BL WORD FIND DUP 0= ?ERR
       0< IF COMPILE COMPILE
-      THEN  COMPILE, ; IMMEDIATE
+      THEN  COMPILE, ; XIMMEDIATE
 
 \ ======================================================================
 \ T E X T   O U T P U T
@@ -404,9 +376,9 @@ VARIABLE 'FIND   \ *G vector for the action of find
       STATE @
       IF   COMPILE TYPE
       ELSE TYPE
-      THEN ; IMMEDIATE
+      THEN ; XIMMEDIATE
 
-: .(  [CHAR] ) PARSE TYPE ; IMMEDIATE
+: .(   ')' PARSE TYPE ; XIMMEDIATE
 
 
 \ ======================================================================
@@ -436,16 +408,19 @@ TARGET
 
 \ ======================================================================
 \ T I - 9 9   T E X T   M O D E   C O N T R O L
+COMPILER HEX 
 TARGET
 : TEXT    ( -- )
       F0 DUP 83D4 C!
-      ( -- F0) 01 VWTR
-      0  2 VWTR   \ set VDP screen page
+  ( F0) 01 VWTR
+       0 2 VWTR   \ set VDP screen page
+      17 7 VWTR   \ sets FG & BG color
+
       VTOP OFF    \ topline VDP offset
       VPG  OFF    \ VDP screen page offset
-      17  7 VWTR  \ sets FG & BG color
-      28 C/L!
+      28 C/L!     \ set chars per line & C/SCR 
       0 0 AT-XY
+      3C0 C/SCR ! 
       2 VMODE !   \ 2=ID for 40 column "TEXT" mode
       PAGE
 ;
@@ -453,8 +428,8 @@ TARGET
 \ ======================================================================
 \ TI-99 F I L E   S Y S T E M   I N T E R F A C E
 
-COMPILER S" DSRLINKB" +PATH INCLUDED   \ VER B saves GPL R15
-COMPILER S" FILESYS"  +PATH INCLUDED
+\ COMPILER S" DSRLINKB" +PATH INCLUDED   \ VER B saves GPL R15
+\ COMPILER S" FILESYS"  +PATH INCLUDED
 
 \ ======================================================================
 \ D I C T I O N A R Y   C R E A T I O N
@@ -463,7 +438,7 @@ TARGET
 : HEADER, ( addr len --)
       ALIGN
       CURRENT @ @ ,        \ get last NFA & compile in this LFA field
-      0 C,                 \ compile the precedence byte (immediate flag)
+      0 C,                 \ compile the precedence byte (XIMMEDIATE flag)
       HERE >R              \ save HERE (ie: new NFA location)
       S,                   \ compile (addr len) as counted string
       WARNINGS @
@@ -483,13 +458,13 @@ TARGET
 \ T A R G E T   S Y S T E M   D E F I N I N G   W O R D S
 \                    text    runtime-action   parameter
 \                   -------  --------------- -----------
- : CONSTANT  ( n --)  HEADER  COMPILE DOCON     COMPILE, ;
- : USER      ( n --)  HEADER  COMPILE DOUSER    COMPILE, ;
- : CREATE    ( -- )   HEADER  COMPILE DOVAR              ;
- : VARIABLE  ( -- )   CREATE                  0 COMPILE, ;
+ : CONSTANT  ( n --)  HEADER  TCOMPILE DOCON     COMPILE, ;
+ : USER      ( n --)  HEADER  TCOMPILE DOUSER    COMPILE, ;
+ : CREATE    ( -- )   HEADER  TCOMPILE DOVAR              ;
+ : VARIABLE  ( -- )   CREATE                   0 COMPILE, ;
 
 \ (:noname) from studying gforth. It's a nice factor.
- : (:NONAME) ( -- )  ['] DOCOL @ COMPILE,  HIDE  ]  ;
+ : (:NONAME) ( -- ) TCOMPILE DOCOL  HIDE  ]  ;
 
 \ ======================================================================
 \ D O E S   S U P P O R T
@@ -497,16 +472,17 @@ TARGET
 
 \ 06A0 = BL @XXXX   0460 = B @XXXX
 : DOES>    ( -- )
+
       COMPILE (;CODE)
       06A0 COMPILE,  ['] DODOES COMPILE,   \ compiles: BL @DODOES
-; IMMEDIATE
+; XIMMEDIATE
 
 \ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 \  ===[ CANNOT COMPILE IF, ELSE, THEN, BEGIN UNTIL ETC. AFTER THIS ]===
 \ //////////////////////////////////////////////////////////////////////
 
 \ compile the branch and loop words that run in the TARGET 
-COMPILER  S" ISOLOOPS" +PATH INCLUDED 
+\ COMPILER  S" ISOLOOPS" +PATH INCLUDED 
 
 \ ======================================================================
 \ COLD start. Sets Workspace, copy code to scratch pad, set stacks, run BOOT
@@ -522,38 +498,78 @@ CODE COLD
 \        *R0+ *R1+ MOV,
 \         R1 HSend CI,
 \      EQ UNTIL,
-      SP  SP0   LI,    \ data stack
-      RP  RP0   LI,    \ return stack
+      SP  'SP0  LI,    \ data stack
+      RP  'RP0  LI,    \ return stack
       R10 _NEXT LI,    \ inner interpreter
       IP  BOOT  LI,    \ load interpreter pointer with boot word
       *R10 B,          \ run Forth NEXT (inner interpreter)
 ENDCODE
 
+\ compile BYE last, means HOST BYE is available 
+\ if compile crashes before new
+TARGET ( this is required)
+CODE BYE   ( -- )
+    83C4 @@ CLR,  
+    0000 @@ BLWP, 
+ENDCODE
+
+\ CODE DLY   TOS FFFF LI,  BEGIN,  TOS DEC,  EQ UNTIL,    NEXT, ENDCODE 
+
 COMPILER
 \ ======================================================================
 \ B O O T   U P   C O D E
-HEX
+DECIMAL
 TARGET
+: DELAY   2500 MS ;
+
+COMPILER HEX  
+TARGET 
+\ 20 CONSTANT BL 
+
+: TWOS  0  C/SCR @  32 VFILL ;
+
+: TEST    
+   31 0 VC!  DELAY  
+   TWOS   DELAY 
+   PAGE 33 0 VC!  DELAY 
+   PAGE TS" Hello world!" TYPE DELAY
+ \  CR TS" HEX:" TYPE   
+   HEX 3 . 200 MS  2 . 200 MS  1 .  200 MS 
+;
 
 \ *G  WARM initializes variables and vectors
 : WARM  ( -- )
-        COLD 
-        80 83C2 C!
-        26 TPAD !
-        1000 VP !
-        H @ 2000 MAX 3FFF MIN  H !
-        3FFF TMR!
-        VDPTOP ^PAB !
-        L0 LP !
-        FLOOR ON
-        DECIMAL
+      80 83C2 C!
+      26 TPAD !
+      1000 VP !  ( Free VDP memory start ) 
+      2000 H !   ( heap starts in low RAM)
+ 
+ \     3FFF TMR!
+      VDPTOP ^PAB !
+      L0 LP !
+      FLOOR ON 
+      SOURCE-ID OFF
+
+      T['] <INTERP> 'IV !
+ \     T['] <FIND>   'FIND !
+      TEXT 
+
+      DECIMAL
+      ORGDP @ DP !
+      ORGLAST @ LATEST !
+      LATEST DUP CONTEXT ! CURRENT !
+      TEST
+      PAGE TS" CAMEL99 Forth " TYPE 
+      CR KEY  .  DELAY 
+      BYE
 ;
 
 \ debugging word
 \ CODE HALT  BEGIN, R13 INC, AGAIN,  NEXT, ENDCODE 
 
 \ G*  LOADSYS is the primary boot word that starts Forth and loads extensions
-: LOADSYS
-      WARM
-      S" DSK1.START" INCLUDED
-      CR ABORT ;
+\ : LOADSYS
+\      WARM
+\      TS" DSK1.START" INCLUDED
+\      CR ABORT ;
+

@@ -6,7 +6,7 @@ VARIABLE TLAST                \ target dictionary: last word's NFA
 
 HEX 
 \ compile (addr len) as counted string
-: ?TNAME, ( addr len --) HEADERS @ IF TS, ELSE 2DROP THEN ; 
+: ?TNAME, ( addr len --) HEADERS @ IF  TS,  ELSE 2DROP  THEN ; 
 
 : THEADER, ( addr len --)
       ALIGN
@@ -18,22 +18,26 @@ HEX
       IF
         R@ FIND ( xt ?) NIP ( ?)
         IF
-          SPACE  R@ COUNT 1F AND TYPE  ." WARNING: TARGET word redefined"
+          SPACE  R@ COUNT 1F AND TYPE ." WARNING: TARGET word redefined"
         THEN
       THEN
       R> TLAST !         \ HERE is NFA of last word defined
 ;
 
+
+
 : NFA>LFA       ( nfa -- lfa)   3 - ;
 : NFA>IMM       ( nfa -- precedence-field) NFA>LFA  TCELL+ ;
 : >TBODY        ( cfa -- pfa ) TCELL+ ;
-: NFA>PFA       ( nfa -- pfa )  NFA>CFA >TBODY ;
 
-\ interpreted words for the cross compiler go in META vocabulary 
-ALSO META DEFINITIONS 
-: IMMEDIATE    ( -- )   01 TLAST @ NFA>IMM TC! ;  
+
+\ TARGET WORD precedence field control  
+COMPILER 
+HOST: XIMMEDIATE  ( -- ) 1  TLAST @ 1- TC! ;HOST
+
 \ test if a TARGET word is immediate
-: IMMEDIATE?   ( nfa -- ?) NFA>IMM TC@ 01 AND 0> ;  
+HOST: XIMMEDIATE? ( nfa -- ?) 1- TC@ 01 AND 0> ;HOST
+
 
 COMPILER 
 CR .( TARGET DEFINING WORDS, 16 BIT MACHINE)
@@ -47,14 +51,15 @@ CR .( TARGET DEFINING WORDS, 16 BIT MACHINE)
 
 \ create SMART "code" words in the Target segment
 \ They CANNOT run on the HOST system but abort with an error
+\ **FIXED TCREATE** to record the NFA of the TARGET word. 
 COMPILER 
 HEX 
-: TCREATE  ( -- SAMSaddr)
+: TCREATE  ( -- SAMS_CFA)
    CREATE               \ create word in the host forth system 
-      THERE ,           \ record where it is in TARGET memory
       LATEST @ COUNT 1F AND THEADER,  \ make same name in the TARGET 
-                                      \ no EXECUTOR is compile
-  \ when invoked return the TARGET address of the word 
+                                      \ no EXECUTOR is compiled
+      THERE ,     \ record CFA of this TARGET word 
+  \ when invoked return the TARGET XT address of the word 
    DOES> @ ;
 
 DECIMAL 
@@ -75,9 +80,9 @@ COMPILER VARIABLE TCODEWORDS
 \ +CODE used to permit jumps inside of CODE/ENDCODE
 : +CODE 
       ALSO ASSEMBLER 
-      !CSP TCREATE   
-         THERE CELL+ T,  
-         TCODEWORDS 1+! 
+      !CSP 
+      TCREATE   THERE CELL+ T,  
+      TCODEWORDS 1+! 
       DOES> TRUE ABORT" Can't run TARGET code word" ;
 
 : CODE       NEWLABELS  +CODE ;
@@ -89,7 +94,10 @@ COMPILER VARIABLE TCODEWORDS
 \ CODE DUP     TOS PUSH,       NEXT, ENDCODE 
 
 \ *************************************************************
-\ we need the most primitive code for indirect threaded code now
+\ We need the most primitive words for indirect threaded code now
+\ to build the compiling words for the rest of the system. 
+\ I call them EXECUTORS 
+\ EXECUTORS are:  EXIT  DOVAR  DOCOL  DOCON  DOUSER  LIT 
 \ Approximately 127 bytes 
    
   INCLUDE DSK9.EXECUTORS   
@@ -98,17 +106,18 @@ COMPILER VARIABLE TCODEWORDS
 
 \ RESOLVE TLITERAL for target compiler loop 
 COMPILER 
-: TLIT  STATE @ IF  TCOMPILE LIT  T,  THEN ;   
-' TLIT IS TLITERAL 
+:NONAME  STATE @ IF  TCOMPILE LIT  T,  THEN ; IS TLITERAL 
 
-\ These words are in the COMPILERS vocabulary. When TARGET is invoked
+\ These words are in the META vocabulary. When TARGET is invoked
 \ they will be found before the same words in the HOST Forth system.
 COMPILER 
 ALSO META DEFINITIONS 
-: CREATE     TCREATE  TCOMPILE DOVAR               DOES> @ NFA>PFA ;  
-: VARIABLE   TCREATE  TCOMPILE DOVAR    0 T,       DOES> @ NFA>PFA ;  
-: 2VARIABLE  TCREATE  TCOMPILE DOVAR    0 T, 0 T,  DOES> @ NFA>PFA ; 
-: CONSTANT   TCREATE  TCOMPILE DOCON ( n) T,       DOES> @ NFA>PFA T@ ; 
+: CREATE     TCREATE  TCOMPILE DOVAR               DOES> @ >TBODY ;  
+: VARIABLE   TCREATE  TCOMPILE DOVAR    0 T,       DOES> @ >TBODY ;  
+: 2VARIABLE  TCREATE  TCOMPILE DOVAR    0 T, 0 T,  DOES> @ >TBODY ; 
+: CONSTANT   TCREATE  TCOMPILE DOCON ( n) T,       DOES> @ >TBODY T@ ; 
+
+HOST: T[']   TCOMPILE LIT  T'   T,  ;HOST  IMMEDIATE  
 
 \ USER variables are used in Multi-tasking Forth systems.
 \ They are "local" to a specific task and usually reference by a pointer
@@ -117,9 +126,13 @@ ALSO META DEFINITIONS
 \ Cool trick, but it means we can't read a value from the TARGET system
 \ for the cross-compiler to use.
 
-\ So we have to create a variable UP(t) and assign the value of the for
-\ of the WP register for the Cross compiler to calculate a USER variable's
-\ Address.
-COMPILER VARIABLE UP(t)   HEX 8300 UP(t) !
+\ So we have to create a faux user variable, UP(t) 
+\ and we assign the value of the default Forth workspace. >8300
+\ Now we can use UP(t) to calculate a USER variable's address
 
-: USER       TCREATE  TCOMPILE DOUSER  T,  DOES> @ NFA>PFA T@  UP(t) @ + ;  
+COMPILER VARIABLE UP(t)   HEX 8300 UP(t) !
+ALSO META DEFINITIONS 
+: USER ( n --) 
+  TCREATE  TCOMPILE DOUSER  T,  DOES> @ >TBODY T@  UP(t) @ + ;
+
+COMPILER   
