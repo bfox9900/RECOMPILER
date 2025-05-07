@@ -24,17 +24,17 @@ TARGET
 \       define the TARGET system LOOPS below.
 
 : RAKE  ( -- ) ( L: 0 a1 a2 .. aN -- )
-         BEGIN  L> ?DUP WHILE   TPOSTPONE THEN  REPEAT ;
+        BEGIN  L> ?DUP WHILE   TPOSTPONE THEN  REPEAT ;
 \ -----------------------------------------------------------------------
 \ SIMPLIFIED LOOPS
 \ Posted by dxforth comp.lang.forth
 \ Modded for FCC99 cross-compiler that has no POSTPONE
 
 : BEGIN   HERE ;                                IMMEDIATE
-: IF      TPOSTPONE ?BRANCH AHEAD ;               IMMEDIATE
+: IF      TPOSTPONE ?BRANCH AHEAD ;             IMMEDIATE
 : ELSE    TPOSTPONE BRANCH AHEAD SWAP TPOSTPONE THEN ; IMMEDIATE
-: AGAIN   TPOSTPONE BRANCH THERE - T,  ;          IMMEDIATE
-: UNTIL   TPOSTPONE ?BRANCH THERE - T,  ;         IMMEDIATE
+: AGAIN   TPOSTPONE BRANCH THERE - T, ;         IMMEDIATE
+: UNTIL   TPOSTPONE ?BRANCH THERE - T, ;        IMMEDIATE
 : WHILE   TPOSTPONE IF SWAP ;                   IMMEDIATE
 : REPEAT  TPOSTPONE AGAIN TPOSTPONE THEN ;      IMMEDIATE
 
