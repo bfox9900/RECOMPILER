@@ -22,12 +22,12 @@ ONLY FORTH ALSO COMPILERS DEFINITIONS
 1 SEGMENT 
 
 \ Target versions of HERE and ALLOT
-: THERE   ( -- addr) SAMS.HERE  ;   \ FETCH the value in SAMS mem pointer
-: TALLOT  ( n -- )   SAMS.ALLOT ;   \ add n to the value in SAMS mem pointer
+: THERE   ( -- addr) SDP @  ;   \ FETCH the value in SAMS mem pointer
+: TALLOT  ( n -- )   SDP +! ;   \ add n to the value in SAMS mem pointer
 
 \ integer and byte "Target" compilers using "LONG" operators
-: T,      ( n -- )  SAMS.HERE !L 2 TALLOT ;
-: TC,     ( n -- )  SAMS.HERE C!L 1 TALLOT ; 
+: T,      ( n -- )  THERE !L 2 TALLOT ;
+: TC,     ( n -- )  THERE C!L 1 TALLOT ; 
 
 \ : TCOUNT  ( vdp$adr -- vdpadr len ) DUP 1+ SWAP C@L ;
 \ : TCREATE ( <text> -- ) SHERE CONSTANT  ; \ address when <text> invoked

@@ -1,0 +1,17 @@
+
+\ TESTPROG1.FTH   minimal program for FXCC CROSS-COMPILER Ict 2024 Fox
+
+COMPILER 
+NEW 
+
+HEX A000 ORG 
+
+\ target code starts here
+\ build:;  EXIT NEXT DOCOL DOVAR DOCON LIT 
+INCLUDE DSK7.EXECUTORS  
+INCLUDE DSK7.BRANCHING  \ teach cross-compiler to branch etc.
+INCLUDE DSK7.ITCTYPES   \ teach compiler to make CONSTANT VARIABLE etc. 
+
+TARGET 
+: TESTAGAIN   BEGIN AGAIN ;
+: TESTUNTIL   BEGIN 1 UNTIL ;

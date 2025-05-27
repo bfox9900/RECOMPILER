@@ -3,11 +3,11 @@ CR .( MEMORY FETCH & STORE)
 CODE !      ( n addr -- )
             *SP+ *TOS MOV,   \ 26
             TOS POP,         \ 22
-             NEXT,           \ = 48
-             ENDCODE
+            NEXT,           \ = 48
+            ENDCODE
 
 CODE @      ( a -- w )
-\            _fetch >HSRAM CFA! 
+\            _fetch >HSRAM CFA!
             *TOS TOS MOV,
             NEXT,
             ENDCODE
@@ -56,4 +56,3 @@ CODE C+!    ( c addr -- ) \ 8 bytes versus 12 bytes in Forth
             TOS POP,               \ 22
             NEXT,                 \ =58
             ENDCODE
-

@@ -12,15 +12,13 @@ INCLUDE DSK7.EXECUTORS
 \ Extend the compiler for indirect threaded code
 INCLUDE DSK7.ITCTYPES   \ setup compiler for ITC and define TLITERAL 
 INCLUDE DSK7.BRANCHING  \ teach cross-compiler to branch etc.
+INCLUDE DSK7.IMPORT     \ teach cross-compiler how "steal" host code words
 
-\ create program entry word, COLD, which builds the Forth stacks
+\ PREAMBLE creates program entry word, COLD, which builds the Forth stacks
 \ Also creates the target variable called BOOT 
 INCLUDE DSK7.PREAMBLE 
 
 INCLUDE DSK7.FORNEXT 
-\ Steal this code from the Host Forth and put in target 
-IMPORT: ?TERMINAL
-
 
 \ your program starts hers 
 

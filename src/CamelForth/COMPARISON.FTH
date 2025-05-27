@@ -7,7 +7,7 @@ CODE 0=     ( n -- ?)         \ used 6X in kernel
             ENDIF,
             TOS INV,
             NEXT,
-            ENDCODE
+ENDCODE
 
 CODE OVER=  ( n1 n2 -- n1 ?)
             *SP TOS CMP,     \ used 2x in kernel & in CASE
@@ -33,7 +33,7 @@ CODE 0<     ( n -- flag )
             1 $ JLT,
             TOS CLR,
 1 $:        NEXT,
-            ENDCODE
+ENDCODE
 
 CODE U<     ( n1 n2 -- flag)
             *SP+ TOS CMP,
@@ -41,7 +41,7 @@ CODE U<     ( n1 n2 -- flag)
             1 $ JL,
             TOS CLR,
 1 $:        NEXT,
-            ENDCODE
+ENDCODE
 
 CODE >      ( n1 n2 -- flag)
             *SP+ TOS CMP,
@@ -49,7 +49,7 @@ CODE >      ( n1 n2 -- flag)
             1 $ JGT,
             TOS CLR,
 1 $:        NEXT,
-            ENDCODE
+ENDCODE
 
 CODE <      ( n1 n2 -- flag)
             *SP+ TOS CMP,
@@ -57,7 +57,7 @@ CODE <      ( n1 n2 -- flag)
             1 $ JLT,
             TOS CLR,
 1 $:        NEXT,
-            ENDCODE
+ENDCODE
 
 \ ==================================================================
 CR .( MIN & MAX )
@@ -72,4 +72,18 @@ CODE MIN    ( n1 n2 -- n)
             NEXT,
 1 $:        TOS POP,       \ DROP n1, refill TOS
             NEXT,
-            ENDCODE
+ENDCODE
+
+CODE UMIN     ( n1 n2 -- n) \ used by ACCEPT
+        *SP TOS CMP,
+        1 $ JL,             \ unsigned comparisons
+        SP INCT,
+        NEXT,
++CODE UMAX   ( n1 n2 -- n)
+        *SP  TOS CMP,
+        1 $ JH,
+        SP INCT,
+        NEXT,
+1 $:    TOS POP,
+        NEXT,
+ENDCODE

@@ -1,9 +1,9 @@
 \ eForth Initial Model (tms9900)
 
-                **** WORK IN PROGRESS **** 
+                **** WORK IN PROGRESS ****
 
-\ ***************************************************************                
-\ NOTE: 
+\ ***************************************************************
+\ NOTE:
 \ In cases where TMS9900 has a machine instruction for a specific
 \ function, we have replaced the Forth code with Assembler.
 \ ***************************************************************
@@ -12,10 +12,10 @@
 \ Donated to eForth Working Group, Silicon Valley FIG Chapter
 \ to serve as a model of portable Forth for experimentation.
 
-\ Ported to TI-99 by Brian Fox, Kilworth Ontario Canada 2023 
+\ Ported to TI-99 by Brian Fox, Kilworth Ontario Canada 2023
 
 \ This program can be metacompiled with METAFORTH 1.0 for TI-99
-\ and the eForth extension files 
+\ and the eForth extension files
 
 \ Conventions
 \
@@ -51,7 +51,7 @@
 \ 0 < FORTH < .. < vl va < vl va < CURRENT CELL+ @
 
 .( Equates )
-COMPILER 
+COMPILER
 H# FF4E EQU =RP  \ return stack base
 H# FF7C EQU =SP  \ data stack base
 H# FF80 EQU =TIB \ default Terminal Input Buffer
@@ -90,22 +90,22 @@ H# E890 EQU =CALL \ 8086 CALL opcode (NOP CALL)
 
 \ Behind the curtain:
 \ This eForth remains true to Dr. Ting and Bill Meunch's vision.
-\ Words in lower case are not for compiling, not interactive use. 
+\ Words in lower case are not for compiling, not interactive use.
 
 \ Special features in this eForth Model are:;
-\ 1. 31 machine dependent words and 193 high level words. 
-\    a) TMS9900 has hardware multiply and divide so use them 
+\ 1. 31 machine dependent words and 193 high level words.
+\    a) TMS9900 has hardware multiply and divide so use them
 
 \ 2. Direct Threaded Code. (9900 uses BL and R11 holds the PFA)
-\ 3. Separated name and code dictionaries. 
-\ 4. All system variables are defined as user variables for ROMmability. 
-\ 5. Vectored ?KEY, KEY, and EMIT. 
-\ 6. File handling through the serial I/O interface. 
-\ 7. CATCH-THROW error handler. 
-\ 8. Only the single indexed FOR-NEXT loop is provided. 
-\ 9. Track the proposed ANS Forth Standard. 
-\ 10. Compile-only words are trapped in interpretive mode. 
-\ 11. Tools include DUMP, WORDS, SEE and .S . 
+\ 3. Separated name and code dictionaries.
+\ 4. All system variables are defined as user variables for ROMmability.
+\ 5. Vectored ?KEY, KEY, and EMIT.
+\ 6. File handling through the serial I/O interface.
+\ 7. CATCH-THROW error handler.
+\ 8. Only the single indexed FOR-NEXT loop is provided.
+\ 9. Track the proposed ANS Forth Standard.
+\ 10. Compile-only words are trapped in interpretive mode.
+\ 11. Tools include DUMP, WORDS, SEE and .S .
 \ 12. Flexibility in memory mapping.
 
 \ The Forth inner interpreter
@@ -113,38 +113,38 @@ H# E890 EQU =CALL \ 8086 CALL opcode (NOP CALL)
 \ On the 9990 it is more space efficient to JUMP
 \ to the inner interpreter through a register
 \ On other processors it may be better
-\ to write it as inline code 
+\ to write it as inline code
 
 \ CROSS COMPILER DIRECTIVES
-NEW 
-TARGET    
-H# 2000 ORG 
+NEW
+TARGET
+H# 2000 ORG
 
 L: NEXT ( -- )     \ Direct threaded NEXT
-  *IP+ W  MOV,     \ move CFA into Working register 
+  *IP+ W  MOV,     \ move CFA into Working register
       *W  B,       \ branch to the address in w
 
 .( Special interpreters )
 
-l: DOLIT 
-   SP  DECT,     
-  *IP+ R4 MOV,  
+l: DOLIT
+   SP  DECT,
+  *IP+ R4 MOV,
    NEXT,
 
-L: doLIST ( a -- ) 
+L: doLIST ( a -- )
    IP RPUSH,         \ push IP register onto the return stack
    R11 IP MOV,       \ move PFA into Forth IP register
    NEXT,
 ENDCODE
 
-\ CODE COLD ( -- )   ORIG @@ B, 
+CODE COLD ( -- )   ORIG @@ B, ENDCODE
 
 CODE BYE
    83C4 @@ CLR,        \ clear interrupt vector
-   0000 @@ BLWP,       \ ROM reset vector is at 0000 
-ENDCODE 
+   0000 @@ BLWP,       \ ROM reset vector is at 0000
+ENDCODE
 
-CODE EXECUTE ( a -- ) TOS POP, *TOS B,  
+CODE EXECUTE ( a -- ) TOS POP, *TOS B,
 
 CODE EXIT ( -- )   IP RPOP,   NEXT, ENDCODE
 
@@ -154,28 +154,28 @@ CODE EXIT ( -- )   IP RPOP,   NEXT, ENDCODE
 \   r> r> dup if 1 - >r @ >r exit then drop cell+ >r ;
 CODE next ( -- ) COMPILE-ONLY \ single index loop
    *RP DEC,         \ dec counter value
-    OC IF,          
+    OC IF,
         *IP IP ADD, \ jump back: ADD *IP,IP
         NEXT,
-    ENDIF, 
-    RP INCT,        \ remove counter from Rstack 
+    ENDIF,
+    RP INCT,        \ remove counter from Rstack
     IP INCT,        \ move past (LOOP)'s in-line parameter
-    NEXT, 
+    NEXT,
 ENDCODE
 
 CODE ?branch ( f -- ) COMPILE-ONLY
-    R4 POP, 
+    R4 POP,
     R4, R4 SOC,      \ test flag
     EQ IF,           \ if R4 = 0
-        *IP IP ADD,  \ take the jump 
-        NEXT, 
-    ENDIF, 
-    IP INCT,         \ move forward in the program 
-    NEXT,      
-ENDCODE 
+        *IP IP ADD,  \ take the jump
+        NEXT,
+    ENDIF,
+    IP INCT,         \ move forward in the program
+    NEXT,
+ENDCODE
 
 CODE branch ( -- ) COMPILE-ONLY
-   *IP IP ADD,   \ take the jump 
+   *IP IP ADD,   \ take the jump
     NEXT,
 ENDCODE
 
@@ -185,18 +185,18 @@ CODE ! ( w a -- )  R4 POP,  *SP+ *R4 MOV,  NEXT, ENDCODE
 CODE @ ( a -- w )  *SP R4 MOV,  *R4 *SP MOV, NEXT, ENDCODE
 
 CODE C! ( w b -- )
-   R4 POP, 
+   R4 POP,
    *SP SWPB,
    *SP+ *R4 MOVB,
   NEXT,
 ENDCODE
 
 CODE C@ ( b -- c )
-    W POP,     
-    R4 CLR,      
-   *W R4 MOVB,  
+    W POP,
+    R4 CLR,
+   *W R4 MOVB,
     R4 SWPB,
-    R4 PUSH,   
+    R4 PUSH,
   NEXT,
 ENDCODE
 
@@ -217,17 +217,17 @@ CODE DROP ( w -- )      SP INCT,NEXT, ENDCODE
 CODE DUP  ( w -- w w )  SP DECT,NEXT, ENDCODE
 
 CODE SWAP ( w1 w2 -- w2 w1 )
-  *SP      W  MOV, 
+  *SP      W  MOV,
    2 (SP) *SP MOV,
-   W   2 (SP) MOV, 
+   W   2 (SP) MOV,
   NEXT,
 ENDCODE
 
-CODE OVER ( w1 w2 -- w1 w2 w1 ) 
-   2 (SP) W MOV, 
-         SP DECT, 
+CODE OVER ( w1 w2 -- w1 w2 w1 )
+   2 (SP) W MOV,
+         SP DECT,
    W    *SP MOV,
-   NEXT 
+   NEXT,
 ENDCODE
 
 : ?DUP   ( w -- w w, 0 ) DUP IF DUP THEN ;
@@ -239,38 +239,38 @@ ENDCODE
 .( Logic )
 
 CODE 0< ( n -- t )
-  *SP W MOV,  
+  *SP W MOV,
   *SP CLR,
-   W 0 CI, LT 
-   IF, 
-      *SP SETO,  
+   W 0 CI, LT
+   IF,
+      *SP SETO,
    ENDIF,
   NEXT,,
 ENDCODE
 
 CODE AND ( w w -- w )
-  *SP+  R0 MOV, 
-        R0 INV,    
-   R0  *SP SZC, 
+  *SP+  R0 MOV,
+        R0 INV,
+   R0  *SP SZC,
    NEXT,
 ENDCODE
 
 CODE OR ( w w -- w )
-   *SP+ R0 MOV,   
-   *SP  R0 SOC, 
-    R0 *SP MOV, 
+   *SP+ R0 MOV,
+   *SP  R0 SOC,
+    R0 *SP MOV,
    NEXT,
 ENDCODE
 
-CODE XOR ( w w -- w ) 
-   *SP+ R0 MOV,   
-   *SP  R0 XOR, 
-    R0 *SP MOV, 
-   NEXT,    
+CODE XOR ( w w -- w )
+   *SP+ R0 MOV,
+   *SP  R0 XOR,
+    R0 *SP MOV,
+   NEXT,
 ENDCODE
 
 \ : INVERT ( w -- w ) -1 XOR ;
-CODE INVERT   *SP INV,  NEXT, ENDCODE 
+CODE INVERT   *SP INV,  NEXT, ENDCODE
 
 .( Arithmetic )
 
@@ -287,25 +287,25 @@ CODE D+   ( lo hi lo' hi' -- d)
    NEXT,
 ENDCODE
 
-: S>D    ( n -- d)  DUP 0< ;
-: M+     ( d n -- d) S>D  D+ ; 
+: S>D    ( n -- d)   DUP 0< ;
+: M+     ( d n -- d) S>D D+ ;
 
 \ : + ( u u -- u ) UM+ DROP ;
 CODE +  ( u u -- u ) \ Same size as Forth code
-  *SP+ W MOV, 
-   W *SP ADD,    
+  *SP+ W MOV,
+   W *SP ADD,
    NEXT,
 ENDCODE
 
 \ : NEGATE ( n -- -n ) INVERT 1 + ;
-CODE NEGATE   *SP NEG,  NEXT, ENDCODE 
+CODE NEGATE   *SP NEG,  NEXT, ENDCODE
 
 : DNEGATE ( d -- -d ) INVERT >R INVERT 1 UM+ R> + ;
 
 : - ( w w -- w ) NEGATE + ;
 
 \ : ABS ( n -- +n ) DUP 0< IF NEGATE THEN ;
-CODE ABS   *SP ABS,  NEXT, ENDCODE 
+CODE ABS   *SP ABS,  NEXT, ENDCODE
 
 .( User variables )
 
@@ -376,10 +376,10 @@ DUP USER CP 1 CELL+ \ dictionary code pointer
 \   R> R@ SWAP >R UM+ R> OR
 \   IF >R DROP 1 + R> ELSE DROP THEN R>
 \   NEXT DROP SWAP EXIT
-\   THEN DROP 2DROP -1 DUP ; \ 92 bytes 
+\   THEN DROP 2DROP -1 DUP ; \ 92 bytes
 
-\ TMS9900 is higher level than eForth 
-CODE UM/MOD ( ud u1 -- u2 u3 ) 
+\ TMS9900 is higher level than eForth
+CODE UM/MOD ( ud u1 -- u2 u3 )
    TOS  R0 MOV,     \ divisor->R0                 14
   *SP+ TOS MOV,     \ POP high word into TOS      22
   *SP   R5 MOV,     \ MOVE low word to r5         18
@@ -409,7 +409,7 @@ ENDCODE \ 10 bytes :-)
 CODE UM*    ( n n -- d)     \ 2 cells in -- 2 cells out
   *SP  TOS MPY,    \ 52+4=56
    R5  *SP MOV,    \ 18
-   NEXT,           \ 
+   NEXT,           \
 ENDCODE
 
 : * ( n n -- n ) UM* DROP ;
@@ -422,10 +422,14 @@ ENDCODE
 
 .( Bits & Bytes )
 
-: BYTE+ ( b -- b ) [ =BYTE ] LITERAL + ;
-: CELL+ ( a -- a ) [ =CELL ] LITERAL + ;
+\ : BYTE+ ( b -- b ) [ =BYTE ] LITERAL + ;
+\ : CELL+ ( a -- a ) [ =CELL ] LITERAL + ;
+\ : CELLS ( n -- n ) [ =CELL ] LITERAL * ;
 
-: CELLS ( n -- n ) [ =CELL ] LITERAL * ;
+\ 9900 does all these in 1 instruction :-)
+CODE BYTE+   TOS INC,  NEXT,  ENDCODE
+CODE CELL+   TOS INCT, NEXT,  ENDCODE
+CODE CELLS   TOS 1 SLA,  NEXT, ENDCODE
 
 : BL ( -- 32 ) 32 ;
 
@@ -434,13 +438,20 @@ ENDCODE
 
 : DEPTH ( -- n ) SP@ SP0 @ SWAP - 2 / ;
 
-: PICK ( +n -- w ) 1 + CELLS SP@ + @ ;
+\ : PICK ( +n -- w ) 1 + CELLS SP@ + @ ; \ 12 BYTES
+CODE PICK   ( n -- n) \ 6 bytes, 8x faster
+   TOS  1 SLA,
+   SP TOS ADD,
+   *TOS TOS MOV,
+   NEXT,
+ENDCODE
 
-: ALIGNED ( b -- a ) ; IMMEDIATE
+: ALIGNED ( b -- a ) BYTE+  H# FFFE AND ; IMMEDIATE
 
 .( Memory access )
 
-: +! ( n a -- ) SWAP OVER @ + SWAP ! ;
+\ : +! ( n a -- ) SWAP OVER @ + SWAP ! ;
+CODE +!  *SP+ *TOS ADD,  TOS POP,   NEXT, ENDCODE
 
 : 2! ( d a -- ) SWAP OVER ! CELL+ ! ;
 : 2@ ( a -- d ) DUP CELL+ @ SWAP @ ;
@@ -448,10 +459,10 @@ ENDCODE
 : COUNT ( b -- b +n ) DUP 1 + SWAP C@ ;
 
 : HERE ( -- a ) CP @ ;
-: PAD ( -- a ) HERE 80 + ;
-: TIB ( -- a ) #TIB CELL+ @ ;
+: PAD  ( -- a ) HERE 80 + ;
+: TIB  ( -- a ) #TIB CELL+ @ ;
 
-: NP ( -- a ) CP CELL+ ;
+: NP   ( -- a ) CP CELL+ ;
 : LAST ( -- a ) NP CELL+ ;
 
 : @EXECUTE ( a -- ) @ ?DUP IF EXECUTE THEN ;
@@ -459,20 +470,20 @@ ENDCODE
 : CMOVE ( b b u -- )
   FOR AFT >R COUNT R@ C! R> 1 + THEN NEXT 2DROP ;
 
-: -TRAILING ( b u -- b u )
-\ : -TRAILING  ( adr len char -- adr len')  \ might be faster
-\         2DUP + 1-
-\         BEGIN
-\            DUP C@ BL =   \ fetch last character
-\         WHILE            \ test for BLANK
-\            1-            \ while char is a match, decrement length
-\         REPEAT
-\         NIP OVER -  ;    \ 30 bytes  12.26 seconds
-   FOR 
-      AFT DUP R@ + C@ BL XOR
-      IF R> 1 + EXIT THEN 
-      THEN
-   NEXT 0 ;
+\ : -TRAILING ( b u -- b u )
+\   FOR
+\      AFT DUP R@ + C@ BL XOR
+\      IF R> 1 + EXIT THEN
+\      THEN
+\   NEXT 0 ;
+: -TRAILING  ( adr len char -- adr len')  \ might be faster
+         2DUP + 1-
+         BEGIN
+            DUP C@ BL =   \ fetch last character
+         WHILE            \ test for BLANK
+            1-            \ while char is a match, decrement length
+         REPEAT
+         NIP OVER -  ;    \ 30 bytes  12.26 seconds
 
 : FILL ( b u c -- )
   SWAP FOR SWAP AFT 2DUP C! 1 + THEN NEXT 2DROP ;
@@ -587,10 +598,10 @@ THEN R> ( n ?sign) 2DROP R> BASE ! ;
 : NAME> ( na -- ca ) 2 CELLS - @ ;
 
 : SAME? ( a a u -- a a f \ -0+ )
-   FOR 
+   FOR
       AFT OVER R@ CELLS + @
       OVER R@ CELLS + @ - ?DUP
-      IF R> DROP EXIT THEN 
+      IF R> DROP EXIT THEN
       THEN
    NEXT 0 ;
 
@@ -601,13 +612,13 @@ THEN R> ( n ?sign) 2DROP R> BASE ! ;
    CELL+ SWAP \ a' va
    BEGIN @ DUP \ a' na na
       IF DUP @ [ =MASK ] LITERAL AND R@ XOR \ ignore lexicon bits
-         IF CELL+ -1 
-         ELSE CELL+ temp @ SAME? 
+         IF CELL+ -1
+         ELSE CELL+ temp @ SAME?
          THEN
       ELSE R> DROP EXIT
       THEN
    WHILE 2 CELLS - \ a' la
-   REPEAT 
+   REPEAT
    R> DROP NIP 1 CELLS - DUP NAME> SWAP ;
 
 : NAME? ( a -- ca na, a F )
@@ -620,7 +631,7 @@ THEN R> ( n ?sign) 2DROP R> BASE ! ;
 
 : ^H ( b b b -- b b b ) \ backspace
    >R OVER R@ < DUP
-   IF [ CTRL H ] LITERAL 'ECHO @EXECUTE 
+   IF [ CTRL H ] LITERAL 'ECHO @EXECUTE
    THEN R> + ;
 
 : TAP ( bot eot cur key -- bot eot cur )
@@ -628,11 +639,11 @@ THEN R> ( n ?sign) 2DROP R> BASE ! ;
 
 : kTAP ( bot eot cur key -- bot eot cur )
    DUP 13 XOR
-   IF [ CTRL H ] LITERAL XOR 
-      IF BL TAP 
-      ELSE ^H 
+   IF [ CTRL H ] LITERAL XOR
+      IF BL TAP
+      ELSE ^H
       THEN EXIT
-   THEN 
+   THEN
    DROP NIP DUP ;
 
 : ACCEPT ( b u -- b u )
@@ -640,10 +651,10 @@ THEN R> ( n ?sign) 2DROP R> BASE ! ;
    BEGIN 2DUP XOR
    WHILE
       KEY DUP BL - 95 U<
-      IF TAP 
-      ELSE 'TAP @EXECUTE 
+      IF TAP
+      ELSE 'TAP @EXECUTE
       THEN
-   REPEAT 
+   REPEAT
    DROP OVER - ;
 
 : EXPECT ( b u -- ) 'EXPECT @EXECUTE SPAN ! DROP ;
@@ -694,7 +705,7 @@ CODE IO? ( -- f ) \ FFFF is an impossible character
 \ Interface to call ROM KSCAN
    TOS PUSH,
    TOS CLR,            \ TOS will be our true/false flag
-   0 LIMI,             \ disable interrupts, ALL VDP routines restore them 
+   0 LIMI,             \ disable interrupts, ALL VDP routines restore them
    TOS 837C @@ MOVB,   \ clear GPL flags
    83E0 LWPI,          \ switch to GPL workspace
    000E @@ BL,         \ call ROM keyboard scanning routine
@@ -713,21 +724,31 @@ H# 8802 EQU VDPSTS              \ vdp status
 H# 8C00 EQU VDPWD               \ vdp ram write data
 H# 8C02 EQU VDPWA               \ vdp ram read/write address
 
-VARIABLE OUT 
+\ VDP set-address sub-routines
+CODE 0LIMI   0 LIMI,   NEXT,  ENDCODE \ interrupts off for VDP I/O
 
-CODE TX! ( c -- )
-     OUT @@ R0 MOV, 
-     R0 4000 ORI, 
-     R0 SWPB,
-     R0 VDPWA @@ MOVB, 
-     R0 SWPB, 
-     R0 VDPWA @@ MOVB,
-     TOS SWPB,
-     TOS VDPWD @@ MOVB,   
-     OUT @@ INC, 
-     TOS POP, 
-     NEXT, 
-ENDCODE
+: RMODE ( vdpaddr -- ) DUP 0LIMI VDPWA C! VDPWA ! ;
+: WMODE ( vdpaddr -- ) 4000 OR RMODE ;
+
+: VC!+  ( c vdpaddr --) VDPWD C! ;   \ write & inc. address
+: VC!   ( c vdpaddr --) WMODE VC!+ ; \ set address and write
+
+VARIABLE OUT  \ VDP ram address. Screen starts at 0
+: TX!   ( c --) OUT @ VC!  1 OUT +!  ;
+
+\ CODE TX! ( c -- ) \ 32 bytes
+\     OUT @@ R0 MOV,
+\     R0 4000 ORI,
+\     R0 SWPB,
+\     R0 VDPWA @@ MOVB,
+\     R0 SWPB,
+\     R0 VDPWA @@ MOVB,
+\     TOS SWPB,
+\     TOS VDPWD @@ MOVB,
+\     OUT @@ INC,
+\     TOS POP,
+\     NEXT,
+\ ENDCODE
 
 : !IO ( -- ) ; IMMEDIATE \ initialize I/O device
 
@@ -754,7 +775,7 @@ CREATE I/O ' RX? , ' TX! , \ defaults
 : QUIT ( -- ) \ clear return stack ONLY
    RP0 @ RP!
    BEGIN [COMPILE] [
-      BEGIN 
+      BEGIN
          [ ' que ] LITERAL CATCH ?DUP
       UNTIL ( a)
       CONSOLE NULL$ OVER XOR
@@ -775,7 +796,7 @@ CREATE I/O ' RX? , ' TX! , \ defaults
 : $," ( -- ) [ CHAR " ] LITERAL PARSE HERE PACK$ C@ 1 + ALLOT ;
 : RECURSE ( -- ) LAST @ CURRENT @ ! ; IMMEDIATE
 
-.( Structures ) 
+.( Structures )
 ( These need to have copies in the META wordlist)
 : FOR    ( -- a ) COMPILE >R HERE ; IMMEDIATE
 : BEGIN  ( -- a ) HERE ; IMMEDIATE
@@ -891,11 +912,21 @@ CR ." eForth v1.0"
 
 CREATE 'BOOT ' hi , \ application vector
 
+CODE WORKSPACE ( -- )
+     H# 8300 LWPI,
+     NEXT,
+ENDCODE
+
+CODE DSTACK  ( u -- ) TOS SP MOV,  NEXT, ENDCODE
+CODE RSTACK  ( u -- ) TOS RP MOV,  NEXT, ENDCODE
+CODE USERAREA ( u --) TOS UP MOV,  NEXT, ENDCODE
+CODE GOTO    ( u -- ) TOS IP MOV,  NEXT, ENDCODE
+
 : COLD ( -- )
-\ init CPU
-\ init stacks
-\ init user area
-\ init IP
+   WORKSPACE     \ init CPU
+   =SP DSTACK    \ init stacks
+   =RP RSTACK
+   =UP USERAREA  \ init user area
+   ??? GOTO      \ init IP
 PRESET 'BOOT @EXECUTE
 QUIT ;
-

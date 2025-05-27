@@ -1,21 +1,17 @@
 \ ANS/ISO  T A R G E T   B R A N C H   C O M P I L E R S   Aug 18 2021 B Fox
-\ May 13,2022 Changed AHEAD to be consistent with standard
-\             changed ELSE & LEAVE to work with new AHEAD
 
-\         **** Requires FXCC with META vocabulary ****
-
-\ These versions RUN IN THE TARGET system to compile loops and 
-\ branches in the TI-99.
+\ These versions RUN IN THE TARGET system to compile loops
+\ and branches in the TI-99.
 \ These versions do not use compile-time checking like Fig-Forth.
 \ This improves compile time speed
 
-[CC] HEX
+COMPILER HEX
 
 TARGET
 \ THEN resolves forward branches
 \ computes offset: (HERE -  addr)  & stores result in addr
 \ *note* IMMEDIATE in TARGET context is a META word that affects Target words
-: THEN  ( addr -- )  HERE OVER - SWAP ! ; IMMEDIATE
+: THEN  ( addr -- )  HERE OVER - SWAP ! ; XIMMEDIATE
 : AHEAD    ( -- addr)   HERE 0 , ;  \ compile empty jump forward
 
 
@@ -32,14 +28,14 @@ TARGET
     NEXT,
  ENDCODE
 
-  CODE L>
+ CODE L>
      TOS PUSH,
      R1 STWP,
      3A (R1) TOS MOV,
      *TOS TOS MOV,
      3A (R1) DECT,
      NEXT,
-  ENDCODE
+ ENDCODE
 
 \ -----------------------------------------------------------------------
 \ RAKE  resolves branching out of DO/LOOPS that use LEAVE
@@ -50,24 +46,27 @@ TARGET
 \       define the TARGET system LOOPS below.
 
 : RAKE  ( -- ) ( L: 0 a1 a2 .. aN -- )
-         BEGIN  L> ?DUP WHILE    [COMPILE] THEN  REPEAT ;
+      BEGIN  L> ?DUP WHILE    T[COMPILE] THEN  REPEAT ;
+
 \ -----------------------------------------------------------------------
 \ SIMPLIFIED LOOPS
-\ Posted by dxforth comp.lang.forth
-\ Modded for FCC99 cross-compiler that has no POSTPONE
+\ Posted by dxforth comp.lang.forth, modified for FXCC cross-compiler
 : <BACK   HERE - , ;
-: BEGIN   HERE ;                                IMMEDIATE
-: IF      COMPILE ?BRANCH AHEAD ;               IMMEDIATE
-: ELSE    COMPILE BRANCH AHEAD SWAP [COMPILE] THEN ; IMMEDIATE
-: AGAIN   COMPILE BRANCH  <BACK  ;              IMMEDIATE
-: UNTIL   COMPILE ?BRANCH <BACK  ;              IMMEDIATE
-: WHILE   [COMPILE] IF SWAP ;                   IMMEDIATE
-: REPEAT  [COMPILE] AGAIN [COMPILE] THEN ;      IMMEDIATE
+: BEGIN   HERE ;                                XIMMEDIATE
+: IF      COMPILE ?BRANCH AHEAD ;               XIMMEDIATE
+: ELSE    COMPILE BRANCH AHEAD SWAP T[COMPILE] THEN ; XIMMEDIATE
+: AGAIN   COMPILE BRANCH  <BACK  ;              XIMMEDIATE
+: UNTIL   COMPILE ?BRANCH <BACK  ;              XIMMEDIATE
+: WHILE   T[COMPILE] IF SWAP ;                  XIMMEDIATE
+: REPEAT  T[COMPILE] AGAIN T[COMPILE] THEN ;    XIMMEDIATE
 
 \ ========================================================================
 \ DO/LOOP  COMPILERS
 \                          -compile this-    - run this now-
-: DO        ( n n -- adr) ?COMP COMPILE <DO>   0 >L  HERE  ; IMMEDIATE
-: ?DO       ( n n -- adr) ?COMP COMPILE <?DO>  0 >L  HERE  ; IMMEDIATE
-: LEAVE     ( -- ) COMPILE UNLOOP  COMPILE BRANCH AHEAD  >L ; IMMEDIATE
+: DO        ( n n -- adr) ?COMP COMPILE <DO>   0 >L  HERE  ; XIMMEDIATE
+: ?DO       ( n n -- adr) ?COMP COMPILE <?DO>  0 >L  HERE  ; XIMMEDIATE
+: LEAVE     ( -- ) COMPILE UNLOOP  COMPILE BRANCH AHEAD >L ; XIMMEDIATE
 
+\ complete a DO loop
+: LOOP      ( -- )  COMPILE <LOOP>  HERE - ,    RAKE ; XIMMEDIATE
+: +LOOP     ( -- )  COMPILE <+LOOP> HERE - ,    RAKE ; XIMMEDIATE

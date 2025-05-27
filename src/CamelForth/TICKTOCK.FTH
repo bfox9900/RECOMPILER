@@ -3,7 +3,7 @@
 \ credit to: http://www.unige.ch/medecine/nouspikel/ti99/tms9901.htm#Timer
 \ improvements based on code from Tursi Atariage
 \ TMR! now loads from the Forth stack
-\ Apr 2023  Went back to a new TICKS word that is more efficient. 
+\ Apr 2023  Went back to a new TICKS word that is more efficient.
 \           MS min= 32 milliseconds
 
 \ timer resolution:  64 clock periods, thus 64*333 = 21.3 microseconds
@@ -11,7 +11,7 @@
 
 COMPILER DECIMAL
 
-TARGET 
+TARGET
 CODE TMR!   ( n -- )         \ load TMS9901 timer from stack
              0 LIMI,
              R12 CLR,        \ CRU addr of TMS9901 = 0
@@ -35,17 +35,17 @@ CODE TMR@   ( -- n)         \ read the TMS9901 timer
              NEXT,
              ENDCODE
 
-CODE DT ( T1 T2 -- n)  
- *SP TOS SUB,  \ t1-t2  
-     TOS ABS,     
+CODE DT ( T1 T2 -- n)
+ *SP TOS SUB,  \ t1-t2
+     TOS ABS,
  *RP TOS SUB,  \ subtract from value on Return stack
-  NEXT, 
-ENDCODE 
+  NEXT,
+ENDCODE
 
-: TICKS ( n -- ) \ ** n(max) = 4000 ~= 100 ms ** 
+: TICKS ( n -- ) \ ** n(max) = 4000 ~= 100 ms **
   >R
   TMR@
-  BEGIN  
+  BEGIN
     TMR@ DT 0<
   WHILE
     PAUSE
@@ -54,6 +54,6 @@ ENDCODE
 ;
 
 \ 1500 TICKS ~= to 32mS. Miniumum time is 32mS
-: MS ( n -- ) 5 RSHIFT 1 MAX 0 DO  1500 TICKS  LOOP ; 
+: MS ( n -- ) 5 RSHIFT 1 MAX 0 DO  1500 TICKS  LOOP ;
 
 COMPILER HEX

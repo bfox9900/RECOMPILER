@@ -1,5 +1,5 @@
 \ Standard Forth output words Minimal Assembler  Sept 16 2023
-COMPILER HEX 
+COMPILER HEX
 
 TARGET
 8800 CONSTANT VDPRD               \ vdp ram read data
@@ -12,29 +12,29 @@ TARGET
 \ : RMODE ( vdpaddr -- ) DUP 0LIMI VDPWA C! >< VDPWA C! ;
 \ : WMODE ( vdpaddr -- ) 4000 OR RMODE ;
 
- CODE WMODE 
-    TOS 4000 ORI,   
-+CODE RMODE ( we can fall thru because there is no dictionary)   
+ CODE WMODE
+    TOS 4000 ORI,
++CODE RMODE ( we can fall thru because there is no dictionary)
     0 LIMI,
-    TOS SWPB,  TOS VDPWA @@ MOVB, 
     TOS SWPB,  TOS VDPWA @@ MOVB,
-    TOS POP, 
-    NEXT, 
-ENDCODE 
+    TOS SWPB,  TOS VDPWA @@ MOVB,
+    TOS POP,
+    NEXT,
+ENDCODE
 
 \ : EMIT+  ( c --) VDPWD C! ; \ write & inc. address
  CODE EMIT+ ( c --)
-    TOS SWPB, 
-    TOS VDPWD @@ MOVB, 
-    TOS POP, 
-    NEXT, 
- ENDCODE     
+    TOS SWPB,
+    TOS VDPWD @@ MOVB,
+    TOS POP,
+    NEXT,
+ ENDCODE
 
 : VFILL   ( vaddr len c -- )
-    ROT WMODE 
-    SWAP 
+    ROT WMODE
+    SWAP
     BEGIN
-      OVER EMIT+ 
+      OVER EMIT+
       1- DUP
     -UNTIL
     2DROP ;
@@ -56,22 +56,22 @@ TARGET
 
 : COL+!  ( n -- )
   COL @ +  DUP C/SCR @ >
-  IF DROP 
+  IF DROP
     COL OFF  ROW OFF ( wrap, not scroll)
     EXIT
 
   THEN COL ! ;
 
 : ROW+!  ( n -- ) ROW @ +  0 23 CLIP ROW ! ;
-: EMIT   ( c --)  CURSOR WMODE EMIT+ 1 COL+! ; 
+: EMIT   ( c --)  CURSOR WMODE EMIT+ 1 COL+! ;
 : CR     ( -- )   1 ROW+!  COL OFF ;
 : SPACE  ( -- )   BL EMIT ;
 
 : TYPE   ( addr len -- )
-    CURSOR WMODE 
+    CURSOR WMODE
     >R
     BEGIN
-      COUNT EMIT+ 1 COL+!  
+      COUNT EMIT+ 1 COL+!
       R> 1- DUP>R
     -UNTIL
     R> 2DROP ;

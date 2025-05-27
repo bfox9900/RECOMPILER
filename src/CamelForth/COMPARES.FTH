@@ -1,6 +1,6 @@
 [CC] CR .( COMPARISON operators )
 
-TARGET 
+TARGET
 CODE 0=     ( n -- ?)         \ used 6X in kernel
             TOS NEG,
             NE IF,
@@ -54,19 +54,33 @@ CODE <      ( n1 n2 -- flag)
 1 $:        NEXT,
              ENDCODE
 
-[CC] CR .( MIN & MAX ) 
+[CC] CR .( MIN & MAX )
 
-TARGET 
+TARGET
 CODE MIN    ( n1 n2 -- n)
-            *SP TOS CMP,    \ compare n1 & n2
-            1 $ JLT,       \ if n1 < n2 goto 1 $:
-            3 $ JMP,
+        *SP TOS CMP,   \ compare n1 & n2
+        1 $ JLT,       \ if n1 < n2 goto 1 $:
+        SP INCT,
+        NEXT,
 +CODE MAX   ( n1 n2 -- n)
-            *SP  TOS CMP,   \ compare n1 & n2
-            2 $ JGT,       \ if n1 > n2 goto 1 $:
-3 $:        SP INCT,       \ otherwise NIP n1
-            NEXT,
-1 $: 2 $:   TOS POP,       \ DROP n1, refill TOS
-            NEXT,
-            ENDCODE
+        *SP  TOS CMP,  \ compare n1 & n2
+        1 $ JGT,       \ if n1 > n2 goto 1 $:
+        SP INCT,       \ otherwise NIP n1
+        NEXT,
+1 $:    TOS POP,       \ DROP n1, refill TOS
+        NEXT,
+ENDCODE
 
+CODE UMIN     ( n1 n2 -- n) \ used by ACCEPT
+        *SP TOS CMP,
+        1 $ JL,             \ unsigned comparisons
+        SP INCT,
+        NEXT,
++CODE UMAX   ( n1 n2 -- n)
+        *SP  TOS CMP,
+        1 $ JH,
+        SP INCT,
+        NEXT,
+1 $:    TOS POP,
+        NEXT,
+ENDCODE

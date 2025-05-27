@@ -1,10 +1,27 @@
 COMPILER cr .( Console output)
 
 HEX TARGET
+\ FAST user variable for screen driver
+CODE C/L@   ( -- n )        \ used 8 times in the KERNEL. Saves 24 bytes
+      TOS         PUSH,  \ and is 50% faster than C/L @
+      TOS         STWP,
+      2E (TOS) TOS MOV,
+      NEXT,
+ENDCODE
 
 : C/L!     ( c/l -- )  \ pronounced "SEE-PER-ELL-STORE"
       DUP C/L !           \ set chars per line
       L/SCR *  C/SCR ! ;  \ calc. chars per screen
+
+\ : >VPOS  ( x y -- Vaddr) C/L@ * + VPG @ + ; \ 12 bytes
+CODE >VPOS ( col row -- vaddr) \ compute a VDP screen address
+      R1         STWP,
+      TOS     R3  MOV,   \ this move to make best use of MPY
+      2E (R1) R3  MPY,   \ mult by chars/line. result goes to R4 ie: TOS
+     *SP+     TOS ADD,   \ add col value to TOS
+      7E (R1) TOS ADD,   \ add Video page offset
+      NEXT,
+ENDCODE \ 14 BYTES
 
 : VPOS   ( -- vaddr) VROW 2@ >VPOS ;
 : VPUT   ( char -- ) VPOS VC! ;

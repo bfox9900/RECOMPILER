@@ -1,7 +1,7 @@
 \ MAKE CAMEL99 ITC Forth with FXCC cross-compiler  Nov 2024  Brian Fox
 
 \    *** TIB AND STACK LOCATIONS ***
-COMPILER 
+COMPILER
 HEX
         FFFC    EQU EMEM     \ EMEM = "end of memory"
         0050    EQU TIBSIZE  \ 80 bytes is the longest file string
@@ -15,81 +15,87 @@ EMEM TIBSIZE -  EQU 'TIB     \ Terminal input buffer just below
 
     A000 VALUE CODESEG
     2000 VALUE HEAPSEG
-     
-\ setup the build     
+
+\ setup the build
     NEW
-    CODESEG ORG 
+    CODESEG ORG
 
-HEADERS ON  
-WARNINGS OFF 
+HEADERS  ON    \ include dictionary
+WARNINGS OFF  \ prevents endless "<xxxx> is redefined"
 
-CHDIR DSK9.   \ camel99 source code disk 
-S" ITC-TYPES"  +PATH INCLUDED   \ teach compiler CONSTANT VARIABLE : ; etc. 
-S" BRANCHING"  +PATH INCLUDED   \ cross-compiler IF ELSE THEN BEGIN etc.
-\ compiler extensions and forward references for (S") and TYPE 
-S" TSQUOTE"     +PATH INCLUDED  
+CHDIR DSK9.   \ camel99 source code disk
+S" ITC-CODE"  INCLUDED   \ #1 code word definer
+S" EXECUTORS" INCLUDED   \ fundamental runtime code for Forth
+S" ITC-TYPES" INCLUDED   \ CONSTANT VARIABLE : ; etc.
+S" BRANCHING" INCLUDED   \ cross-compiler IF ELSE THEN BEGIN etc.
+\ compiler extensions and forward references for (S") and TYPE
+S" TSQUOTE"   INCLUDED
 
 \ build the target image ...
-COMPILER HEX 
+COMPILER HEX
+\ ====================================
 CHDIR DSK9.
-\ FORTH "CODE" words === 
-S" FETCHSTORE" +PATH INCLUDED   
-S" RSTACK"     +PATH INCLUDED
-S" DODOES"     +PATH INCLUDED 
-S" DATASTACK"  +PATH INCLUDED 
-S" LOGICMATH"  +PATH INCLUDED 
-S" MULTDIV"    +PATH INCLUDED 
-S" COMPARES"   +PATH INCLUDED 
-S" MOVEFILL"   +PATH INCLUDED 
-S" SKIPSCAN"   +PATH INCLUDED
-S" FIND"       +PATH INCLUDED 
-S" MISC"       +PATH INCLUDED  \ contains PAUSE EXECUTE 
-S" DOLOOP"     +PATH INCLUDED  \ primitives for DO/LOOP
+CR .(  "CODE" words )
+S" FETCHSTORE"  INCLUDED
+S" RSTACK"      INCLUDED
+S" DODOES"      INCLUDED
+S" DATASTACK"   INCLUDED
+S" LOGICMATH"   INCLUDED
+S" MULTDIV"     INCLUDED
+S" COMPARES"    INCLUDED
+S" MOVEFILL"    INCLUDED
+S" SKIPSCAN"    INCLUDED
+S" FIND"        INCLUDED
+S" MISC"        INCLUDED  \ contains PAUSE EXECUTE
+\ ======================================
 
-\ TI-99  low level I/O drivers 
-S" VDP-API"    +PATH INCLUDED  
-S" KEYSCAN"    +PATH INCLUDED  \ has ?TERMINAL  
+S" DOLOOP"      INCLUDED  \ cross-compiler DO/LOOP
+
+\ TI-99  I/O drivers
+S" VDP-API"     INCLUDED
 \ =====================
 
-\ Meta words look like Forth but compile to TARGET 
- S" METADEFS"   +PATH INCLUDED 
+\ Meta words look like Forth but compile to TARGET
+\ S" METADEFS"    INCLUDED
 
-\ add cross-compiler colon/semi-colon 
-S" COLON"      +PATH INCLUDED 
+\ add cross-compiler colon/semi-colon
+S" ITC-COLON"   INCLUDED
 
 \ *****************************************************************
 \ >>> Compiler definitions must use host: ;HOST after this line <<<
 \ *****************************************************************
 
-\ 1st Forth "secondary" definitions 
-S" TICKTOCK"   +PATH INCLUDED   \ 9901 hardware timer
+\ 1st Forth "secondary" definitions
+S" TICKTOCK"    INCLUDED   \ 9901 hardware timer
 
-\ S" IMMEDIATE"   +PATH INCLUDED 
+\ S" IMMEDIATE"    INCLUDED
 
-\ Camel Forth System 
-COMPILER 
+\ Camel Forth System
+COMPILER WARNINGS OFF
+CHDIR DSK9.
 
-S" HILEVEL"    +PATH INCLUDED  
+\ S" LOWLEVEL" INCLUDED
+
+S" HILEVEL"    INCLUDED  \ includes: CONSOLE DSRLINKB FILESYS
 
 \ ======================================================================
 \  P A T C H   T H E   T A R G E T  S Y S T E M   V A R I A B L E S
 \                            *IMPORTANT*
-\        Explicately select WORDLIST for variables and actions 
+\        Explicately select WORDLIST for variables and actions
 \
 
-COMPILER 
+COMPILER
 TLAST  HOST @ DUP   COMPILER LATEST T! ORGLAST T!
 
-COMPILER 
-THERE TCELL+  DP T!  
-THERE TCELL+  ORGDP T!
+COMPILER
+THERE  ORGDP T!
 
-PREAMBLE COLD 
+PREAMBLE COLD
 BOOT AUTOSTART WARM
 
 END.   ( report compile time and stats)
 
-SAVE DSK8.NEWCAMEL 
+SAVE DSK8.NEWCAMEL
 
-HOST 
+HOST
 CR ." === COMPILE ENDED PROPERLY ==="

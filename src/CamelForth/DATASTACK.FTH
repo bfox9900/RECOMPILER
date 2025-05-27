@@ -26,16 +26,15 @@ CODE NIP    ( n n' -- n')
 CODE ?DUP   ( x -- 0 | x x)       \ ?DUP interleaved with DUP to save space
             TOS TOS MOV,          \ test for TOS<>0
             NE IF,                \ if TOS<>0
-                TOS PUSH,        \ dup it
+                TOS PUSH,         \ dup it
             ENDIF,
             NEXT,
             ENDCODE
 
 CODE DUP    ( w -- w w )          \ create a Forth Header for DUP
-\            _DUP >HSRAM CFA!       \ use hi-speed ram version
            TOS PUSH,
            NEXT,
-            ENDCODE
+           ENDCODE
 
 CODE SWAP   ( w1 w2 -- w2 w1 )
             TOS   W MOV,          \ 14
@@ -57,11 +56,11 @@ CODE OVER   ( w1 w2 -- w1 w2 w1 )
 \              ENDCODE
 
 CODE ROT    ( n1 n2 n3 --  n2 n3 n1)
-            2 (SP)    W MOV, 
-            *SP  2 (SP) MOV, 
-            TOS     *SP MOV, 
-            W       TOS MOV,  
-            NEXT,   
+            2 (SP)    W MOV,
+            *SP  2 (SP) MOV,
+            TOS     *SP MOV,
+            W       TOS MOV,
+            NEXT,
             ENDCODE
 
 CODE -ROT   ( n1 n2 n3 --  n2 n3 n1)
@@ -85,12 +84,12 @@ CODE 2DROP  ( n n -- )
             NEXT,            \ = 38
             ENDCODE
 
-\ 3 instructions 62 clocks vs 6 instructions 100 clocks for OVER OVER 
+\ 3 instructions 62 clocks vs 6 instructions 100 clocks for OVER OVER
 CODE 2DUP  ( n1 n2 -- n1 n2 n1 n2 )
             SP -4 AI,       \  14   make room for 2 cells
             4 (SP) *SP MOV,   \  26   n1->*SP
             TOS  2 (SP) MOV,  \  22   n2 -> next stack location
-            NEXT,            \   62   
+            NEXT,            \   62
             ENDCODE
 
 CODE 2SWAP  ( n1 n2 n3 n4-- n3 n4 n1 n2)
@@ -109,4 +108,3 @@ CODE PICK   ( n -- n)   \ GForth ITC takes 8 intel instructions for PICK
              *TOS TOS MOV,   \ 18
               NEXT,         \  46
               ENDCODE
-
