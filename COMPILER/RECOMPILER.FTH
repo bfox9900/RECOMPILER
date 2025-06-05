@@ -18,6 +18,7 @@ NEEDS VIRT>REAL FROM DSK1.SAMS
 NEEDS SAMS.FILL FROM DSK7.SAMSMEM
 NEEDS DIR       FROM DSK1.DIR
 NEEDS SDUMP FROM DSK1.SAMSDUMP
+NEEDS COMPARE FROM DSK1.COMPARE
 
 \ we need clean copies of words that are weird in the Camel99 kernel
 \ for IMPORT: to access
@@ -83,6 +84,9 @@ INCLUDE DSK7.MASMLABELS   \ handy to have labels for jumping around
  \ =================================================
 \ duplicate some Forth words in COMPILERS VOCABULARY
 \ so they are visible in TARGET mode
+INCLUDE DSK1.CONDCOMP   \ conditional compilation is handy
+
+
 : \    1 PARSE 2DROP ; IMMEDIATE
 : (    POSTPONE (  ;  IMMEDIATE  ( borrowed from Forth )
 : .(   POSTPONE .(     ; IMMEDIATE
@@ -369,7 +373,7 @@ HEX
     WARM  E4 7 VWTR
     INIT-WORDLISTS
     HOST ALSO COMPILERS
-    CR ." FXCC Meta Compiler V0.91 15May2025"
+    CR ." FXCC Meta Compiler V0.92 5Jun2025"
     CR
     SAMSINI
     CR COMPILER NEW
