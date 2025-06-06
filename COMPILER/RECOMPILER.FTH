@@ -54,7 +54,7 @@ DECIMAL
 
 \ string management
 HEX
-: +PLACE ( addr n $ -- ) 2DUP 2>R  COUNT +  SWAP MOVE 2R> C+! ;
+: +PLACE ( addr n $ -- ) 2DUP 2>R  COUNT +  SWAP CMOVE 2R> C+! ;
 : BETWEEN 1+ WITHIN ;
 : LOWER? ( c -- ?) [CHAR] a [CHAR] z BETWEEN ;
 : UPPER? ( c -- ?) [CHAR] A [CHAR] Z BETWEEN ;
@@ -85,7 +85,6 @@ INCLUDE DSK7.MASMLABELS   \ handy to have labels for jumping around
 \ duplicate some Forth words in COMPILERS VOCABULARY
 \ so they are visible in TARGET mode
 INCLUDE DSK1.CONDCOMP   \ conditional compilation is handy
-
 
 : \    1 PARSE 2DROP ; IMMEDIATE
 : (    POSTPONE (  ;  IMMEDIATE  ( borrowed from Forth )
@@ -188,6 +187,7 @@ CREATE $HOME 16 ALLOT $HOME OFF
     PAD PLACE   PAD +PLACE  PAD COUNT ;
 : -PATH  ( $ u -- $ u ?)  2DUP [CHAR] . SCAN NIP 0= ;
 : MAKE-PATH ( $ u -- $' u') -PATH IF +PATH THEN ;
+
 \ SMART include
 : INCLUDED  MAKE-PATH  INCLUDED ;
 : INCLUDE   PARSE-NAME INCLUDED ;

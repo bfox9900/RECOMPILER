@@ -2,7 +2,7 @@
 
 COMPILER HEX
 
-IMPORT: OR C@ C! SPLIT FUSE >R R> SWAP ROT 
+IMPORT: OR C@ C! SPLIT FUSE >R R> SWAP ROT
 
 TARGET
 8800 CONSTANT VDPRD               \ vdp ram read data
@@ -11,13 +11,13 @@ TARGET
 8C02 CONSTANT VDPWA               \ vdp ram read/write address
 
 \ VDP set-address sub-routines
-CODE RMODE 
+CODE RMODE
     R1 STWP,               \ avoids 2 SWPB instructions
     0 LIMI,
     9 (R1) 8C02 @@ MOVB,   \ write odd byte from TOS (ie: R4)
     TOS 8C02 @@ MOV,       \ MOV writes the even byte to the port
     NEXT,
-ENDCODE     
+ENDCODE
 
 : WMODE ( vdpaddr -- ) 4000 OR RMODE ;
 
@@ -32,14 +32,14 @@ ENDCODE
 : V!    ( n vaddr --) >R  SPLIT R> VC! VDPWD C! ;
 
 [CC] CR ." VWRITE VREAD VFILL"
-TARGET 
-CODE (VMBW)  ( RAM-addr cnt -- ) \ must be used with WMODE 
+TARGET
+CODE (VMBW)  ( RAM-addr cnt -- ) \ must be used with WMODE
         TOS R0 MOV,         \ cnt in R0
         TOS POP,            \ cpu addr to TOS
         R3 VDPWD LI,        \ vdp addr. in a reg. makes this 12.9% faster
         BEGIN,
              R0 DEC,
-        OC WHILE,      
+        OC WHILE,
             *TOS+ *R3 MOVB, \ write byte to vdp write port
         REPEAT,
         2 LIMI,
@@ -47,27 +47,27 @@ CODE (VMBW)  ( RAM-addr cnt -- ) \ must be used with WMODE
         NEXT,               \ return to Forth
 ENDCODE
 
-: VWRITE ( RAM-addr VDP-addr cnt -- ) SWAP WMODE (VMBW) ; 
+: VWRITE ( RAM-addr VDP-addr cnt -- ) SWAP WMODE (VMBW) ;
 
-CODE (VMBR) ( RAM-addr cnt  -- ) \ MUST be used with RMODE 
+CODE (VMBR) ( RAM-addr cnt  -- ) \ MUST be used with RMODE
         TOS R0 MOV,        \ cnt->R0
         TOS POP,           \ RAM address to TOS
         R3 VDPRD LI,       \ put VDP read port address in R3. 12% faster
         BEGIN,
            R0 DEC,
-        OC WHILE,                 
+        OC WHILE,
            *R3 *TOS+ MOVB,  \ READ from VDP RAM into CPU RAM , autoINC
         REPEAT,
         2 LIMI,
         TOS POP,           \ refill TOS
-        NEXT, 
+        NEXT,
 ENDCODE
 
 : VREAD ( VDP-adr RAM-addr cnt  -- ) ROT RMODE (VMBR) ;
 
 CODE (VFILL) ( count char-- )
         TOS W MOV,
-            W SWPB, 
+            W SWPB,
           TOS POP,            \ TOS:=count
         R3 VDPWD LI,          \ vdp addr. in a reg. makes this 12.9% faster
         BEGIN,

@@ -427,8 +427,8 @@ TARGET
 \ ======================================================================
 \ TI-99 F I L E   S Y S T E M   I N T E R F A C E
 
- COMPILER S" DSRLINKB" INCLUDED   \ VER B saves GPL R15
- COMPILER S" FILESYS"  INCLUDED
+ COMPILER INCLUDE DSRLINKB   \ VER B saves GPL R15
+ COMPILER INCLUDE FILESYS
 
 \ ======================================================================
 \ D I C T I O N A R Y   C R E A T I O N
@@ -497,7 +497,7 @@ COMPILER WARNINGS ON
 \ ======================================================================
 \ LOOPS AND BRANCH COMPILERS FOR THE TI-99 SYSTEM
 
-  S" ISOLOOPS" INCLUDED
+ INCLUDE ISOLOOPS
 
 \ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 \  ===[ CANNOT COMPILE IF, ELSE, THEN, BEGIN UNTIL ETC. AFTER THIS ]===
@@ -564,8 +564,8 @@ TARGET
       LATEST DUP CONTEXT ! CURRENT !
       TEST
       PAGE TS" CAMEL99 Forth " TYPE
+      CR  ABORT
 
-      ABORT
 ;
 
 \ debugging word

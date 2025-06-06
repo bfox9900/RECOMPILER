@@ -1,7 +1,10 @@
-\ VDPDRVR.FTH    tms9918 video chip API in mostly Forth   2023 B Fox
+\ VDPDRVR.FTH simple tms9918 video chip API in Forth 2023 B Fox
 
-COMPILER HEX
+COMPILER
 
+[UNDEFINED] DO [IF]  S" DOLOOP" INCLUDED  [THEN]
+
+HEX
 TARGET
 8800 CONSTANT VDPRD               \ vdp ram read data
 8802 CONSTANT VDPSTS              \ vdp status
