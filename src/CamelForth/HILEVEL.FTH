@@ -388,7 +388,7 @@ TARGET
 : <INTERP>  ( i*x c-addr u -- j*x )
       'SOURCE 2!  >IN OFF
       BEGIN
-        BL WORD  DUP C@   ( -- addr len)
+        BL WORD  DUP C@   ( -- caddr len)
       WHILE
         FIND ?DUP
         IF ( it's a word)
