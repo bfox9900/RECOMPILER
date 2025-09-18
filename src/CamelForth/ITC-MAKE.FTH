@@ -75,7 +75,7 @@ COMPILER WARNINGS OFF
 CHDIR DSK9.
 
 
-S" HILEVEL"    INCLUDED  \ includes: CONSOLE DSRLINKB FILESYS
+\ S" HILEVEL"    INCLUDED  \ includes: CONSOLE DSRLINKB FILESYS
 
 \ ======================================================================
 \  P A T C H   T H E   T A R G E T  S Y S T E M   V A R I A B L E S
