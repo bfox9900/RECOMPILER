@@ -201,6 +201,7 @@ ONLY FORTH ALSO COMPILERS DEFINITIONS
 
 \ Below we tick the duplicate word in host memory and fetch the TARGET XT
 : T'      ( <text> -- target-XT) ALSO TARGETS  '  >TARG-XT PREVIOUS ;
+: T[']    T'    POSTPONE LITERAL ; IMMEDIATE
 
 \ Tcompile gets an XT from HOST FIND. It cannot be compiled directly.
 \ We must reach inside to get the virtual memory address.
@@ -237,12 +238,15 @@ ONLY FORTH ALSO COMPILERS DEFINITIONS
 \ pass an XT to a forward reference word and store in the DATA field
 : RESOLVES  ( xt -- ) '  >BODY  ! ;
 
-\ forward references to this code might be needed
+\ forward references used in the Forth meta-compiling
 FORWARD 'DOVAR
 FORWARD 'DOCON
 FORWARD 'DOCOL
 FORWARD 'DOUSER
 FORWARD 'LIT
+FORWARD '(S")
+FORWARD 'TYPE
+
 
 : TLITERAL  ( n -- ) STATE @ IF  'LIT T,   T,  THEN ; IMMEDIATE
 
@@ -340,7 +344,8 @@ COMPILER
 
 \ tools
 : TWORDS  CR ." TARGET Words" ALSO TARGETS  WORDS   PREVIOUS ;
-: TDUMP  ( addr1 len) SDUMP ;
+: TDUMP  ( addr1 len) SDUMP ; \ dump target memory
+
 
 \ *******************************************************
 \ *** COMPILER DIRECTIVES TO PATCH THE BINARY PROGRAM ***
@@ -373,7 +378,7 @@ HEX
     WARM  E4 7 VWTR
     INIT-WORDLISTS
     HOST ALSO COMPILERS
-    CR ." FXCC Meta Compiler V0.92 5Jun2025"
+    CR ." FXCC Meta Compiler V0.92 23Sept2025"
     CR
     SAMSINI
     CR COMPILER NEW

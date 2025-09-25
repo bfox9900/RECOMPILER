@@ -5,8 +5,10 @@
 
 COMPILER
 NEW
+HEADERS OFF
 
 HEX A000 ORG
+INCLUDE DSK9.ITC-CODE
 
 \ ===============[ THIS WILL BE PUT INTO A SINGLE FILE ]==================
 \ target code starts here

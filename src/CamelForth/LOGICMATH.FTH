@@ -1,6 +1,6 @@
-[CC] CR .( LOGICAL OPERATIONS)
+COMPILER  CR .( LOGICAL OPERATIONS)
 
-TARGET 
+TARGET
 CODE AND    ( w w -- w )
             *SP INV,                  \ thanks to Mark Wills!   10
             *SP+ TOS SZC,             \ RTFM for TMS9900 BF     22
@@ -10,8 +10,9 @@ CODE AND    ( w w -- w )
 CODE OR     ( w w -- w )  *SP+ TOS SOC,  NEXT, ENDCODE
 CODE XOR    ( w w -- w )  *SP+ TOS XOR,  NEXT, ENDCODE
 
-CR .( ARITHMETIC)
+COMPILER CR .( ARITHMETIC)
 \ simple math is about 40% faster with TOS in register
+TARGET
 CODE 1+     ( n -- n') TOS INC,       NEXT, ENDCODE
 CODE 1-     ( n -- n') TOS DEC,       NEXT, ENDCODE
 CODE 2+     ( n -- n') TOS INCT,      NEXT, ENDCODE
@@ -27,9 +28,9 @@ CODE 2/     ( n -- n)   TOS 1 SRA,    NEXT, ENDCODE
 CODE 1+! ( addr -- )  *TOS INC,  TOS POP,  NEXT,   ENDCODE
 CODE 1-! ( addr -- )  *TOS DEC,  TOS POP,  NEXT,   ENDCODE
 
-[CC] CR .( ANS Shift operations)
-TARGET 
-CODE RSHIFT ( n bits -- n')  \ shift right logical. ANS/ISO Forth requirement 
+COMPILER CR .( ANS Shift operations)
+TARGET
+CODE RSHIFT ( n bits -- n')  \ shift right logical. ANS/ISO Forth requirement
             TOS R0 MOV,      \ the shift bits MUST be in R0 to do this
             TOS POP,
             R0 R0 MOV,       \ ANS:  1 0 LSHIFT -> 1
@@ -54,9 +55,10 @@ CODE INVERT  ( u -- w)
               NEXT,
               ENDCODE
 
-[CC] CR .( math ...)
+COMPILER
+CR .( math ...)
 \ : +   ( u1 u2 -- u ) UM+ DROP ;  original Camel Forth code is bigger
-TARGET 
+TARGET
 CODE +      ( u1 u2 -- u )
 \             _PLUS >HSRAM CFA!
             *SP+ TOS ADD,       \ ADD 2nd item to TOS and incr stack pointer.
@@ -89,10 +91,12 @@ CODE NEGATE ( n -- n )
             TOS NEG,
             NEXT,
             ENDCODE
-
+COMPILER HEX
+TARGET
 CODE ALIGNED ( n -- n)
             TOS INC,
             TOS FFFE ANDI,
             NEXT,
             ENDCODE
 
+COMPILER DECIMAL

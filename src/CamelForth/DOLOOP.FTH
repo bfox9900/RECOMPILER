@@ -1,3 +1,4 @@
+COMPILER
 CR .( DO/LOOP primitives & compilers ...)
 \ doloop.FTH  adds 104 bytes to the recompiled program
 
@@ -58,3 +59,5 @@ HOST: DO       TCOMPILE <DO>    THERE ;HOST IMMEDIATE
 HOST: ?DO      TCOMPILE <?DO>   THERE ;HOST IMMEDIATE
 HOST: LOOP     TCOMPILE <LOOP>  <BACK ;HOST IMMEDIATE
 HOST: +LOOP    TCOMPILE <+LOOP> <BACK ;HOST IMMEDIATE
+
+COMPILER

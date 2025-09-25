@@ -1,3 +1,61 @@
+\ MAKE CAMEL99 ITC Forth with FXCC cross-compiler  Nov 2024  Brian Fox
+
+\    *** TIB AND STACK LOCATIONS ***
+COMPILER
+HEX
+        FFFC    EQU EMEM     \ EMEM = "end of memory"
+        0050    EQU TIBSIZE  \ 80 bytes is the longest file string
+EMEM TIBSIZE -  EQU 'TIB     \ Terminal input buffer just below
+     'TIB  2 -  EQU 'SP0     \ FORTH DATA stack base address
+     'SP0 6E -  EQU 'RP0     \ FORTH RETURN stack base address
+
+      8300      EQU WRKSP0   \ primary workspace in 16 bit RAM
+
+\   *** TARGET MEMORY LOCATION ***
+
+    A000 VALUE CODESEG
+    2000 VALUE HEAPSEG
+
+\ setup the build
+    NEW
+    CODESEG ORG
+
+HEADERS  ON \ include dictionary
+WARNINGS ON  \ prevents endless "<xxxx> is redefined"
+
+\ Add the fundamentals to the compiler and kernel image
+CHDIR DSK9.   \ camel99 source code disk
+S" ITC-CODE"  INCLUDED   \ code word definer
+S" EXECUTORS" INCLUDED   \ fundamental runtime code for Forth
+S" ITC-TYPES" INCLUDED   \ CONSTANT VARIABLE : ; etc.
+S" BRANCHING" INCLUDED   \ cross-compiler IF ELSE THEN BEGIN etc.
+\ compiler extensions and forward references for (S") and TYPE
+S" TSQUOTE"   INCLUDED
+
+\ build the target image ...
+COMPILER HEX
+\ ====================================
+CHDIR DSK9.
+CR .(  "CODE" words )
+S" FETCHSTORE"  INCLUDED
+S" RSTACK"      INCLUDED
+S" DODOES"      INCLUDED
+S" DATASTACK"   INCLUDED
+S" LOGICMATH"   INCLUDED
+S" MULTDIV"     INCLUDED
+S" COMPARES"    INCLUDED
+S" MOVEFILL"    INCLUDED
+S" SKIPSCAN"    INCLUDED
+S" FIND"        INCLUDED
+S" MISC"        INCLUDED  \ contains PAUSE EXECUTE
+S" DOLOOP"      INCLUDED  \ cross-compiler DO/LOOP
+S" VDP-API"     INCLUDED
+S" ITC-COLON"   INCLUDED
+S" TICKTOCK"    INCLUDED   \ 9901 hardware timer
+
+\ Meta words look like Forth but compile to TARGET
+ S" METADEFS"    INCLUDED
+
 COMPILER CR .( Constants and VARIABLEs...)
 \ CAMEL99 Forth HI-LEVEL WORDs RE-COMPILED
 \ must be compile via  ITC-MAKE.FTH
@@ -12,7 +70,7 @@ COMPILER HEX
 \ Make them constants in the target system
 TARGET
 'SP0 CONSTANT SP0
-'SP0 CONSTANT RP0
+'RP0 CONSTANT RP0
 'TIB CONSTANT TIB
 
 \ Utility constants
@@ -26,7 +84,6 @@ COMPILER DECIMAL
 
 TARGET
    0024 CONSTANT L/SCR
-
 
 \ ======================================================================
 \ U S E R   V A R I A B L E S
@@ -243,7 +300,6 @@ TARGET
 : U.     ( u -- ) 0 UD. ;
 : (.)    ( n -- caddr len)  DUP ABS 0 <#  #S ROT SIGN  #> ;
 : .      ( n -- ) (.)  TYPE SPACE ;
-
 \ ======================================================================
 \ S I M P L E   S O U N D  I N T E R F A C E
 COMPILER HEX
@@ -265,7 +321,6 @@ TARGET
       90 SND!           \ turn on OSC1 at 0 dB level
       AA MS             \ Delay ~ 170 mS
       9F SND! ;         \ turn off OSC1
-
 
 \ ======================================================================
 \ I N T E R P R E T E R
@@ -405,8 +460,7 @@ TARGET
       DROP ;
 
 
-\ ======================================================================
-\ T I - 9 9   T E X T   M O D E   C O N T R O L
+\ ================================================================
 COMPILER HEX
 TARGET
 : TEXT    ( -- )
@@ -423,81 +477,6 @@ TARGET
       2 VMODE !   \ 2=ID for 40 column "TEXT" mode
       PAGE
 ;
-
-\ ======================================================================
-\ TI-99 F I L E   S Y S T E M   I N T E R F A C E
-
-\ COMPILER INCLUDE DSRLINKB   \ VER B saves GPL R15
-\ COMPILER INCLUDE FILESYS
-
-\ ======================================================================
-\ D I C T I O N A R Y   C R E A T I O N
-
-TARGET
-: HEADER, ( addr len --)
-      ALIGN
-      CURRENT @ @ ,        \ get last NFA & compile in this LFA field
-      0 C,                 \ compile the precedence byte (XIMMEDIATE flag)
-      HERE >R              \ save HERE (ie: new NFA location)
-      S,                   \ compile (addr len) as counted string
-      WARNINGS @
-      IF
-        R@ FIND ( xt ?) NIP ( ?)
-        IF
-          SPACE  R@ COUNT 1F AND TYPE  T."  redefined "
-        THEN
-      THEN
-      R> DUP LATEST !     \ HERE is NFA of last word defined
-             CURRENT @ !  \ Also store in the current 'WID'
-;
-
-: HEADER ( <TEXT> )  BL PARSE-WORD HEADER, ;
-
-\ =======================================================
-\ T A R G E T   S Y S T E M   D E F I N I N G   W O R D S
-\                    text    runtime-action   parameter
-\                   -------  --------------- -----------
- : CONSTANT  ( n --)  HEADER  TCOMPILE DOCON     COMPILE, ;
- : USER      ( n --)  HEADER  TCOMPILE DOUSER    COMPILE, ;
- : CREATE    ( -- )   HEADER  TCOMPILE DOVAR              ;
- : VARIABLE  ( -- )   CREATE                   0 COMPILE, ;
-
-\ (:noname) from studying gforth. It's a nice factor.
- : (:NONAME) ( -- ) TCOMPILE DOCOL  HIDE  ]  ;
-
-\ ======================================================================
-\ D O E S   S U P P O R T
-: (;CODE) ( -- )  R> LATEST @ NFA>CFA !  ;
-
-\ 06A0 = BL @XXXX   0460 = B @XXXX
-: DOES>    ( -- )
-
-      COMPILE (;CODE)
-      06A0 COMPILE,  ['] DODOES COMPILE,   \ compiles: BL @DODOES
-; XIMMEDIATE
-
-: TEST
-  CR TIB @ U.
-  CR HERE U.
-  CR PAD  U.
-  CR SOURCE SWAP U. U.
-  CR 'FIND @ U.
-;
-
-COMPILER WARNINGS ON
-\ ======================================================================
-\ LOOPS AND BRANCH COMPILERS FOR THE TI-99 SYSTEM
-
- INCLUDE DSK9.ISOLOOPS
-
-\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-\  ===[ CANNOT COMPILE IF, ELSE, THEN, BEGIN UNTIL ETC. AFTER THIS ]===
-\ //////////////////////////////////////////////////////////////////////
-
-\ ======================================================================
-\ COLD start. Sets Workspace, copy code to scratch pad, set stacks, run BOOT
-
-COMPILER HEX
 
 TARGET
 CODE COLD
@@ -524,15 +503,28 @@ CODE BYE   ( -- )
     0000 @@ BLWP,
 ENDCODE
 
-\ CODE DLY   TOS FFFF LI,  BEGIN,  TOS DEC,  EQ UNTIL,    NEXT, ENDCODE
+CODE HALT  BEGIN,  AGAIN,  NEXT, ENDCODE
 
-COMPILER
-\ ======================================================================
-\ B O O T   U P   C O D E
-COMPILER HEX
-TARGET
+: TESTER
+      HEX
+      HEX
+      PAGE ." Camel99 Built Itself"
+      CR
+      CR ." Press key to put EXIT in PAD"
+      KEY DROP
+      TS" EXIT" PAD PLACE
+      CR PAD COUNT TYPE
+      CR ." DP    = " DP @ U.
+      CR ." LATEST= " LATEST @ U.
+      CR ." PAD   = " PAD U.
+      CR
+      CR ." Press key to call Find"
+      KEY DROP
+      HEX
+      CR ." FIND RESULT= " PAD LATEST @ (FIND)  SWAP U. U.
+      KEY DROP
+;
 
-\ *G  WARM initializes variables and vectors
 : WARM  ( -- )
       80 83C2 C!
       26 TPAD !
@@ -546,25 +538,29 @@ TARGET
       SOURCE-ID OFF
       205F CURS !
       TEXT
-
-      ['] <INTERP> 'IV !
-      ['] <FIND>   'FIND !
-
-      DECIMAL
+      ['] <INTERP> 'IV ! ( ) \ >B762 -> >ABDA
+      ['] <FIND>   'FIND !   \ B6AE  -> B6C6
       ORGDP @ DP !
       ORGLAST @ LATEST !
       LATEST DUP CONTEXT ! CURRENT !
-      PAGE TS" CAMEL99 Forth " TYPE
-      CR
-      TEST
-      ABORT
+      TESTER
+      BYE
 ;
 
-\ debugging word
-\ CODE HALT  BEGIN, R13 INC, AGAIN,  NEXT, ENDCODE
+COMPILER
+\ LATEST = B857
+\ ORGLAST = B857
+TLAST  HOST @  DUP  COMPILER LATEST T! ORGLAST T!
 
-\ G*  LOADSYS is the primary boot word that starts Forth and loads extensions
-\ : LOADSYS
-\      WARM
-\      TS" DSK1.START" INCLUDED
-\      CR ABORT ;
+COMPILER
+THERE ORGDP T!
+
+PREAMBLE COLD
+BOOT AUTOSTART WARM
+
+END.   ( report compile time and stats)
+
+SAVE DSK8.KERNEL
+
+ONLY FORTH DEFINITIONS
+ CR ." === COMPILE ENDED PROPERLY ==="

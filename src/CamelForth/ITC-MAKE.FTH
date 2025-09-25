@@ -70,12 +70,14 @@ S" TICKTOCK"    INCLUDED   \ 9901 hardware timer
 
 \ S" IMMEDIATE"    INCLUDED
 
-\ Camel Forth System
-COMPILER WARNINGS OFF
+\ Camel Forth Compiler etc.
+COMPILER WARNINGS ON
 CHDIR DSK9.
 
 
 \ S" HILEVEL"    INCLUDED  \ includes: CONSOLE DSRLINKB FILESYS
+
+
 
 \ ======================================================================
 \  P A T C H   T H E   T A R G E T  S Y S T E M   V A R I A B L E S
@@ -96,5 +98,7 @@ END.   ( report compile time and stats)
 
 SAVE DSK8.NEWCAMEL
 
-HOST
-CR ." === COMPILE ENDED PROPERLY ==="
+ONLY FORTH DEFINITIONS
+ CR ." === COMPILE ENDED PROPERLY ==="
+
+\ (FIND) is at B50C

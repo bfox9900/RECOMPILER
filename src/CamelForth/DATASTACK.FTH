@@ -1,5 +1,6 @@
-CR .( DATA STACK)
+COMPILER CR .( DATA STACK)
 
+TARGET
 CODE SP@    ( -- a )
             TOS PUSH,
             SP TOS MOV,
@@ -108,3 +109,5 @@ CODE PICK   ( n -- n)   \ GForth ITC takes 8 intel instructions for PICK
              *TOS TOS MOV,   \ 18
               NEXT,         \  46
               ENDCODE
+
+COMPILER DECIMAL

@@ -10,13 +10,21 @@ VARIABLE TLAST                \ target dictionary: last word's NFA
 
 HEX
 \ compile (addr len) as counted string
-: ?TNAME, ( addr len --) HEADERS @ IF  TS,  ELSE 2DROP  THEN ;
+: ?TNAME, ( addr len --)
+      HEADERS @
+      IF
+           TS,   \ compile the name
+      ELSE
+           2DROP  \ drop name
+           1 TC, [CHAR] $ TC,   \ compile string of length 1
+      THEN ;
 
 : THEADER, ( addr len --)
       ALIGN
-      TLAST @ T,              \ get last NFA & compile in this LINK field
-      0 TC,                   \ compile the precedence byte (immediate flag)
-      THERE >R                \ save HERE (ie: new NFA location)
+      HEADERS @ IF TLAST @ T, THEN  \ get last NFA & compile in LINK fld.
+      0 TC,             \ compile the precedence byte (immediate flag)
+
+      THERE >R          \ save HERE (ie: new NFA location)
       ?TNAME,
       WARNINGS @
       IF
@@ -25,7 +33,7 @@ HEX
           SPACE  R@ COUNT 1F AND TYPE ." WARNING: TARGET word redefined"
         THEN
       THEN
-      R> TLAST !         \ HERE is NFA of last word defined
+      R> TLAST !     \ THERE is NFA of last TARGET word defined
 ;
 
 
@@ -59,11 +67,11 @@ COMPILER VARIABLE TCODEWORDS
 
 \ +CODE used to permit jumps inside of CODE/ENDCODE
 : +CODE
-      ALSO ASSEMBLER
+ \     ALSO ASSEMBLER
       !CSP
       TCREATE   THERE CELL+ T,
       TCODEWORDS 1+!
       DOES> TRUE ABORT" Can't run TARGET code word" ;
 
 : CODE       NEWLABELS  +CODE ;
-: ENDCODE    ?CODE-ERR RESOLVER  PREVIOUS  ;
+: ENDCODE    ?CODE-ERR RESOLVER  ( PREVIOUS)  ;

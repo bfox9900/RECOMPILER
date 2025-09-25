@@ -1,0 +1,10 @@
+
+SEPT 23 2025
+-------------
+somehow I forgot to add T['] so now we have one.
+
+Added [']  to metadefs.fth
+
+Added FORWARD word '(S")  and 'TYPE to recompiler core
+
+------------

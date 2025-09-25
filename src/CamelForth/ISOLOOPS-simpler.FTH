@@ -11,7 +11,6 @@ TARGET
 \ THEN resolves forward branches
 \ computes offset: (HERE -  addr)  & stores result in addr
 \ *note* IMMEDIATE in TARGET context is a META word that affects Target words
-: THEN  ( addr -- )  HERE OVER - SWAP ! ; XIMMEDIATE
 : AHEAD    ( -- addr)   HERE 0 , ;  \ compile empty jump forward
 
 
@@ -56,14 +55,15 @@ TARGET
 \ -----------------------------------------------------------------------
 \ SIMPLIFIED LOOPS
 \ Posted by dxforth comp.lang.forth, modified for FXCC cross-compiler
-: <BACK   HERE - , ;
-: BEGIN   HERE ;                                XIMMEDIATE
-: IF      COMPILE ?BRANCH AHEAD ;               XIMMEDIATE
-: ELSE    COMPILE BRANCH AHEAD SWAP T[COMPILE] THEN ; XIMMEDIATE
-: AGAIN   COMPILE BRANCH  <BACK  ;              XIMMEDIATE
-: UNTIL   COMPILE ?BRANCH <BACK  ;              XIMMEDIATE
-: WHILE   T[COMPILE] IF SWAP ;                  XIMMEDIATE
-: REPEAT  T[COMPILE] AGAIN T[COMPILE] THEN ;    XIMMEDIATE
+: THEN  ( addr -- )  HERE OVER - SWAP ! ; IMMEDIATE
+: IF      COMPILE ?BRANCH  HERE 0 , ;               IMMEDIATE
+: ELSE    COMPILE BRANCH  HERE 0 , SWAP [COMPILE] THEN ; IMMEDIATE
+
+: BEGIN   HERE ;                               IMMEDIATE
+: AGAIN   COMPILE BRANCH  HERE - , ;              IMMEDIATE
+: UNTIL   COMPILE ?BRANCH HERE - ,  ;              IMMEDIATE
+: WHILE   [COMPILE] IF SWAP ;                  IMMEDIATE
+: REPEAT  [COMPILE] AGAIN [COMPILE] ENDIF ;    IMMEDIATE
 
 \ ========================================================================
 \ DO/LOOP  COMPILERS

@@ -28,7 +28,7 @@
 \ Outputs: R2 = address of found string -OR- address of search string on stack
 \          R4 = Forth TOS register. Holds the true/false result flag
 
-TARGET 
+TARGET
 CODE (FIND) ( Caddr NFA -- XT ? )
   TOS R3 MOV,             \ R3 = NFA which is a counted string
   TOS CLR,                \ TOS is the output flag, init to zero
@@ -72,4 +72,3 @@ CODE (FIND) ( Caddr NFA -- XT ? )
     UNTIL,
     NEXT,                \ we got zero. End of the list! Go back to Forth
 ENDCODE                  \ 42 BYTES
-

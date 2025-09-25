@@ -37,12 +37,16 @@ CODE C!     ( c addr -- )
 CODE COUNT  ( addr -- addr' u)
             TOS PUSH,             \ make a copy of addr
             *SP INC,              \ inc. addr past the count byte
-L: _C@      *TOS TOS MOVB,        \ put C@ inline to save space
+           *TOS TOS MOVB,        \ put C@ inline to save space
             TOS 8 SRL,            \ **BUG FIX** used to be SRA :-(
             NEXT,
             ENDCODE
 
-CODE C@     _C@  -2 TALLOT THERE T! ENDCODE      \ give _C@ a dictionary header
+CODE C@    *TOS TOS MOVB,        \ put C@ inline to save space
+            TOS 8 SRL,            \ **BUG FIX** used to be SRA :-(
+            NEXT,
+            ENDCODE
+
 
 CODE +!     ( n addr --)
             *SP+ *TOS ADD,         \ 14+8+4 = 26 cycles

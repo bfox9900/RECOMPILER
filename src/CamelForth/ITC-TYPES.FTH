@@ -4,14 +4,13 @@ COMPILER
 
 : NFA>LFA       ( nfa -- lfa)   3 - ;
 : NFA>IMM       ( nfa -- precedence-field) NFA>LFA  TCELL+ ;
-: >TBODY        ( cfa -- pfa ) TCELL+ ;
+: >TBODY        ( cfa -- pfa ) CELL+ ;
 
 \ TARGET WORD precedence field control
 HOST: XIMMEDIATE  ( -- ) 1  TLAST @ 1- TC! ;HOST
 
 \ test if a TARGET word is immediate
 HOST: XIMMEDIATE? ( nfa -- ?) 1- TC@ 01 AND 0> ;HOST
-
 
 COMPILER
 CR .( TARGET DEFINING WORDS, 16 BIT MACHINE)
@@ -35,7 +34,6 @@ ALSO META DEFINITIONS
 : 2VARIABLE  TCREATE  TCOMPILE DOVAR    0 T, 0 T,  DOES> @ >TBODY ;
 : CONSTANT   TCREATE  TCOMPILE DOCON ( n) T,       DOES> @ >TBODY T@ ;
 
-HOST: T[']   TCOMPILE LIT  T'   T,  ;HOST  IMMEDIATE
 
 \ USER variables are used in Multi-tasking Forth systems.
 \ They are "local" to a specific task and usually reference by a pointer

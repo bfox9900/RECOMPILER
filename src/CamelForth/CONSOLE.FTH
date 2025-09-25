@@ -79,13 +79,12 @@ CODE ++@ ( addr -- n) *TOS INC,  *TOS TOS MOV,  NEXT, ENDCODE
       (EMIT) ;
 
 TARGET
-\ : TYPE   ( addr cnt --) PAUSE BOUNDS ?DO  I C@ (EMIT)  LOOP ;
-: TYPE   ( addr len )  0 DO  COUNT (EMIT) LOOP DROP ;
+\ : TYPE   ( addr cnt --) ( PAUSE)  BOUNDS ?DO  I C@ EMIT  LOOP ;
+: TYPE   ( addr len ) DUP 0= IF 2DROP EXIT THEN 0 DO  COUNT (EMIT) LOOP DROP ;
  T' TYPE RESOLVES 'TYPE
 
 : SPACE  ( -- )   BL (EMIT) ;
 : SPACES ( n -- ) 0 MAX  0 ?DO  SPACE  LOOP ;
-
 
 \ *G Cursor flash control is done by reading the 9901 timer.
 \ ** Counts down from >3FFF in 349mS. If the timer > 1FFF we show the cursor.
@@ -114,8 +113,13 @@ CODE KEY? ( -- char)  \ *WARNING* it takes 1,128uS for KEY? scan to run
         NEXT,
         ENDCODE
 
-\ simple key for testing
-: KEY   ( -- C) BEGIN   KEY? ?DUP  UNTIL ;
+: KEY
+     BEGIN
+       CURS @ VPUT
+       KEY?
+       ?DUP
+       BL VPUT
+     UNTIL  ;
 
 \ * Very fast built-in Fctn-4 test in console ROM
 \   http://www.unige.ch/medecine/nouspikel/ti99/keyboard.htm
