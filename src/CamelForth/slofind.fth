@@ -25,24 +25,25 @@ CODE COMPARE ( str1,n,str2 n -- 0:SAME, 1:GT, -1:LT)
     NEXT,
  ENDCODE
 
-: IMMED?   ( nfa -- f) 1- C@ 1 AND ;
+: IMMED?   ( nfa -- f) ;
 
 CODE NFA>NFA -3 (TOS) TOS MOV, NEXT, ENDCODE
 
 \ find string in dictionary
-: (FIND) ( c-addr NFA -- c-addr 0) \ if not found
 \                        xt     1  if immediate
 \                        xt    -1  if "normal"
-    BEGIN            \ -- a nfa
-       2DUP                 \ -- a nfa a nfa
-       COUNT ROT COUNT      \ -- a nfa  nfa n a n
-       COMPARE              \ -- a nfa f
+: (FIND) ( c-addr wid -- c-addr 0) \ if not found
+    BEGIN                  \ -- a nfa
+       2DUP                \ -- a nfa a nfa
+       COUNT ROT COUNT     \ -- a nfa  nfa n a n
+       COMPARE             \ -- a nfa f
     WHILE
         NFA>NFA            \ -- a nfa'
     REPEAT                 \ -- a nfa  OR  a 0
+
     DUP IF
-       NIP DUP NFA>CFA       \ -- nfa xt
-       SWAP IMMED?           \ -- xt iflag
+       NIP DUP NFA>CFA     \ -- nfa xt
+       SWAP  1- C@ 1 AND   \ -- xt iflag
        0= 1 OR
     THEN ;
 

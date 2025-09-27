@@ -46,7 +46,6 @@ S" MULTDIV"     INCLUDED
 S" COMPARES"    INCLUDED
 S" MOVEFILL"    INCLUDED
 S" SKIPSCAN"    INCLUDED
-S" FIND"        INCLUDED
 S" MISC"        INCLUDED  \ contains PAUSE EXECUTE
 S" DOLOOP"      INCLUDED  \ cross-compiler DO/LOOP
 S" VDP-API"     INCLUDED
@@ -203,6 +202,10 @@ TARGET
 : PLACE   ( src n dst -- ) 2DUP C! 1+ SWAP MOVE ;
 : /STRING ( caddr1 u1 n - caddr2 u2 ) TUCK - >R + R> ;
 : S,       ( c-addr u -- ) HERE OVER 1+ ALLOT PLACE  ALIGN ;
+
+\ =====================================================================
+\ Dictionary search
+S" FIND"        INCLUDED
 
 \ =====================================================================
 \ P A R S E   W O R D
