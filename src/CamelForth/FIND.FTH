@@ -28,6 +28,7 @@
 \ Outputs: R2 = address of found string -OR- address of search string on stack
 \          R4 = Forth TOS register. Holds the true/false result flag
 
+\ For debugging
 \ INCLUDE DSK1.LOWTOOLS
 
 \ : *R8  R8 ** ;
@@ -62,8 +63,6 @@ CODE FINDNAME ( Caddr wid -- Caddr nfa | 0 )
   EQ UNTIL,              \ try again until link=0
   NEXT,
 ENDCODE
-
-\ : IMMED?   ( nfa -- f) 1- C@ 1 AND ;
 
 : (FIND)
     FINDNAME
