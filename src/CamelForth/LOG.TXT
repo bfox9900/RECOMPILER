@@ -12,3 +12,9 @@ Verified MS word is correct. Works just like Camel99 Forth
 Sept 24.
 HEADERS OFF  does not work on a large program.
 Why??  Tried using a 1 char name. Still no go.
+
+Sept 25:  We got 'ok' but find is not working
+
+Sept 26: Implemented WORDS to test dictionary links. works fine.
+
+more...

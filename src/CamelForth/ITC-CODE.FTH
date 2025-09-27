@@ -16,7 +16,7 @@ HEX
            TS,   \ compile the name
       ELSE
            2DROP  \ drop name
-           1 TC, [CHAR] $ TC,   \ compile string of length 1
+           0 TC, TALIGN
       THEN ;
 
 : THEADER, ( addr len --)

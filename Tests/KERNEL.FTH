@@ -503,16 +503,30 @@ CODE BYE   ( -- )
     0000 @@ BLWP,
 ENDCODE
 
-CODE HALT  BEGIN,  AGAIN,  NEXT, ENDCODE
+\ CODE HALT  BEGIN,  AGAIN,  NEXT, ENDCODE
+
+HEX
+: .ID  COUNT 1F AND  TYPE ;
+
+: WORDS
+    LATEST @
+    CR
+    BEGIN
+        DUP .ID SPACE
+        NFA>LFA @
+        DUP
+        0= ?TERMINAL OR
+    UNTIL
+    DROP
+;
 
 : TESTER
       HEX
-      HEX
       PAGE ." Camel99 Built Itself"
       CR
-      CR ." Press key to put EXIT in PAD"
+      CR ." Press key to put WARM in PAD"
       KEY DROP
-      TS" EXIT" PAD PLACE
+      TS" WARM" PAD PLACE
       CR PAD COUNT TYPE
       CR ." DP    = " DP @ U.
       CR ." LATEST= " LATEST @ U.
@@ -543,8 +557,11 @@ CODE HALT  BEGIN,  AGAIN,  NEXT, ENDCODE
       ORGDP @ DP !
       ORGLAST @ LATEST !
       LATEST DUP CONTEXT ! CURRENT !
+
       TESTER
-      BYE
+      WORDS
+      KEY DROP
+      ABORT
 ;
 
 COMPILER
