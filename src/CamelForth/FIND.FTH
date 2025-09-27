@@ -65,11 +65,10 @@ ENDCODE
 
 \ : IMMED?   ( nfa -- f) 1- C@ 1 AND ;
 
-: NFA>XT ( caddr nfa -- xt ?)
+: (FIND)
+    FINDNAME
     DUP IF
        NIP DUP NFA>CFA       \ -- nfa xt
        SWAP 1- C@ 1 AND      \ -- xt immbit
        0= 1 OR               \ -- xt -1 | 1
     THEN ;
-
-: (FIND)   FINDNAME NFA>XT ;
