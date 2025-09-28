@@ -46,11 +46,13 @@ S" MULTDIV"     INCLUDED
 S" COMPARES"    INCLUDED
 S" MOVEFILL"    INCLUDED
 S" SKIPSCAN"    INCLUDED
+S" FIND"    INCLUDED
 S" MISC"        INCLUDED  \ contains PAUSE EXECUTE
 S" DOLOOP"      INCLUDED  \ cross-compiler DO/LOOP
 S" VDP-API"     INCLUDED
 S" ITC-COLON"   INCLUDED
 S" TICKTOCK"    INCLUDED   \ 9901 hardware timer
+
 
 \ Meta words look like Forth but compile to TARGET
  S" METADEFS"    INCLUDED
@@ -205,7 +207,7 @@ TARGET
 
 \ =====================================================================
 \ Dictionary search
-S" FIND"        INCLUDED
+COMPILER
 
 \ =====================================================================
 \ P A R S E   W O R D
@@ -405,18 +407,19 @@ TARGET
 \ D I C T I O N A R Y   S E A R C H
 TARGET
 
-VARIABLE CONTEXT  COMPILER  0 T, 0 T, 0 T, 0 T, 0 T, 0 T, 0 T, 0 T, TARGET
 \ *G Array of Root + 8 wordlists to control search order
-
+VARIABLE CONTEXT  COMPILER  0 T, 0 T, 0 T, 0 T, 0 T, 0 T, 0 T, 0 T,
 VARIABLE CURRENT \ ** wordlist where definitions will be added
-: <FIND>  ( caddr --  caddr  0  if not found)
+
+\ : <FIND>  ( caddr --  caddr  0  if not found)
 \                      xt    1  if XIMMEDIATE,
 \                      xt   -1  if "normal"
-      CONTEXT @ ( HASH) @ (FIND) ;
+\      CONTEXT @ ( HASH) @ (FIND) ;
+\
+\ VARIABLE 'FIND   \ *G vector for the action of find
 
-VARIABLE 'FIND   \ *G vector for the action of find
+: FIND     ( caddr -- ) LATEST @ (FIND) ;
 
-: FIND     ( caddr -- ) 'FIND PERFORM ;
 : '        ( -- xt) BL WORD FIND 0= ?ERR ;
 : [']      ( -- <name> ) ?COMP  '  T[COMPILE] LITERAL ; XIMMEDIATE
 
@@ -538,7 +541,7 @@ HEX
       CR ." Press key to call Find"
       KEY DROP
       HEX
-      CR ." FIND RESULT= " PAD LATEST @ (FIND)  SWAP U. U.
+      CR ." FIND RESULT= " PAD FIND  SWAP U. U.
       KEY DROP
 ;
 
@@ -556,7 +559,7 @@ HEX
       205F CURS !
       TEXT
       ['] <INTERP> 'IV ! ( ) \ >B762 -> >ABDA
-      ['] <FIND>   'FIND !   \ B6AE  -> B6C6
+ \     ['] <FIND>   'FIND !   \ B6AE  -> B6C6
       ORGDP @ DP !
       ORGLAST @ LATEST !
       LATEST DUP CONTEXT ! CURRENT !

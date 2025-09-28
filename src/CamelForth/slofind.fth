@@ -10,7 +10,7 @@ CODE COMPARE ( str1,n,str2 n -- 0:SAME, 1:GT, -1:LT)
     R2 POP,   \ str1
     TOS R0 CMP, \ compare lengths for fast escape
     TOS CLR,    \ clear output flag does not change CPU status
-    1 $ JNE,
+    1 $ JNE,    \ if lengths not same jump out
 \ compare loop
     BEGIN,
         R0 DEC,
@@ -25,9 +25,7 @@ CODE COMPARE ( str1,n,str2 n -- 0:SAME, 1:GT, -1:LT)
     NEXT,
  ENDCODE
 
-: IMMED?   ( nfa -- f) ;
-
-CODE NFA>NFA -3 (TOS) TOS MOV, NEXT, ENDCODE
+CODE NFA>NFA ( nfa -- nfa')  -3 (TOS) TOS MOV,  NEXT, ENDCODE
 
 \ find string in dictionary
 \                        xt     1  if immediate
