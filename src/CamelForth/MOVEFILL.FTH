@@ -2,7 +2,7 @@
 HEX
 
 TARGET
-CODE MOVE  ( src dst u -- ) \ u = no. of *CELLS* to move
+CODE MOVE  ( src dst u -- ) \ u = no. of CELLS to move
     R0 POP,
     R1 POP,
     BEGIN,

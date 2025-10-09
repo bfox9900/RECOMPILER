@@ -1,7 +1,7 @@
 \ MAKE CAMEL99 ITC Forth with FXCC cross-compiler  Nov 2024  Brian Fox
 
-\    *** TIB AND STACK LOCATIONS ***
 COMPILER
+\    *** TIB AND STACK LOCATIONS ***
 HEX
         FFFC    EQU EMEM     \ EMEM = "end of memory"
         0050    EQU TIBSIZE  \ 80 bytes is the longest file string
@@ -12,50 +12,19 @@ EMEM TIBSIZE -  EQU 'TIB     \ Terminal input buffer just below
       8300      EQU WRKSP0   \ primary workspace in 16 bit RAM
 
 \   *** TARGET MEMORY LOCATION ***
-
     A000 VALUE CODESEG
     2000 VALUE HEAPSEG
 
-\ setup the build
+\ ******************** Build code starts here ******************
     NEW
     CODESEG ORG
 
-HEADERS  ON \ include dictionary
-WARNINGS ON  \ prevents endless "<xxxx> is redefined"
+HEADERS  ON  \ include dictionary
+WARNINGS ON  \ OFF prevents endless "<xxxx> is redefined"
 
-\ Add the fundamentals to the compiler and kernel image
-CHDIR DSK9.   \ camel99 source code disk
-S" ITC-CODE"  INCLUDED   \ code word definer
-S" EXECUTORS" INCLUDED   \ fundamental runtime code for Forth
-S" ITC-TYPES" INCLUDED   \ CONSTANT VARIABLE : ; etc.
-S" BRANCHING" INCLUDED   \ cross-compiler IF ELSE THEN BEGIN etc.
-\ compiler extensions and forward references for (S") and TYPE
-S" TSQUOTE"   INCLUDED
 
-\ build the target image ...
-COMPILER HEX
-\ ====================================
 CHDIR DSK9.
-CR .(  "CODE" words )
-S" FETCHSTORE"  INCLUDED
-S" RSTACK"      INCLUDED
-S" DODOES"      INCLUDED
-S" DATASTACK"   INCLUDED
-S" LOGICMATH"   INCLUDED
-S" MULTDIV"     INCLUDED
-S" COMPARES"    INCLUDED
-S" MOVEFILL"    INCLUDED
-S" SKIPSCAN"    INCLUDED
-S" FIND"    INCLUDED
-S" MISC"        INCLUDED  \ contains PAUSE EXECUTE
-S" DOLOOP"      INCLUDED  \ cross-compiler DO/LOOP
-S" VDP-API"     INCLUDED
-S" ITC-COLON"   INCLUDED
-S" TICKTOCK"    INCLUDED   \ 9901 hardware timer
-
-
-\ Meta words look like Forth but compile to TARGET
- S" METADEFS"    INCLUDED
+S" LOWLEVEL" INCLUDED  \ compiler extensions and forth primitives
 
 COMPILER CR .( Constants and VARIABLEs...)
 \ CAMEL99 Forth HI-LEVEL WORDs RE-COMPILED
@@ -151,7 +120,6 @@ TARGET
 : PAD       ( -- addr) HERE TPAD @ + ;
 : COMPILE   ( -- )  R> DUP 2+ >R @  , ;
 : IMMEDIATE ( --)   01 LATEST @ 1-  C! ;
-
 
 : LITERAL   ( n -- n|~) STATE @ IF  COMPILE LIT ,  THEN ;  XIMMEDIATE
 : ]         ( -- ) STATE ON  ;
@@ -273,6 +241,7 @@ TARGET
 \  S C R E E N   D R I V E R
 COMPILER
 CR .( Console output)
+CHDIR DSK9.
 S" CONSOLE" INCLUDED
 
 \ ======================================================================
@@ -411,14 +380,14 @@ TARGET
 VARIABLE CONTEXT  COMPILER  0 T, 0 T, 0 T, 0 T, 0 T, 0 T, 0 T, 0 T,
 VARIABLE CURRENT \ ** wordlist where definitions will be added
 
-\ : <FIND>  ( caddr --  caddr  0  if not found)
-\                      xt    1  if XIMMEDIATE,
-\                      xt   -1  if "normal"
-\      CONTEXT @ ( HASH) @ (FIND) ;
-\
-\ VARIABLE 'FIND   \ *G vector for the action of find
+ : <FIND>  ( caddr --  caddr  0  if not found)
+ \                     xt    1  if XIMMEDIATE,
+ \                     xt   -1  if "normal"
+      CONTEXT @ ( HASH) @ (FIND) ;
 
-: FIND     ( caddr -- ) LATEST @ (FIND) ;
+ VARIABLE 'FIND   \ *G vector for the action of find
+
+: FIND     ( caddr -- ) 'FIND PERFORM ;
 
 : '        ( -- xt) BL WORD FIND 0= ?ERR ;
 : [']      ( -- <name> ) ?COMP  '  T[COMPILE] LITERAL ; XIMMEDIATE
@@ -444,7 +413,8 @@ VARIABLE CURRENT \ ** wordlist where definitions will be added
 \ ======================================================================
 \ I N T E R P R E T E R  /  C O M P I L E R
 
-COMPILER CR .( Interpreter/compiler loop)
+HOST CR .( Interpreter/compiler loop)
+
 TARGET
 : <INTERP>  ( i*x c-addr u -- j*x )
       'SOURCE 2!  >IN OFF
@@ -528,22 +498,24 @@ HEX
 
 : TESTER
       HEX
-      PAGE ." Camel99 Built Itself"
+      PAGE T." Camel99 Built Itself"
       CR
-      CR ." Press key to put WARM in PAD"
+      CR T." Press key to put WARM in PAD"
       KEY DROP
       TS" WARM" PAD PLACE
       CR PAD COUNT TYPE
-      CR ." DP    = " DP @ U.
-      CR ." LATEST= " LATEST @ U.
-      CR ." PAD   = " PAD U.
+      CR T." DP    = " DP @ U.
+      CR T." LATEST= " LATEST @ U.
+      CR T." PAD   = " PAD U.
       CR
-      CR ." Press key to call Find"
+      CR T." Press key to call Find"
       KEY DROP
       HEX
-      CR ." FIND RESULT= " PAD FIND  SWAP U. U.
+      CR T." FIND RESULT= " PAD FIND  SWAP U. U.
       KEY DROP
 ;
+
+: DELAY  2000 0 DO I DROP LOOP ;
 
 : WARM  ( -- )
       80 83C2 C!
@@ -558,15 +530,18 @@ HEX
       SOURCE-ID OFF
       205F CURS !
       TEXT
+      ." Camel99 Built Itself"
+      CR 41 SPACE EMIT SPACE 42 EMIT SPACE  43 EMIT
+      HONK DELAY BEEP  \ GOOD TO HERE !!!
+      CR 44 EMIT
+      KEY DROP
+
       ['] <INTERP> 'IV ! ( ) \ >B762 -> >ABDA
- \     ['] <FIND>   'FIND !   \ B6AE  -> B6C6
+      ['] <FIND>   'FIND !   \ B6AE  -> B6C6
+\ ORGDP needed because DP user variable is kept in scratchpad RAM
       ORGDP @ DP !
       ORGLAST @ LATEST !
       LATEST DUP CONTEXT ! CURRENT !
-
-      TESTER
-      WORDS
-      KEY DROP
       ABORT
 ;
 

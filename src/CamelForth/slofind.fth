@@ -2,7 +2,10 @@
 
 TARGET
 
-INCLUDE DSK1.LOWTOOLS
+INCLUDE DSK1.TOOLS
+INCLUDE DSK1.ASM9900
+INCLUDE DSK1.ASMLABELS
+INCLUDE DSK1.ELAPSE
 
 CODE COMPARE ( str1,n,str2 n -- 0:SAME, 1:GT, -1:LT)
     R1 POP,   \ str2
@@ -14,7 +17,7 @@ CODE COMPARE ( str1,n,str2 n -- 0:SAME, 1:GT, -1:LT)
 \ compare loop
     BEGIN,
         R0 DEC,
-    OC WHILE,
+    NE WHILE,
         R1 *+ R2 *+ CMPB, \ compare & auto increment
     NE UNTIL,
 \ mistmatch found
@@ -32,18 +35,18 @@ CODE NFA>NFA ( nfa -- nfa')  -3 (TOS) TOS MOV,  NEXT, ENDCODE
 \                        xt    -1  if "normal"
 : (FIND) ( c-addr wid -- c-addr 0) \ if not found
     BEGIN                  \ -- a nfa
-       2DUP                \ -- a nfa a nfa
-       COUNT ROT COUNT     \ -- a nfa  nfa n a n
-       COMPARE             \ -- a nfa f
+      2DUP
+      COUNT ROT COUNT COMPARE \ -- a nfa f
     WHILE
-        NFA>NFA            \ -- a nfa'
+      NFA>NFA            \ -- a nfa'
     REPEAT                 \ -- a nfa  OR  a 0
-
     DUP IF
        NIP DUP NFA>CFA     \ -- nfa xt
-       SWAP  1- C@ 1 AND   \ -- xt iflag
-       0= 1 OR
+       SWAP  1- C@         \ -- xt iflag
+       DUP 0= OR           \ -- xt 1 | -1
     THEN ;
 
 : EXIT$  S" EXIT" PAD PLACE  PAD ;
 : NFA    LATEST @ ;
+: LIT$   S" LITERAL" PAD PLACE PAD ;
+: @$     s" @" PAD PLACE PAD ;

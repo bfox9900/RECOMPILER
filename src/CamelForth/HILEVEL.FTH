@@ -532,39 +532,33 @@ COMPILER
 COMPILER HEX
 TARGET
 
-\ *G  WARM initializes variables and vectors
 : WARM  ( -- )
-      80 83C2 C!
-      26 TPAD !
-      1000 VP !  ( Free VDP memory start )
-      2000 H !   ( heap starts in low RAM)
-      FFAC TIB !
-      3FFF TMR!
-      VDPTOP ^PAB !
-      L0 LP !
-      FLOOR ON
-      SOURCE-ID OFF
-      205F CURS !
-      TEXT
+        80 83C2 C!
+        26 TPAD !
+        1000 VP !  ( Free VDP memory start )
+        2000 H !   ( heap starts in low RAM)
+        3FFF TMR!
+        VDPTOP ^PAB !
+        L0 LP !
+        FLOOR ON
+        SOURCE-ID OFF
 
-      ['] <INTERP> 'IV !
-      ['] <FIND>   'FIND !
+        ['] <INTERP> 'IV !
+        ['] <FIND>   'FIND !
 
-      DECIMAL
-      ORGDP @ DP !
-      ORGLAST @ LATEST !
-      LATEST DUP CONTEXT ! CURRENT !
-      PAGE TS" CAMEL99 Forth " TYPE
-      CR
-      TEST
-      ABORT
+        DECIMAL
+\ ORGDP is needed because USER VAR DP lives in scratchpad RAM
+        ORGDP @ DP !
+        ORGLAST @ LATEST !
+        LATEST DUP CONTEXT ! CURRENT !
+        TEXT S" CAMEL99 Forth " TYPE
 ;
 
 \ debugging word
 \ CODE HALT  BEGIN, R13 INC, AGAIN,  NEXT, ENDCODE
 
 \ G*  LOADSYS is the primary boot word that starts Forth and loads extensions
-\ : LOADSYS
-\      WARM
+: LOADSYS
+      WARM
 \      TS" DSK1.START" INCLUDED
-\      CR ABORT ;
+      CR ABORT ;
