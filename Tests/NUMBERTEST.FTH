@@ -433,7 +433,6 @@ VARIABLE 'FIND   \ *G vector for the action of find
 
 : .(   ')' PARSE TYPE ; XIMMEDIATE
 
-
 \ ======================================================================
 \ I N T E R P R E T E R  /  C O M P I L E R
 
@@ -457,7 +456,6 @@ TARGET
         DEPTH 0< TS" Short stack" ?ABORT
       REPEAT
       DROP ;
-
 
 \ ================================================================
 COMPILER HEX
@@ -504,9 +502,8 @@ ENDCODE
 
 CODE HALT  BEGIN,  AGAIN,  NEXT, ENDCODE
 
-
 VARIABLE X
-: TESTER       4000 0 DO I X ! LOOP ;
+: TESTER   4000 0 DO  I X !  LOOP ;
 
 : WARM  ( -- )
       80 83C2 C!
@@ -525,22 +522,22 @@ VARIABLE X
       DECIMAL
       ORGDP @ DP !
       ORGLAST @ LATEST !
- \     LATEST DUP CONTEXT ! CURRENT !
+\     LATEST DUP CONTEXT ! CURRENT !
       PAGE TS" Number TEST" TYPE
       CR
       41 EMIT 42 EMIT 43 EMIT
       CR  7 >DIGIT EMIT
+
+  \    ['] <FIND>   'FIND !   \ B6AE  -> B6C6
+  \    ['] <INTERP> 'IV ! ( ) \ >B762 -> >ABDA
+
       KEY DROP
       TESTER
-      KEY DROP
-      ['] <INTERP> 'IV ! ( ) \ >B762 -> >ABDA
-      KEY DROP
-      ['] <FIND>   'FIND !   \ B6AE  -> B6C6
       ABORT
 ;
 
 COMPILER
-TLAST  HOST @ DUP   COMPILER LATEST T! ORGLAST T!
+TLAST  HOST @ DUP   COMPILER LATEST T!  ORGLAST T!
 
 COMPILER
 THERE  ORGDP T!

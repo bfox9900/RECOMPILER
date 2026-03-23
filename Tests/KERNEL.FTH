@@ -23,7 +23,7 @@ HEADERS  ON  \ include dictionary
 WARNINGS ON  \ OFF prevents endless "<xxxx> is redefined"
 
 
-CHDIR DSK9.
+CHDIR DSK9.            \ source files will be on DSK9.
 S" LOWLEVEL" INCLUDED  \ compiler extensions and forth primitives
 
 COMPILER CR .( Constants and VARIABLEs...)
@@ -173,16 +173,15 @@ TARGET
 : /STRING ( caddr1 u1 n - caddr2 u2 ) TUCK - >R + R> ;
 : S,       ( c-addr u -- ) HERE OVER 1+ ALLOT PLACE  ALIGN ;
 
+COMPILER
 \ =====================================================================
 \ Dictionary search
-COMPILER
 
 \ =====================================================================
 \ P A R S E   W O R D
 COMPILER CR .( Parsing...)
 
 TARGET
-
 : SOURCE   ( -- addr len) 'SOURCE 2@ ;
 
 : PARSE    ( char -- c-addr u )  \ gForth
@@ -203,9 +202,10 @@ TARGET
       HERE BL OVER COUNT + C!  \ append blank character
 ;
 
+COMPILER
 \ =====================================================================
-COMPILER CR .( CAMEL FORTH Number conversion)
- HEX
+CR .( CAMEL FORTH Number conversion)
+HEX
 
 TARGET
 : BASE@   BASE @ ;
@@ -230,23 +230,25 @@ TARGET
       R> IF SWAP NEGATE SWAP THEN   \ negate if needed
 ;
 
+COMPILER
 \ S T R I N G   L I T E R A L S
-COMPILER HEX
+HEX
 
 TARGET
 : (S")    ( -- c-addr u) R>  COUNT  2DUP + ALIGNED >R ;
  T' (S") RESOLVES '(S")
 
+COMPILER
 \ ======================================================================
 \  S C R E E N   D R I V E R
-COMPILER
 CR .( Console output)
+
 CHDIR DSK9.
 S" CONSOLE" INCLUDED
 
+COMPILER
 \ ======================================================================
 \ N U M B E R   T O   S T R I N G   C O N V E R S I O N
-COMPILER
 HEX
 
 TARGET
@@ -267,16 +269,20 @@ CODE >DIGIT  ( n -- c)   \ ASM is 9 bytes, 4X faster
 : #>    ( ud1 -- c-addr u) 2DROP HP @ PAD OVER - ;
 : SIGN  ( n -- ) 0< IF  '-'  HOLD  THEN ;
 
+COMPILER
 \ ======================================================================
 \ N U M B E R  O U T P U T
+
 TARGET
 : UD.    ( d -- ) <#  #S  #> TYPE SPACE ;
 : U.     ( u -- ) 0 UD. ;
 : (.)    ( n -- caddr len)  DUP ABS 0 <#  #S ROT SIGN  #> ;
 : .      ( n -- ) (.)  TYPE SPACE ;
+
+COMPILER
 \ ======================================================================
 \ S I M P L E   S O U N D  I N T E R F A C E
-COMPILER HEX
+HEX
 TARGET
 \ write a byte to address of TMS9919 chip
 \ added PAUSE for multi-tasking improvement
@@ -302,6 +308,7 @@ TARGET
 
 : INTERPRET  ( addr len -- ) 'IV PERFORM ;
 
+COMPILER
 \ ======================================================================
 \ Q U I T :  The  O U T E R   I N T E R P R E T E R
 
@@ -323,10 +330,11 @@ TARGET
       2R> >IN ! SOURCE-ID !
 ;
 
+COMPILER
 \ ======================================================================
 \ E R R O R   H A N D L I N G
 \
-COMPILER HEX
+HEX
 TARGET
 : DECIMAL     ( -- ) 0A BASE ! ;
 : HEX         ( -- ) 10 BASE ! ;
@@ -348,16 +356,18 @@ TARGET
         THEN ABORT
       THEN 2DROP ;
 
-                  \ flag        addr length
-: ?ERR     ( ? -- )             HERE COUNT ?ABORT ;
-: ?EXEC    ( -- ) STATE @       TS" Interpret only" ?ABORT ;
-: ?COMP    ( -- ) STATE @ 0=    TS" Compile only"   ?ABORT ;
-: ?CSP     ( -- ) SP@ CSP @ -   TS" Unfinished"     ?ABORT ;
+                  \ flag         addr length
+: ?ERR     ( ? -- )            HERE COUNT ?ABORT ;
+: ?EXEC    ( -- ) STATE @      TS" Interpret only" ?ABORT ;
+: ?COMP    ( -- ) STATE @ 0=   TS" Compile only"   ?ABORT ;
+: ?CSP     ( -- ) SP@ CSP @ -  TS" Unfinished"     ?ABORT ;
 : !CSP     ( -- ) SP@ CSP ! ;
 
+COMPILER
 \ ======================================================================
 \ S T R I N G   L I T E R A L
 
+TARGET
 : S"  ( cccc" -- )          \ compiling action
 \ *G Non-standard: when interpreting S" puts the string at PAD + >IN
 \ ** and returns the address.
@@ -409,7 +419,6 @@ VARIABLE CURRENT \ ** wordlist where definitions will be added
 
 : .(   ')' PARSE TYPE ; XIMMEDIATE
 
-
 \ ======================================================================
 \ I N T E R P R E T E R  /  C O M P I L E R
 
@@ -434,7 +443,6 @@ TARGET
         DEPTH 0< TS" Short stack" ?ABORT
       REPEAT
       DROP ;
-
 
 \ ================================================================
 COMPILER HEX
@@ -485,37 +493,39 @@ HEX
 : .ID  COUNT 1F AND  TYPE ;
 
 : WORDS
-    LATEST @
-    CR
-    BEGIN
+      LATEST @
+      CR
+      BEGIN
         DUP .ID SPACE
         NFA>LFA @
         DUP
         0= ?TERMINAL OR
-    UNTIL
-    DROP
+      UNTIL
+      DROP
 ;
 
+\ COMPILER
+\ TCREATE PAD2   20 TALLOT
+
+TARGET
 : TESTER
       HEX
-      PAGE T." Camel99 Built Itself"
-      CR
-      CR T." Press key to put WARM in PAD"
+      CR T." Press key to put 'EXIT' in PAD"
       KEY DROP
-      TS" WARM" PAD PLACE
+      TS" EXIT"  PAD PLACE
       CR PAD COUNT TYPE
+      CR T." PAD   = " PAD U.
       CR T." DP    = " DP @ U.
       CR T." LATEST= " LATEST @ U.
-      CR T." PAD   = " PAD U.
       CR
-      CR T." Press key to call Find"
-      KEY DROP
-      HEX
-      CR T." FIND RESULT= " PAD FIND  SWAP U. U.
+ \     CR T." Press key to call Find"
+ \     KEY DROP
+ \     HEX
+ \     CR T." FIND RESULT= " PAD LATEST @ (FIND)  SWAP U. U.
       KEY DROP
 ;
 
-: DELAY  2000 0 DO I DROP LOOP ;
+: DELAY  2300 0 DO I DROP LOOP ;
 
 : WARM  ( -- )
       80 83C2 C!
@@ -528,35 +538,41 @@ HEX
       L0 LP !
       FLOOR ON
       SOURCE-ID OFF
-      205F CURS !
-      TEXT
-      ." Camel99 Built Itself"
-      CR 41 SPACE EMIT SPACE 42 EMIT SPACE  43 EMIT
-      HONK DELAY BEEP  \ GOOD TO HERE !!!
-      CR 44 EMIT
-      KEY DROP
 
-      ['] <INTERP> 'IV ! ( ) \ >B762 -> >ABDA
-      ['] <FIND>   'FIND !   \ B6AE  -> B6C6
-\ ORGDP needed because DP user variable is kept in scratchpad RAM
       ORGDP @ DP !
       ORGLAST @ LATEST !
-      LATEST DUP CONTEXT ! CURRENT !
-      ABORT
+
+ \     ['] <INTERP> 'IV ! ( ) \ >B762 -> >ABDA
+ \     ['] <FIND>   'FIND !   \ B6AE  -> B6C6
+
+\ ORGDP needed because DP user variable is kept in scratchpad RAM
+ \     LATEST DUP CONTEXT ! CURRENT !
+      HEX
+      TEXT
+      HONK DELAY BEEP  \ GOOD TO HERE !!!
+      PAGE T." Camel99 Built Itself"
+      CR
+      205F CURS !
+      CR CR CR CR 41  EMIT
+   \   CR ." Press key to put ORDDP into >8324"
+      KEY DROP
+      TESTER
+      KEY DROP
+      BYE
 ;
 
-COMPILER
-\ LATEST = B857
-\ ORGLAST = B857
-TLAST  HOST @  DUP  COMPILER LATEST T! ORGLAST T!
-
-COMPILER
-THERE ORGDP T!
 
 PREAMBLE COLD
 BOOT AUTOSTART WARM
 
 END.   ( report compile time and stats)
+
+\ LATEST = B857
+\ ORGLAST = B857
+COMPILER TLAST  HOST @  COMPILER  ORGLAST T!
+
+COMPILER THERE  ORGDP T!
+
 
 SAVE DSK8.KERNEL
 

@@ -1,0 +1,1 @@
+This is "Files in a disk" (FIAD) disk with output files from the RECOMPILER project.

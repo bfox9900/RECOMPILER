@@ -50,8 +50,8 @@ S" MISC"        INCLUDED  \ contains PAUSE EXECUTE
 S" DOLOOP"      INCLUDED  \ cross-compiler DO/LOOP
 S" VDP-API"     INCLUDED
 S" ITC-COLON"   INCLUDED
+
+
 S" TICKTOCK"    INCLUDED   \ 9901 hardware timer
-
-
 \ Meta words look like Forth but compile to TARGET
  S" METADEFS"    INCLUDED
