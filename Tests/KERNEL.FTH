@@ -542,8 +542,8 @@ TARGET
       ORGDP @ DP !
       ORGLAST @ LATEST !
 
- \     ['] <INTERP> 'IV ! ( ) \ >B762 -> >ABDA
- \     ['] <FIND>   'FIND !   \ B6AE  -> B6C6
+      ['] <INTERP> 'IV ! ( ) \ >B762 -> >ABDA
+      ['] <FIND>   'FIND !   \ B6AE  -> B6C6
 
 \ ORGDP needed because DP user variable is kept in scratchpad RAM
  \     LATEST DUP CONTEXT ! CURRENT !
