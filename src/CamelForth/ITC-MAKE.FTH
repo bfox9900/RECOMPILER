@@ -20,7 +20,7 @@ EMEM TIBSIZE -  EQU 'TIB     \ Terminal input buffer just below
     NEW
     CODESEG ORG
 
-HEADERS  ON \ include dictionary
+HEADERS  ON   \ include dictionary
 WARNINGS OFF  \ prevents endless "<xxxx> is redefined"
 
 CHDIR DSK9.   \ camel99 source code disk
@@ -74,7 +74,8 @@ S" TICKTOCK"    INCLUDED   \ 9901 hardware timer
 COMPILER WARNINGS ON
 CHDIR DSK9.
 
- S" HILEVEL"    INCLUDED  \ includes: CONSOLE DSRLINKB FILESYS
+ \ HILEVEL includes: CONSOLE DSRLINKB FILESYS
+ S" HILEVEL"    INCLUDED
 
 
 \ ======================================================================

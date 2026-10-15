@@ -9,7 +9,7 @@ CODE (FIND) ( Caddr NFA -- XT ? )
     R5 8 SRL,                   \ get the byte on the correct side right
     BEGIN,
 \ Oct 10 2025: ** this comparison improves compile times by 14%
-        *R8 *R3 CMPB,          \ TEST length bytes
+        *R8 *R3 CMPB,            \ TEST length bytes
         EQ IF,
            \ load char compare registers
             R5 R0 MOV,           \ load R0 with length of caddr string
@@ -33,16 +33,16 @@ CODE (FIND) ( Caddr NFA -- XT ? )
             R2 *SP MOV,           \ replace Caddr with the XT in R2
 
 \ test for immediate or normal word -> TOS
-            TOS SETO,               \ we found a word so set TOS to -1
-            -1 (R3) R0 MOVB,     \ R3 has the NFA. Fetch NFA-1 (imm. field)
+            TOS SETO,             \ we found a word so set TOS to -1
+            -1 (R3) R0 MOVB,      \ R3 has the NFA. Fetch NFA-1 (imm. field)
             \ Oct 2020 added mask to support hashed threads
-            R0 0100 ANDI,        \ test the immediate bit
+            R0 0100 ANDI,         \ test the immediate bit
             NE IF,
-                TOS ABS,         \ if non zero change TOS from -1 to 1
-            ENDIF,               \ and head for home
-            NEXT,                \ Return to Forth
+                TOS ABS,          \ if non zero change TOS from -1 to 1
+            ENDIF,                \ and head for home
+            NEXT,                 \ Return to Forth
         ENDIF,
-1 $:   -3 (R3) R3 MOV,      \ fetch LFA, R3 now has new NFA
+1 $:   -3 (R3) R3 MOV,            \ fetch LFA, R3 now has new NFA
     EQ UNTIL,
-    NEXT,                    \ we got zero. End of the list! Go back to Forth
+    NEXT,              \ we got zero. End of the list! Go back to Forth
     ENDCODE

@@ -112,7 +112,7 @@ INCLUDE DSK1.CONDCOMP   \ conditional compilation is handy
 : ON   ON ;
 : OFF  OFF ;
 
-\ this did not work as a redefintion ??
+\ this did not work as a redefinition ??
 : IMMEDIATE ( --)  01 LATEST @ 1-  C! ;
 
 : CREATE     CREATE ;
@@ -123,8 +123,8 @@ INCLUDE DSK1.CONDCOMP   \ conditional compilation is handy
 
 : CHAR    PARSE-NAME DROP C@ ;  \ interpreting only
 
-: S"      POSTPONE S" ; IMMEDIATE
-: INCLUDED   INCLUDED ;
+: S"        POSTPONE S" ; IMMEDIATE
+: INCLUDED  INCLUDED ;
 : :NONAME  :NONAME ;
 
 HEX
@@ -141,7 +141,7 @@ PREVIOUS
 : CDATA  ( -- addr) LDADDR @ ;
 : 'ENTRY ( -- addr) CDATA CELL+ ; \ address of first code word to run
 
-\                   *** TARGET SPECIFIC COMMANDS ***
+\              *** TARGET SPECIFIC COMMANDS ***
 \ target image fetch and store use virtual address in SAMS memory
 HEX
 : T!      ( n sams --)  !L ;
@@ -164,9 +164,10 @@ HEX
 INCLUDE DSK7.SAMSAVE
 
 ONLY FORTH ALSO ASSEMBLER ALSO COMPILERS DEFINITIONS
-HEX
+HEX 1000 CONSTANT 4K
 \ erase entire 64k segment in 4K chunks
-: PURGE  FFFF 0 DO  I VIRT>REAL 1000 FFFF FILLW  1000  +LOOP ;
+: PURGE  ( -- )
+    FFFF 0 DO  I VIRT>REAL  4K FFFF FILLW  4K +LOOP ;
 
 : NEW
     CR ." Erasing 64K SAMS segment ..."
@@ -284,7 +285,7 @@ ONLY FORTH ALSO COMPILERS ALSO FORTH DEFINITIONS
         ELSE ( it's a number)
             COUNT NUMBER? ?ERR
            \ POSTPONE TLITERAL  \ change #2
-            STATE @ IF  'LIT T,  T,  THEN
+            STATE @ IF  'LIT T,  T,  THEN \ expanded for clarity
 
         THEN
         DEPTH 0< ABORT" Short stack"
@@ -374,11 +375,12 @@ HEX
 : GO
     WARM  E4 7 VWTR
     INIT-WORDLISTS
-    HOST ALSO COMPILERS
+    HOST
     CR ." FXCC Meta Compiler V0.92 23Sept2025"
     CR
     SAMSINI
-    CR COMPILER NEW
+    CR COMPILER
+    NEW           \ purge SAMS memory segment
     CR ." Ready"
     ABORT ;
 

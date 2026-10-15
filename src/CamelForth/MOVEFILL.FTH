@@ -59,4 +59,15 @@ CODE FILL   ( addr cnt char -- )
     NEXT,             \                             =116
     ENDCODE
 
+CODE ERASE ( addr cnt  -- ) \ 2x faster than 0 FILL
+    *SP+ R1 MOV,
+    BEGIN,
+      TOS DECT,
+    OC WHILE,
+      *R1+ CLR,
+    REPEAT,
+    TOS POP,
+    NEXT,
+ENDCODE
+
 COMPILER

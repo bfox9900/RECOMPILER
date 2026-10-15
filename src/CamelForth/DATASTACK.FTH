@@ -15,8 +15,8 @@ CODE SP!    ( a -- )
 
 CODE DROP   ( w -- )
 \            _drop >HSRAM CFA!
-           TOS POP,             \ 22 *SP+ TOS MOV,
-           NEXT,
+            TOS POP,            \ 22 *SP+ TOS MOV,
+            NEXT,
             ENDCODE
 
 CODE NIP    ( n n' -- n')
@@ -94,8 +94,8 @@ CODE 2DUP  ( n1 n2 -- n1 n2 n1 n2 )
             ENDCODE
 
 CODE 2SWAP  ( n1 n2 n3 n4-- n3 n4 n1 n2)
-             TOS       R0 MOV,    \ n4  14
-            *SP        R1 MOV,    \ n3  14
+            TOS       R0 MOV,    \ n4  14
+            *SP       R1 MOV,    \ n3  14
             2 (SP)   TOS MOV,    \ n2  22
             4 (SP)   *SP MOV,    \ n1  26
             R0    2 (SP) MOV,    \     22
@@ -104,10 +104,10 @@ CODE 2SWAP  ( n1 n2 n3 n4-- n3 n4 n1 n2)
             ENDCODE
 
 CODE PICK   ( n -- n)   \ GForth ITC takes 8 intel instructions for PICK
-              TOS  1 SLA,   \ 14  (" n CELLS")
-              SP TOS ADD,    \ 14
-             *TOS TOS MOV,   \ 18
-              NEXT,         \  46
-              ENDCODE
+            TOS  1 SLA,   \ 14  (" n CELLS")
+            SP TOS ADD,    \ 14
+            *TOS TOS MOV,   \ 18
+            NEXT,         \  46
+            ENDCODE
 
 COMPILER DECIMAL

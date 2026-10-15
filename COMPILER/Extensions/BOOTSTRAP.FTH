@@ -8,7 +8,7 @@
 \       compiling versions of colon and semi-colon
 
 
-COMPILER 
+COMPILER
 CR .( branch cross-compilers if then else etc...)
  : FWD>     ( -- addr) THERE    0 T, ;
  : <BACK    ( addr --) THERE  -   T, ;
@@ -39,26 +39,26 @@ cr .( cross compiler ':' and ';')
 \ In the following definition we use the HOST: ;HOST compiler words to create
 \ new versions of : and ; that cross-compile FORTH words into the TARGET
 
-HOST: :                             \ this is the CROSS compiler's ':'
-                !CSP                \ record the "current stack position" (used later)
-                ]T                  \ set XSTATE to true ie: turn on the compiler
-                <colon:>            \ put the word name in the Target dictionary and the mirror vocabulary
-                THIDE               \ set the 'smudge' bit so we can't find this word during compilation
-                TINTERPRET          \ run the cross compiler/interpreter on the input stream
+HOST: :            \ this is the CROSS compiler's ':'
+      !CSP         \ record the "current stack position" (used later)
+      ]T           \ set XSTATE to true ie: turn on the compiler
+      <colon:>     \ put the word name in the Target dictionary and the mirror vocabulary
+      THIDE        \ set the 'smudge' bit so we can't find this word during compilation
+      TINTERPRET   \ run the cross compiler/interpreter on the input stream
 ;HOST
 
 ?stk
 
 
-HOST: ;                            \ this the CROSS-compiler's ';'
-                TREVEAL            \ un-smudge the word so it can be found in the dictionary
-                TCOMPILE EXIT 
-                ?CSP               \ check is stack is the same place as when we started the definition
-                T[                 \ reset XSTATE (TARGET STATE) to interpreting
-;HOST   immediate
+HOST: ;     \ this the CROSS-compiler's ';'
+      TREVEAL            \ un-smudge the word so it can be found in the dictionary
+      TCOMPILE EXIT
+      ?CSP               \ check is stack is the same place as when we started the definition
+      T[                 \ reset XSTATE (TARGET STATE) to interpreting
+;HOST  IMMEDIATE
 
-\ tail call optimizing semi-colon. 
-\ Programmer discretion for when a word ends with another high-level Forth word. 
+\ tail call optimizing semi-colon.
+\ Programmer discretion for when a word ends with another high-level Forth word.
 \ >>>DOES NOT WORK<<<
  [CC]
  HOST: -;  ( -- ) \ programmer controlled
@@ -78,4 +78,3 @@ HOST: ;                            \ this the CROSS-compiler's ';'
 \
 SYNONYM x:   :                     \ "TARGET-compiling colon"
 SYNONYM ;x   ;  IMMEDIATE          \ "TARGET-compiling semi-colon"
-

@@ -51,9 +51,9 @@ CODE LSHIFT ( n bits -- n') \ shift left arithmetic
             ENDCODE
 
 CODE INVERT  ( u -- w)
-              TOS INV,              \ 10
-              NEXT,
-              ENDCODE
+            TOS INV,           \ 10
+            NEXT,
+            ENDCODE
 
 COMPILER
 CR .( math ...)
@@ -62,7 +62,7 @@ TARGET
 CODE +      ( u1 u2 -- u )
 \             _PLUS >HSRAM CFA!
             *SP+ TOS ADD,       \ ADD 2nd item to TOS and incr stack pointer.
-           NEXT,
+            NEXT,
             ENDCODE
 
 CODE -       ( u1 u2 -- u )
@@ -91,6 +91,7 @@ CODE NEGATE ( n -- n )
             TOS NEG,
             NEXT,
             ENDCODE
+
 COMPILER HEX
 TARGET
 CODE ALIGNED ( n -- n)
