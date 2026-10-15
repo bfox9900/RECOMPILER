@@ -139,7 +139,7 @@ PREVIOUS
 
 \ location of the code buffer in SAMS memory
 : CDATA  ( -- addr) LDADDR @ ;
-: 'PREAM ( -- addr) CDATA CELL+ ; \ address of first code word to run
+: 'ENTRY ( -- addr) CDATA CELL+ ; \ address of first code word to run
 
 \                   *** TARGET SPECIFIC COMMANDS ***
 \ target image fetch and store use virtual address in SAMS memory
@@ -234,7 +234,6 @@ ONLY FORTH ALSO COMPILERS DEFINITIONS
           THEN
 ;
 
-
 \ pass an XT to a forward reference word and store in the DATA field
 : RESOLVES  ( xt -- ) '  >BODY  ! ;
 
@@ -247,7 +246,6 @@ FORWARD 'LIT
 FORWARD '(S")
 FORWARD 'TYPE
 
-
 : TLITERAL  ( n -- ) STATE @ IF  'LIT T,   T,  THEN ; IMMEDIATE
 
 : TS,    ( adr len -- ) THERE OVER 1+  TALLOT TPLACE TALIGN ;
@@ -255,7 +253,6 @@ FORWARD 'TYPE
 \ interactive debugging tools
 : TCOUNT  ( sams$ -- sams len) DUP 1+ SWAP C@L  ;
 : TTYPE   ( sams len -- ) OVER + SWAP ?DO I C@L EMIT LOOP  ;
-
 
 \ H# (hex number prefix)
 \ Convert the next word in the input stream to a hex number
@@ -364,10 +361,10 @@ VARIABLE HEADERS      \ flag to control headers in target or not
 : AUTOSTART  ( variable -- ) ?EXEC T' ( -- a1 XT) SWAP T! ;
 
 \ sets the CODE word that the system jumps into to make Forth VM
-: PREAMBLE  ?EXEC T'  >BODY   'PREAM  T! ;
+: PREAMBLE  ?EXEC T'  >BODY   'ENTRY  T! ;
 
 : END.  CDATA 0= ABORT" ORG not set"
-       'PREAM T@ DEAD = ABORT" PREAMBLE not set"
+       'ENTRY T@ DEAD = ABORT" PREAMBLE not set"
 ;
 
 \ /\/\/\/\/\/\/\/\/\/\/\/ COMPILER ENDS /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\//\

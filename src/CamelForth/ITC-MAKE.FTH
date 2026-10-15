@@ -74,9 +74,7 @@ S" TICKTOCK"    INCLUDED   \ 9901 hardware timer
 COMPILER WARNINGS ON
 CHDIR DSK9.
 
-
  S" HILEVEL"    INCLUDED  \ includes: CONSOLE DSRLINKB FILESYS
-
 
 
 \ ======================================================================

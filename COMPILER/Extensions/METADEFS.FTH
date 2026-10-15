@@ -1,25 +1,33 @@
+\  DSK9.METADEFS      M E T A  D E F I N I T I O N S
 
-\ Add S"  string compiler Yikes!
- COMPILER ALSO META DEFINITIONS ( META holds "immediate" words and support )
- HOST: TALIGN     ( -- )   THERE ALIGNED H ! ;HOST
- HOST: TS,       ( c-addr u -- ) THERE OVER 1+ TALLOT PLACE  TALIGN ;HOST
+\ META definitions look like Forth words but do cross-compiler actions
+\ META wordlist is searched first while TARGET compiling, so these IMMEDIATE
+\ words always run first.
 
-COMPILER WARNINGS OFF
-  INCLUDE DSK7.PRIMITIVES \ TARGET code words
-COMPILER WARNINGS ON
+COMPILER
+CR .( compiling META Definitions )
 
-COMPILER DECIMAL
-TARGET
-\ run-time for S"
-\ 1st colon definition in the system. (could be a code word)
-: (S")  ( -- c-addr u) R>  COUNT  2DUP + ALIGNED >R ;
-
-\ META-compiling S"
 COMPILER ALSO META DEFINITIONS
-HOST: S"
-   [CHAR] " PARSE
-   TCOMPILE (S")  TS,
-;HOST IMMEDIATE
+
+: HEX      HEX  ;
+: DECIMAL  DECIMAL ;
+
+HOST: "PARSE  [CHAR] " PARSE ;HOST
+HOST: S"      ?COMP  '(S") T,  "PARSE TS, ;HOST IMMEDIATE
+HOST: ."      ?COMP  '(S") T,  "PARSE TS, 'TYPE T, ;HOST IMMEDIATE
+
+HOST: [CHAR]      CHAR   TCOMPILE LIT  T, ;HOST IMMEDIATE
+
+HOST: [COMPILE]   POSTPONE T[COMPILE]  ;HOST IMMEDIATE
+
+HOST: [']         ( -- <name>)
+    ?COMP
+    T'             \ look up the XT of the TARGET word in the input stream
+    'LIT T,  T,    \ store the address as a literal in the TARGET space
+;HOST  IMMEDIATE
+
+\ HOST: CREATE   TCREATE ;HOST
+\ HOST: ALLOT    TALLOT  ;HOST
 
 
-CR .( ITC FORTH Preamble loaded )
+COMPILER

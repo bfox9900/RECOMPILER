@@ -22,7 +22,8 @@ TARGET
 
 \ tell the compiler what to do with this
 COMPILER
-AUTOSTART MAIN
+PREAMBLE COLD   \ routine to build Forth VM
+AUTOSTART MAIN  \ first Forth word to run
 SAVE DSK7.HELLOWORLD
 
 HOST  \ return to HOST Forth

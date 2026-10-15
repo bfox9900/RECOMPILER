@@ -14,22 +14,22 @@ TARGET
 CODE RMODE
     R1 STWP,               \ avoids 2 SWPB instructions
     0 LIMI,
-    9 (R1) 8C02 @@ MOVB,   \ write odd byte from TOS (ie: R4)
+    9 R1 () 8C02 @@ MOVB,   \ write odd byte from TOS (ie: R4)
     TOS 8C02 @@ MOV,       \ MOV writes the even byte to the port
     NEXT,
 ENDCODE
 
 : WMODE ( vdpaddr -- ) 4000 OR RMODE ;
 
-\  VC@+  ( Vdpaddr -- c) VDPRD C@ ; \ read & inc. address
-\ : VC!+  ( c --) VDPWD C! ; \ write & inc. address
+: VC@+  ( Vdpaddr -- c) VDPRD C@ ; \ read & inc. address
+: VC!+  ( c --) VDPWD C! ;         \ write & inc. address
 
-: VC@   ( VDP-adr -- char ) RMODE VDPRD C@ ;
-: VC!   ( c vaddr --) WMODE VDPWD C! ; \ set address and write
+: VC@   ( vaddr -- char ) RMODE VC@+ ;
+: VC!   ( c vaddr --)     WMODE VC!+ ; \ set address and write
 
 \ VDP integer fetch & store
-: V@    ( VDPadr -- n) VC@  VDPRD C@  FUSE  ;
-: V!    ( n vaddr --) >R  SPLIT R> VC! VDPWD C! ;
+: V@    ( VDPadr -- n) RMODE VDPRD @  VC@+  OR  ;
+: V!    ( n vaddr --) >R  SPLIT R> VC! VC!+ ;
 
 [CC] CR ." VWRITE VREAD VFILL"
 TARGET
@@ -47,7 +47,6 @@ CODE (VMBW)  ( RAM-addr cnt -- ) \ must be used with WMODE
         NEXT,               \ return to Forth
 ENDCODE
 
-: VWRITE ( RAM-addr VDP-addr cnt -- ) SWAP WMODE (VMBW) ;
 
 CODE (VMBR) ( RAM-addr cnt  -- ) \ MUST be used with RMODE
         TOS R0 MOV,        \ cnt->R0
@@ -63,7 +62,8 @@ CODE (VMBR) ( RAM-addr cnt  -- ) \ MUST be used with RMODE
         NEXT,
 ENDCODE
 
-: VREAD ( VDP-adr RAM-addr cnt  -- ) ROT RMODE (VMBR) ;
+: VWRITE ( RAM-addr VDP-addr cnt -- ) SWAP WMODE (VMBW) ;
+: VREAD  ( VDP-adr RAM-addr cnt  -- ) ROT RMODE (VMBR) ;
 
 CODE (VFILL) ( count char-- )
         TOS W MOV,

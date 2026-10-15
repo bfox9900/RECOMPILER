@@ -26,7 +26,7 @@ COMPILER
 :NONAME  STATE @ IF  TCOMPILE LIT  T,  THEN ; IS TLITERAL
 
 \ These words are in the META vocabulary. When TARGET is invoked
-\ they will be found before the same words in the HOST Forth system.
+\ they will be found 1ST before the same words in the HOST Forth system.
 COMPILER
 ALSO META DEFINITIONS
 : CREATE     TCREATE  TCOMPILE DOVAR               DOES> @ >TBODY ;

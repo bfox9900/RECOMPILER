@@ -1,4 +1,4 @@
-\ TESTBYE.FTH     BARE MINUMUM PROGRAM
+\ TESTBYE.FTH   ** BARE MINUMUM ITC Forth PROGRAM **
 COMPILER
 HEX
 \    *** TIB AND STACK LOCATIONS ***
@@ -7,9 +7,15 @@ HEX
 EMEM TIBSIZE -  EQU 'TIB     \ Terminal input buffer just below
 
 \ These equates are used by cold. They could be hard coded as numbers in COLD
-     'TIB  2 -  EQU 'SP0     \ FORTH DATA stack base address
-     'SP0 6E -  EQU 'RP0     \ FORTH RETURN stack base address
-      8300      EQU WRKSP0   \ primary workspace in 16 bit RAM
+\      8300      EQU WRKSP0   \ primary workspace in 16 bit RAM
+\     'TIB  2 -  EQU 'SP0     \ FORTH DATA stack base address
+\     'SP0 6E -  EQU 'RP0     \ FORTH RETURN stack base address
+
+\ If the program is simple we can put data and return stacks in PAD
+       8300  EQU WRKSP0   \ primary workspace in 16 bit RAM
+       8400  EQU 'SP0     \ DATA stack in 16 bit RAM
+       83A0  EQU 'RP0     \  RETURN stack in 16 bit RAM
+
 
 \   *** TARGET MEMORY LOCATION ***
 
@@ -26,9 +32,6 @@ WARNINGS OFF  \ prevents endless "<xxxx> is redefined"
 CHDIR DSK9.   \ camel99 source code disk
 S" ITC-CODE"  INCLUDED   \ #1 code word definer
 S" EXECUTORS" INCLUDED   \ fundamental runtime code for Forth
-
-\ INCLUDE DSK9.SEEWORD
-
 S" ITC-TYPES" INCLUDED   \ CONSTANT VARIABLE : ; etc.
 S" BRANCHING" INCLUDED   \ cross-compiler IF ELSE THEN BEGIN etc.
 S" ITC-COLON" INCLUDED   \ cross-compiler colon/semi-colon
@@ -59,7 +62,7 @@ CODE BYE   ( -- )
 ENDCODE
 
 TARGET
-: WAIT  FFFF BEGIN  1-  DUP -UNTIL ;
+: WAIT  FFFF BEGIN  1-  DUP WHILE REPEAT DROP ;
 : GO    WAIT BYE ; \ the first and only colon definition
 
 PREAMBLE COLD

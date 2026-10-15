@@ -476,15 +476,16 @@ CODE +!  *SP+ *TOS ADD,  TOS POP,   NEXT, ENDCODE
 \      IF R> 1 + EXIT THEN
 \      THEN
 \   NEXT 0 ;
-: -TRAILING  ( adr len char -- adr len')  \ might be faster
-         2DUP + 1-
-         BEGIN
-            DUP C@ BL =   \ fetch last character
-         WHILE            \ test for BLANK
-            1-            \ while char is a match, decrement length
-         REPEAT
-         NIP OVER -  ;    \ 30 bytes  12.26 seconds
 
+: -TRAILING  ( adr len  -- adr len')
+      BEGIN
+         2DUP + 1- C@ BL =
+      WHILE
+         1-
+      REPEAT
+;
+
+DECIMAL
 : FILL ( b u c -- )
   SWAP FOR SWAP AFT 2DUP C! 1 + THEN NEXT 2DROP ;
 

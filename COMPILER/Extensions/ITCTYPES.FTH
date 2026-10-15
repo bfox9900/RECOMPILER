@@ -29,12 +29,12 @@ COMPILER
     DOES> ?RUNTARGET @ >BODY T@ ; \ returns 'n'  from TARGET memory
 \ *REMEMBER* T@ converts SAMS address to real address.
 
-: (:NONAME) ( -- )  TCOMPILE DOCOL  HIDE  STATE ON  ;
+: (:NONAME) ( -- )  TCOMPILE DOCOL   STATE ON  ;
 
 \ *NEW*  colon now switches to TARGET search order automagically
 \        semi-colon  swithes back to COMPILER search order.
 
-HOST: :   !CSP TCREATE  (:NONAME)  ;HOST
+HOST: :   !CSP TCREATE HIDE (:NONAME)  ;HOST
 HOST: :NONAME  THERE  !CSP  (:NONAME)  ;HOST
 
 \ This requires comments :-)

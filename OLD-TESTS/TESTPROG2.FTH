@@ -1,27 +1,24 @@
 \ TESTPROG2.FTH  Demo IMPORT: CODE  loops and AUTOSTART  30Oct2024 Fox
 
+
 COMPILER
 NEW
 
 HEX A000 ORG
 
-\ teach cross-compiler how "steal" host code words
-\ MUST GO AFTER ORG STATEMENT SO CODE WORD ENTRY IS CORRECT
-INCLUDE DSK7.IMPORT
-
+\ ===============[ THIS WILL BE PUT INTO A SINGLE FILE ]==================
 \ target code starts here
-\ build:;  EXIT NEXT DOCOL DOVAR DOCON LIT
+\ build:;  EXIT NEXT DOCOL DOVAR DOCON LIT ?BRANCH BRANCH (NEXT)
 INCLUDE DSK7.EXECUTORS
 
-INCLUDE DSK7.BRANCHING  \ teach cross-compiler to branch etc.
-
 \ IMPORT:  needs the word DOVAR and so must be loaded after EXECUTORS
-INCLUDE DSK7.ITCTYPES   \ teach compiler to make CONSTANT VARIABLE etc.
+INCLUDE DSK7.IMPORT     \ teach cross-compiler how "steal" host code words
+INCLUDE DSK7.ITCTYPES   \ teach compiler CONSTANT VARIABLE : ; etc.
+INCLUDE DSK7.BRANCHING  \ teach cross-compiler IF ELSE THEN BEGIN etc.
 
 \ create program entry word, COLD, which builds the Forth stacks
 \ Also creates the target variable called BOOT
 INCLUDE DSK7.PREAMBLE
-
 \ ========================================================================
 
 \ steal some code from the host Forth system
