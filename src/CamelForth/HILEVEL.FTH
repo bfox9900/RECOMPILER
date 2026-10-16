@@ -533,25 +533,31 @@ COMPILER HEX
 TARGET
 
 : WARM  ( -- )
-        80 83C2 C!
-        26 TPAD !
-        1000 VP !  ( Free VDP memory start )
-        2000 H !   ( heap starts in low RAM)
-        3FFF TMR!
-        VDPTOP ^PAB !
-        L0 LP !
-        FLOOR ON
-        SOURCE-ID OFF
+      80 83C2 C!
+      26 TPAD !
+      1000 VP !  ( Free VDP memory start )
+      2000 H !   ( heap starts in low RAM)
+      3FFF TMR!
+      VDPTOP ^PAB !
+      201E CURS ! \ space with BAR cursor
+      L0 LP !
+      FLOOR ON
+      SOURCE-ID OFF
 
-        ['] <INTERP> 'IV !
-        ['] <FIND>   'FIND !
+      T['] <INTERP> 'IV !
+      T['] <FIND>   'FIND !
 
-        DECIMAL
+      DECIMAL
 \ ORGDP is needed because USER VAR DP lives in scratchpad RAM
-        ORGDP @ DP !
-        ORGLAST @ LATEST !
-        LATEST DUP CONTEXT ! CURRENT !
-        TEXT S" CAMEL99 Forth " TYPE
+      ORGDP @ DP !
+      ORGLAST @ LATEST !
+      LATEST DUP CONTEXT ! CURRENT !
+      TEXT
+      T." CAMEL99 Forth Meta-compiled"
+      CR
+      80 0 DO  I EMIT LOOP
+      CR KEY DROP
+      BYE
 ;
 
 \ debugging word

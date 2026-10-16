@@ -248,7 +248,6 @@ FORWARD '(S")
 FORWARD 'TYPE
 
 : TLITERAL  ( n -- ) STATE @ IF  'LIT T,   T,  THEN ; IMMEDIATE
-
 : TS,    ( adr len -- ) THERE OVER 1+  TALLOT TPLACE TALIGN ;
 
 \ interactive debugging tools

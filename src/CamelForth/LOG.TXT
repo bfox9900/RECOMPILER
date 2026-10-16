@@ -18,3 +18,14 @@ Sept 25:  We got 'ok' but find is not working
 Sept 26: Implemented WORDS to test dictionary links. works fine.
 
 more...
+
+2026  Oct 16
+
+Testing Screen driver
+1.  EMIT TEST  GOOD
+
+2.  KEY  TEST  not showing cursor
+    CURS was not initialized
+    Added proper KEY version
+
+3.

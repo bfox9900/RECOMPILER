@@ -23,6 +23,7 @@ EMEM TIBSIZE -  EQU 'TIB     \ Terminal input buffer just below
 HEADERS  ON   \ include dictionary
 WARNINGS OFF  \ prevents endless "<xxxx> is redefined"
 
+CR .( Extending the compiler for ITC)
 CHDIR DSK9.   \ camel99 source code disk
 S" ITC-CODE"  INCLUDED   \ #1 code word definer
 S" EXECUTORS" INCLUDED   \ fundamental runtime code for Forth
@@ -98,6 +99,4 @@ END.   ( report compile time and stats)
 SAVE DSK8.NEWCAMEL
 
 ONLY FORTH DEFINITIONS
- CR ." === COMPILE ENDED PROPERLY ==="
-
-\ (FIND) is at B50C
+ CR ." *** COMPILE ENDED PROPERLY ***"
