@@ -26,6 +26,33 @@ Testing Screen driver
 
 2.  KEY  TEST  not showing cursor
     CURS was not initialized
-    Added proper KEY version
+    Added proper KEY version.  FIXED
 
-3.
+3.  Test META ."   FAILED.   Move on. Use T." for now
+
+4. Test FIND in WARM to see if 'iv and 'find are updated correctly.
+   TOTAL FAIL.  T['] did not find the addresses.
+   (find) code tested exactly as is in Forth. Source code is good.
+   Need to examine what T['] compiles ...
+
+**Manually set 'INTERP and 'FIND with literal address
+     Get 'ok'  :-)
+      - This shows T['] does not work correctly.
+
+     Fails when anything entered at console.
+
+     Tried to run TEST word.
+     (FIND) was entered but it searched the entire dictionary.
+     Did NOT find TEST
+
+Next step:
+    Confirm the string getting to find is correct
+    'SOURCE seems to have the correct values
+    Entry to find had the correct length.
+    Need to confirm the source address was correct, but I think so.
+
+Oct 19
+VARIABLEs return the correct address in interpreter
+BUT the compiled address is the CFA not the PFA.
+Are values being stored in the correct place?
+Testing ...

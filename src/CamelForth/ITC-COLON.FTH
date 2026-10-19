@@ -1,10 +1,10 @@
 [CC] CR .( CROSS-COMPILING colon semi-colon )
 
-COMPILER ALSO META DEFINTIONS
+COMPILER ALSO META DEFINITIONS
 HOST: :                \ this is the CROSS compiler's ':'
     !CSP               \ record the "current stack position"
     TCREATE
-    TCOMPILE DOCOL
+    'DOCOL T,
     HIDE               \ can't find this word during compilation
     STATE ON           \ turn on compiler
 ;HOST

@@ -197,33 +197,7 @@ ONLY FORTH ALSO COMPILERS DEFINITIONS
 
 : EQU     CONSTANT ;
 
-\ Note: The TARGET XT is held in the "body" (PFA) of the HOST word
-: >TARG-XT ( host-xt -- targ-xt ) >BODY @ ;
-
-\ Below we tick the duplicate word in host memory and fetch the TARGET XT
-: T'      ( <text> -- target-XT) ALSO TARGETS  '  >TARG-XT PREVIOUS ;
-: T[']    T'    POSTPONE LITERAL ; IMMEDIATE
-
-\ Tcompile gets an XT from HOST FIND. It cannot be compiled directly.
-\ We must reach inside to get the virtual memory address.
-: TCOMPILE, ( Host-XT -- ) >TARG-XT T, ;
-
-\ take the TARGET XT from the HOST compiler
-\ and "compile" it into the TARGET definition
-: TCOMPILE   ( -- <name>)
-    T'   POSTPONE LITERAL   POSTPONE T, ;  IMMEDIATE
-
-: T[COMPILE]    ( <name>)
-    ?COMP  T'    T,  ; IMMEDIATE
-
-: TPOSTPONE ( <name> -- ) \ *G replaces COMPILE and [COMPILE]
-      ?COMP
-      BL WORD FIND DUP 0= ?ERR
-      0< IF POSTPONE TCOMPILE
-      THEN  TCOMPILE, ; IMMEDIATE
-
-\ create an immediate word to name a forward reference
-\ *NEW* FORWARD words compile into target when invoked
+\ create an word to name a forward reference with error checking
 : FORWARD
     CREATE  0 ,
     DOES> @
@@ -247,7 +221,47 @@ FORWARD 'LIT
 FORWARD '(S")
 FORWARD 'TYPE
 
-: TLITERAL  ( n -- ) STATE @ IF  'LIT T,   T,  THEN ; IMMEDIATE
+\ Forth VM code to compile a literal number
+: TLIT, ( n --)  'LIT T,   T,  ;
+
+: TLITERAL  ( n -- ) STATE @ IF  TLIT,   THEN ; IMMEDIATE
+
+\ Note: The TARGET XT is held in the "body" (PFA) of the HOST word
+: >TARG-XT ( host-xt -- targ-xt ) >BODY @ ;
+
+\ Below we tick the duplicate word in host memory and fetch the TARGET XT
+: T'      ( <text> -- target-XT) ALSO TARGETS  '  >TARG-XT PREVIOUS ;
+
+\ TCOMPILE, gets an XT from HOST FIND. It cannot be compiled directly.
+\ We must reach inside to get the virtual memory address.
+: TCOMPILE, ( Host-XT -- ) >TARG-XT T, ;
+
+
+\                *** THERE BE DRAGONS HERE ***
+\ This is the tricky stuff about Forth cross-compilers. Read the comments
+
+\ lookup the TARGET XT  and "compile" it into the *COMPILER* as a literal
+\ Runtime:  take the literal and compile it into the target
+: TCOMPILE   ( -- <name>)
+    T'   POSTPONE LITERAL   POSTPONE T, ;  IMMEDIATE
+
+\         **OPPOSITE OF TCOMPILE**
+\ Lookup target XT and compile into *TARGET* as a literal
+\ Runtime: Push the address onto data stack
+: T[']    T'     TLIT,   ; IMMEDIATE
+
+\ LOOKUP the XT of <name> and compile the XT in the definition
+: T[COMPILE]   ( <name> )
+    ?COMP  T'    T,  ; IMMEDIATE
+
+: TPOSTPONE ( <name> -- ) \ *G replaces COMPILE and [COMPILE]
+      ?COMP
+      BL WORD FIND DUP 0= ?ERR
+      0< IF POSTPONE TCOMPILE
+      THEN  TCOMPILE, ; IMMEDIATE
+
+
+\ TARGET String compiler
 : TS,    ( adr len -- ) THERE OVER 1+  TALLOT TPLACE TALIGN ;
 
 \ interactive debugging tools
@@ -284,7 +298,7 @@ ONLY FORTH ALSO COMPILERS ALSO FORTH DEFINITIONS
         ELSE ( it's a number)
             COUNT NUMBER? ?ERR
            \ POSTPONE TLITERAL  \ change #2
-            STATE @ IF  'LIT T,  T,  THEN \ expanded for clarity
+            STATE @ IF  TLIT,  THEN \ expanded for clarity
 
         THEN
         DEPTH 0< ABORT" Short stack"
@@ -375,10 +389,11 @@ HEX
     WARM  E4 7 VWTR
     INIT-WORDLISTS
     HOST
-    CR ." FXCC Meta Compiler V0.92 23Sept2025"
+    CR ." FXCC Meta Compiler V0.94 19Oct2026"
+    CR ." New T[']"
     CR
     SAMSINI
-    CR COMPILER
+    CR  ." Search order:"  COMPILER ORDER
     NEW           \ purge SAMS memory segment
     CR ." Ready"
     ABORT ;

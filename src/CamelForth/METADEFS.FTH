@@ -23,7 +23,7 @@ HOST: [CHAR]      CHAR   TCOMPILE LIT  T, ;HOST IMMEDIATE
 HOST: [COMPILE]   POSTPONE T[COMPILE]  ;HOST IMMEDIATE
 
 HOST: [']         ( -- <name>)
-    TCOMPILE T[']  \ look up the XT of the TARGET word
+    POSTPONE T[']  \ look up the XT of the TARGET word
                    \ in the input stream compile as literal
 ;HOST  IMMEDIATE
 

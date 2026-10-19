@@ -12,7 +12,7 @@ COMPILER HEX
 \ Make them constants in the target system
 TARGET
 'SP0 CONSTANT SP0
-'SP0 CONSTANT RP0
+'RP0 CONSTANT RP0
 'TIB CONSTANT TIB
 
 \ Utility constants
@@ -87,7 +87,7 @@ TARGET
 : HERE      ( -- addr) DP @  ;
 : ALLOT     ( n --)   DP +! ;
 : ,         ( n -- ) HERE  ! 2 ALLOT ;
-: C,        ( n -- ) HERE C! 1 ALLOT  ;
+: C,        ( n -- ) HERE C! 1 ALLOT ;
 : COMPILE,  ( n -- )  , ;
 : ALIGN     ( -- )   HERE ALIGNED DP ! ;
 : PAD       ( -- addr) HERE TPAD @ + ;
@@ -383,9 +383,9 @@ VARIABLE 'FIND   \ *G vector for the action of find
 \ ======================================================================
 \ I N T E R P R E T E R  /  C O M P I L E R
 
-COMPILER CR .( Interpreter/compiler loop)
+HOST CR .( Interpreter/compiler loop)
 TARGET
-: <INTERP>  ( i*x c-addr u -- j*x )
+: <INTERP>  ( i*x c-addr u -- j*x ) \ XT= $B776
       'SOURCE 2!  >IN OFF
       BEGIN
         BL WORD  DUP C@   ( -- caddr len)
@@ -407,9 +407,9 @@ TARGET
 
 \ ======================================================================
 \ T I - 9 9   T E X T   M O D E   C O N T R O L
-COMPILER HEX
+HOST HEX
 TARGET
-: TEXT    ( -- )
+: TEXT    ( -- )  \ XT= B93E
       F0 DUP 83D4 C!
   ( F0) 01 VWTR
        0 2 VWTR   \ set VDP screen page
@@ -424,6 +424,7 @@ TARGET
       PAGE
 ;
 
+HOST
 \ ======================================================================
 \ TI-99 F I L E   S Y S T E M   I N T E R F A C E
 
@@ -476,19 +477,32 @@ TARGET
       06A0 COMPILE,  ['] DODOES COMPILE,   \ compiles: BL @DODOES
 ; XIMMEDIATE
 
+-1 [IF]
 : TEST
-  CR TIB @ U.
-  CR HERE U.
-  CR PAD  U.
-  CR SOURCE SWAP U. U.
-  CR 'FIND @ U.
-;
+  HEX
+  CR T." TIB=  " TIB  U.
+  CR T." HERE= " HERE U.
+  CR T." PAD = " PAD  U.
+  CR T." RP0 = " RP0  U.
+  CR T." SP0 = " SP0  U.
 
-COMPILER WARNINGS ON
+  CR
+  TIB 80 'SOURCE 2!
+  CR T." SOURCE   = " SOURCE SWAP U. U.
+  CR
+  CR T." 'IV    = " 'IV @ U.    \ >B778
+  CR T." 'FIND' = " 'FIND @ U.  \ B6C4
+;
+[THEN]
+
+
 \ ======================================================================
 \ LOOPS AND BRANCH COMPILERS FOR THE TI-99 SYSTEM
 
+COMPILER WARNINGS OFF
  INCLUDE DSK9.ISOLOOPS
+
+COMPILER WARNINGS ON
 
 \ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 \  ===[ CANNOT COMPILE IF, ELSE, THEN, BEGIN UNTIL ETC. AFTER THIS ]===
@@ -531,6 +545,10 @@ COMPILER
 \ B O O T   U P   C O D E
 COMPILER HEX
 TARGET
+: SET-VECTORS
+      T['] <INTERP> 'IV !   \ B776
+      T['] <FIND>   'FIND ! \ B6C2
+;
 
 : WARM  ( -- )
       80 83C2 C!
@@ -543,10 +561,9 @@ TARGET
       L0 LP !
       FLOOR ON
       SOURCE-ID OFF
-
-      T['] <INTERP> 'IV !
-      T['] <FIND>   'FIND !
-
+   \   B776 'IV !
+   \   B6C2 'FIND !
+      SET-VECTORS
       DECIMAL
 \ ORGDP is needed because USER VAR DP lives in scratchpad RAM
       ORGDP @ DP !
@@ -555,8 +572,8 @@ TARGET
       TEXT
       T." CAMEL99 Forth Meta-compiled"
       CR
-      80 0 DO  I EMIT LOOP
-      CR KEY DROP
+      TEST
+      KEY DROP
       BYE
 ;
 
@@ -568,3 +585,5 @@ TARGET
       WARM
 \      TS" DSK1.START" INCLUDED
       CR ABORT ;
+
+INCLUDE DSK9.PATCH

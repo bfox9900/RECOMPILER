@@ -46,7 +46,6 @@ TCREATE DOUSER ( -- addr)
         TOS STWP,
         *W TOS ADD,    \ add USER VAR's offset to Workspace pointer
         NEXT,
-
 T' DOUSER  RESOLVES 'DOUSER
 
 \ action of a literal number

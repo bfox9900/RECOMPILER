@@ -113,13 +113,16 @@ CODE KEY? ( -- char)  \ *WARNING* it takes 1,128uS for KEY? scan to run
         NEXT,
         ENDCODE
 
-: KEY
-     BEGIN
-       CURS @ VPUT
-       KEY?
-       ?DUP
-       BL VPUT
-     UNTIL  ;
+: KEY      ( -- char)
+      BEGIN                 \ start the loop
+        PAUSE               \ Essential for Multi-tasking with Console
+        CURS @              \ fetch 2 char cursor (space & _ )
+        TMR@ 1FFF >         \ compare hardware timer to 1FFF
+        IF >< THEN VPUT     \ swap cursor bytes & write
+        KEY?                \ check the keyboard
+        ?DUP                \ DUP IF <> 0
+      UNTIL                 \ loop until a key pressed
+      BL VPUT ;             \ put the space char on screen
 
 \ * Very fast built-in Fctn-4 test in console ROM
 \   http://www.unige.ch/medecine/nouspikel/ti99/keyboard.htm

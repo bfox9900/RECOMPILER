@@ -23,7 +23,7 @@ CR .( TARGET DEFINING WORDS, 16 BIT MACHINE)
 
 \ RESOLVE TLITERAL for target compiler loop
 COMPILER
-:NONAME  STATE @ IF  TCOMPILE LIT  T,  THEN ; IS TLITERAL
+\ :NONAME  STATE @ IF  TCOMPILE LIT  T,  THEN ; IS TLITERAL
 
 \ These words are in the META vocabulary. When TARGET is invoked
 \ they will be found 1ST before the same words in the HOST Forth system.

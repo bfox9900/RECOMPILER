@@ -1,5 +1,6 @@
 \ MAKE CAMEL99 ITC Forth with FXCC cross-compiler  Nov 2024  Brian Fox
 
+
 \    *** TIB AND STACK LOCATIONS ***
 COMPILER
 HEX
@@ -57,7 +58,7 @@ S" VDP-API"     INCLUDED
 \ =====================
 
 \ Meta words look like Forth but compile to TARGET
-\ S" METADEFS"    INCLUDED
+ S" METADEFS"    INCLUDED
 
 \ add cross-compiler colon/semi-colon
 S" ITC-COLON"   INCLUDED
