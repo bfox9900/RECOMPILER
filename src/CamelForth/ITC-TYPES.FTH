@@ -29,10 +29,10 @@ COMPILER
 \ they will be found 1ST before the same words in the HOST Forth system.
 COMPILER
 ALSO META DEFINITIONS
-: CREATE     TCREATE  TCOMPILE DOVAR               DOES> @ >TBODY ;
-: VARIABLE   TCREATE  TCOMPILE DOVAR    0 T,       DOES> @ >TBODY ;
-: 2VARIABLE  TCREATE  TCOMPILE DOVAR    0 T, 0 T,  DOES> @ >TBODY ;
-: CONSTANT   TCREATE  TCOMPILE DOCON ( n) T,       DOES> @ >TBODY T@ ;
+: CREATE     TCREATE  'DOVAR T,              DOES> @ >TBODY ;
+: VARIABLE   TCREATE  'DOVAR T,   0 T,       DOES> @ >TBODY ;
+: 2VARIABLE  TCREATE  'DOVAR T,   0 T, 0 T,  DOES> @ >TBODY ;
+: CONSTANT   TCREATE  'DOCON T, ( n) T,      DOES> @ >TBODY T@ ;
 
 
 \ USER variables are used in Multi-tasking Forth systems.
@@ -46,6 +46,6 @@ ALSO META DEFINITIONS
 \ In this case it is an EQU called WRKSP0 >8300
 COMPILER   ALSO META DEFINITIONS
 : USER ( n --)
-  TCREATE  TCOMPILE DOUSER  T,  DOES> @ >TBODY T@  WRKSP0 + ;
+  TCREATE  'DOUSER T,  T,  DOES> @ >TBODY T@  WRKSP0 + ;
 
 COMPILER

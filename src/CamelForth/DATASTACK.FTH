@@ -39,7 +39,7 @@ CODE DUP    ( w -- w w )          \ create a Forth Header for DUP
 
 CODE SWAP   ( w1 w2 -- w2 w1 )
             TOS   W MOV,          \ 14
-            *SP  TOS MOV,          \ 18
+            *SP TOS MOV,          \ 18
             W   *SP MOV,          \ 18
             NEXT,                 \ 50
             ENDCODE

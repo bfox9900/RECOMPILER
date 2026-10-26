@@ -15,16 +15,17 @@ COMPILER ALSO META DEFINITIONS
 \ HOST: S"      ?COMP  '(S") T,  [CHAR] " PARSE  TS, ;HOST IMMEDIATE
 \ HOST: ."      ?COMP  '(S") T,  [CHAR] " PARSE  TS, 'TYPE T, ;HOST IMMEDIATE
 HOST: "PARSE  [CHAR] " PARSE ;HOST
-HOST: S"      ?COMP  '(S") T,  "PARSE TS, ;HOST IMMEDIATE
-HOST: ."      T[COMPILE] T."  ;HOST IMMEDIATE
 
-HOST: [CHAR]      CHAR   TCOMPILE LIT  T, ;HOST IMMEDIATE
+HOST: S"      ?COMP  '(S") T,  "PARSE TS,  ;HOST IMMEDIATE
+HOST: ."      ?COMP  '(S") T,  "PARSE TS,   'TYPE T, ;HOST IMMEDIATE
+
+HOST: [CHAR]      CHAR   'LIT T,   T, ;HOST IMMEDIATE
 
 HOST: [COMPILE]   POSTPONE T[COMPILE]  ;HOST IMMEDIATE
 
 HOST: [']         ( -- <name>)
-    POSTPONE T[']  \ look up the XT of the TARGET word
-                   \ in the input stream compile as literal
+    T[COMPILE] [']   \ look up the XT of the TARGET word
+                     \ in the input stream compile as literal
 ;HOST  IMMEDIATE
 
 

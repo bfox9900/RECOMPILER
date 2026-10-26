@@ -2,6 +2,12 @@ COMPILER CR .( Constants and VARIABLEs...)
 \ CAMEL99 Forth HI-LEVEL WORDs RE-COMPILED
 \ must be compile via  ITC-MAKE.FTH
 
+\ *************** FOR TESTING ONLY ****************
+
+    INCLUDE DSK9.ITC-SETUP
+
+\ ************************************************
+
 \ BANDAIDS because I can't get [CHAR]  to work @#$!$%
 COMPILER HEX
 22 EQU '"'
@@ -31,10 +37,10 @@ TARGET
 \ ======================================================================
 \ U S E R   V A R I A B L E S
 \ CAMEL99 uses space after workspace for user vars.
-COMPILER HEX TARGET
+COMPILER HEX
 \ *G User VARIABLEs begin at >8320 for the primary Forth task
 \ ** User VARIABLE 0 .. 1F are workspace registers.
-
+TARGET
       20 USER TFLAG \ used for multi-tasker
       22 USER JOB   \ used for multi-tasker
       24 USER DP
@@ -54,6 +60,14 @@ COMPILER HEX TARGET
 \     40 USER 'SOURCE   \ uses 2 locations
 
       46 USER TPAD      \ holds offset from HERE for TASK PADs
+
+\ reserved addresses in scratchpad RAM.
+( can be used in different workspace/task)
+\     8354 length of DSR device name
+\     8356 address of DSR device string
+\     8370 is a system address for VDPTOP
+\     8376 is GPL joystick output.  Available for CAMEL99
+
       7E USER VPG       \ Each task can have it's own video page
 
 COMPILER
@@ -477,15 +491,50 @@ TARGET
       06A0 COMPILE,  ['] DODOES COMPILE,   \ compiles: BL @DODOES
 ; XIMMEDIATE
 
--1 [IF]
-: TEST
-  HEX
-  CR T." TIB=  " TIB  U.
-  CR T." HERE= " HERE U.
-  CR T." PAD = " PAD  U.
-  CR T." RP0 = " RP0  U.
-  CR T." SP0 = " SP0  U.
+\ ..............................  TESTS ................................
+: ?BREAK  ( -- ) ?TERMINAL IF CR ." *BREAK*"  ABORT THEN ;
+: SPACEBAR ( -- ) KEY? BL = IF  KEY DROP  THEN ;
+: .ID     ( NFAaddr --) COUNT 1F AND TYPE ;
+.( ..)
+: WORDS   ( -- )
+      CR
+      0 >R        ( word counter on rstack)
+      CONTEXT @ @
+      BEGIN DUP
+      WHILE
+         ?BREAK SPACEBAR
+         DUP .ID SPACE
+         R> 1+ >R
+         NFA>LFA @
+      REPEAT
+      DROP
+      CR R>
+      BASE @ >R
+      DECIMAL . SPACE ." words"
+      R> BASE ! ;
 
+: .S        ( -- )
+      ." |"
+      DEPTH
+      IF
+         0 DEPTH 2-
+         DO    I PICK  .    -1 +LOOP
+      THEN ;
+
+: REPORT
+ \ HEX
+  CR ." DP    = "  DP U. 3 SPACES
+  CR ." 'BASE "  BASE U. 3 SPACES ." BASE @ = " BASE @ U.
+  CR
+  CR ."  TPAD  = " TPAD @ U.
+  CR ."  LP    = " LP @ U.   3 SPACE ." L0 = " L0 U.
+  CR
+  CR ." TIB   = " TIB  U.
+  CR ." HERE  = " HERE U.
+  CR ." PAD   = " PAD  U.
+  CR ." RP0   = " RP0  U.
+  CR ." SP0   = " SP0  U.
+  CR ." LATEST= " LATEST @ U.
   CR
   TIB 80 'SOURCE 2!
   CR T." SOURCE   = " SOURCE SWAP U. U.
@@ -493,16 +542,22 @@ TARGET
   CR T." 'IV    = " 'IV @ U.    \ >B778
   CR T." 'FIND' = " 'FIND @ U.  \ B6C4
 ;
-[THEN]
 
+TARGET
+: IF-TEST    0 IF T." HELLO" ELSE  T." FALSE "  THEN  KEY DROP ;
+
+COMPILER DECIMAL
+
+TARGET
+
+
+\   ........................ END TESTS ..............................
 
 \ ======================================================================
 \ LOOPS AND BRANCH COMPILERS FOR THE TI-99 SYSTEM
 
-COMPILER WARNINGS OFF
  INCLUDE DSK9.ISOLOOPS
 
-COMPILER WARNINGS ON
 
 \ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 \  ===[ CANNOT COMPILE IF, ELSE, THEN, BEGIN UNTIL ETC. AFTER THIS ]===
@@ -525,8 +580,8 @@ CODE COLD
 \      EQ UNTIL,
       SP  'SP0  LI,    \ data stack
       RP  'RP0  LI,    \ return stack
-      R10 _NEXT LI,    \ inner interpreter
-      IP  BOOT  LI,    \ load interpreter pointer with boot word
+      R10 _NEXT LI,    \ inner interpreter -> R10
+      IP  BOOT  LI,    \ load IP with address of boot variable
       *R10 B,          \ run Forth NEXT (inner interpreter)
 ENDCODE
 
@@ -545,36 +600,36 @@ COMPILER
 \ B O O T   U P   C O D E
 COMPILER HEX
 TARGET
-: SET-VECTORS
-      T['] <INTERP> 'IV !   \ B776
-      T['] <FIND>   'FIND ! \ B6C2
-;
 
-: WARM  ( -- )
-      80 83C2 C!
+: WARM  ( -- ) \ >BB34
+      80 83C2 C!     ( enable all ISR functions )
+
+\ init critical user variables in scratch pad ram
+\ ORGDP is needed because USER VAR DP lives in scratchpad RAM
+      ORGDP @ 8324 ! \ DP !
+      10 BASE !
       26 TPAD !
+      L0 LP !
+ \    DEAD 'EMIT
+ \    BEEF 'KEY
+
+\ init system variables
       1000 VP !  ( Free VDP memory start )
       2000 H !   ( heap starts in low RAM)
       3FFF TMR!
-      VDPTOP ^PAB !
-      201E CURS ! \ space with BAR cursor
-      L0 LP !
+      VDPTOP ^PAB !   \ set base pab pointer
+
       FLOOR ON
       SOURCE-ID OFF
-   \   B776 'IV !
-   \   B6C2 'FIND !
-      SET-VECTORS
-      DECIMAL
-\ ORGDP is needed because USER VAR DP lives in scratchpad RAM
-      ORGDP @ DP !
-      ORGLAST @ LATEST !
-      LATEST DUP CONTEXT ! CURRENT !
       TEXT
-      T." CAMEL99 Forth Meta-compiled"
-      CR
-      TEST
-      KEY DROP
-      BYE
+
+      ORGLAST  @ LATEST !
+      LATEST DUP CONTEXT ! CURRENT !
+
+      ." CAMEL99 Forth Meta-compiled"  \ (S") = B020
+
+      T['] <INTERP> 'IV !   \ B776
+      T['] <FIND>   'FIND ! \ B6C2
 ;
 
 \ debugging word
@@ -584,6 +639,11 @@ TARGET
 : LOADSYS
       WARM
 \      TS" DSK1.START" INCLUDED
+      REPORT
+      CR .S
+      CR IF-TEST
+      .S
+      CR WORDS
       CR ABORT ;
 
 INCLUDE DSK9.PATCH

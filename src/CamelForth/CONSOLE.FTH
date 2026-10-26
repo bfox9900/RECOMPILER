@@ -59,8 +59,9 @@ TARGET
 \ ======================================================================
 \ V D P   T E X T   O U T P U T
 
-COMPILER HEX TARGET
+COMPILER HEX
 
+TARGET
 : PAGE   ( -- ) 0 0 AT-XY  VPOS C/SCR @  BL VFILL  ;
 
 \ : ++@   ( addr -- n)  DUP 1+! @ ;
@@ -150,8 +151,12 @@ TARGET
         WHILE
             DUP EMIT
             DUP 8 =
-            IF   DROP 1-  3 PICK  UMAX  \ changed to use: 3 PICK   B.F.
-            ELSE OVER C!  1+ OVER UMIN
+            IF
+                DROP          \ throw away the key
+                1-  3 PICK  UMAX  \ changed to use: 3 PICK   B.F.
+            ELSE
+                OVER C!       \ write char to caddr
+                1+ OVER UMIN  \ incr address and limit
             THEN
         REPEAT
         DROP NIP SWAP - ;

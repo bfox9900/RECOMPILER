@@ -36,15 +36,20 @@ HEX
       R> TLAST !     \ THERE is NFA of last TARGET word defined
 ;
 
+\ ************************************************************
+\         *** IMPORTANT NOTE ABOUT TCREATE ***
+\ TCREATE "creates" a name in the COMPILER dictionary,
+\ BUT, it only creates a HEADER in the TARGET dictionary.
+\ Arguably a confusing name. Should be THEADER.
+\ ************************************************************
 
 \ create SMART "code" words in the Target segment
 \ They CANNOT run on the HOST system but abort with an error
-\ **FIXED TCREATE** to record the NFA of the TARGET word.
 COMPILER
 HEX
 : TCREATE  ( -- SAMS_CFA)
    CREATE               \ create word in the host forth system
-      LATEST @ COUNT 1F AND THEADER,  \ make same name in the TARGET
+      LATEST @ COUNT 1F AND THEADER,  \ make "NAKED" header in TARGET
                                       \ no EXECUTOR is compiled
       THERE ,     \ record CFA of this TARGET word
   \ when invoked return the TARGET XT address of the word
